@@ -69,7 +69,7 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
     final userAuthService = Get.find<UserAuthService>();
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppTheme.backgroundLight,
       appBar: AppBar(
         title: const Text('My Profile'),
         actions: [
@@ -159,7 +159,7 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                   delay: const Duration(milliseconds: 100),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppTheme.surfaceLight,
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
@@ -363,7 +363,7 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                   delay: const Duration(milliseconds: 300),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppTheme.surfaceLight,
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(

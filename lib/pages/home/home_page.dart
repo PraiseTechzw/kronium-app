@@ -8,6 +8,7 @@ import 'package:kronium/core/routes.dart';
 import 'package:kronium/core/user_auth_service.dart';
 import 'package:kronium/pages/services/services_page.dart';
 import 'package:kronium/pages/home/home_screen.dart';
+import 'package:kronium/pages/projects/projects_page.dart';
 import 'package:kronium/widgets/app_drawer.dart';
 
 /// HomePage is the main shell for the app's tabbed navigation.
@@ -28,20 +29,20 @@ class HomePage extends StatelessWidget {
         // Show app bar only on Home tab
         appBar: _currentIndex.value == 0
             ? AppBar(
-                title: FadeInLeft(
+          title: FadeInLeft(
                   child: const Text('KRONIUM', style: TextStyle(fontWeight: FontWeight.bold)),
-                ),
-                actions: [
-                  FadeInRight(
-                    child: IconButton(
-                      icon: const Icon(Iconsax.notification),
-                      onPressed: () => _showNotifications(),
-                    ),
-                  ),
-                ],
-                elevation: 0,
+          ),
+          actions: [
+            FadeInRight(
+              child: IconButton(
+                icon: const Icon(Iconsax.notification),
+                onPressed: () => _showNotifications(),
+              ),
+            ),
+          ],
+          elevation: 0,
                 backgroundColor: AppTheme.primaryColor,
-                iconTheme: IconThemeData(color: isDarkMode ? Colors.white : Colors.black),
+          iconTheme: IconThemeData(color: isDarkMode ? Colors.white : Colors.black),
               )
             : null,
         // Beautiful, modular drawer
@@ -60,6 +61,7 @@ class HomePage extends StatelessWidget {
           children: const [
             HomeScreen(),
             ServicesPage(),
+            ProjectsPage(),
           ],
         ),
         // Floating action button for quick booking
@@ -89,6 +91,10 @@ class HomePage extends StatelessWidget {
               BottomNavigationBarItem(
                 icon: Icon(Iconsax.box),
                 label: 'Services',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Iconsax.document_text),
+                label: 'Projects',
               ),
             ],
           ),

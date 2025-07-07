@@ -8,11 +8,11 @@ class BottomNavigation extends StatelessWidget {
   final bool isDarkMode;
 
   const BottomNavigation({
-    Key? key,
+    super.key,
     required this.currentIndex,
     required this.onTap,
     required this.isDarkMode,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

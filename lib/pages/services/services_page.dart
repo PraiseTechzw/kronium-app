@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/routes.dart';
 import 'package:kronium/models/service_model.dart';
 import 'package:kronium/widgets/hover_widget.dart';
@@ -106,9 +107,9 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: AppTheme.backgroundLight,
       appBar: AppBar(
-        backgroundColor: Colors.green[700],
+        backgroundColor: AppTheme.primaryColor,
         leading: Navigator.canPop(context)
             ? IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -140,7 +141,7 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(100),
           child: Container(
-            color: Colors.green[700],
+            color: AppTheme.primaryColor,
             child: Column(
               children: [
                 FadeInDown(
@@ -151,10 +152,10 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
                       controller: _tabController,
                       isScrollable: true,
                       labelColor: Colors.white,
-                      unselectedLabelColor: Colors.white.withValues(alpha: 0.6),
+                      unselectedLabelColor: Colors.white70,
                       indicator: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
-                        color: Colors.white.withValues(alpha: 0.2),
+                        color: Colors.white.withOpacity(0.2),
                       ),
                       tabs: categories.map((category) => Tab(text: category)).toList(),
                     ),
@@ -185,7 +186,7 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
         onPressed: () => Get.toNamed(AppRoutes.bookProject),
         icon: const FaIcon(FontAwesomeIcons.calendarPlus, size: 20, color: Colors.white),
         label: const Text('Book Service', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.green[700],
+        backgroundColor: AppTheme.primaryColor,
       ),
     );
   }
@@ -238,7 +239,7 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
             _searchQuery.value.isEmpty
                 ? 'No services available in this category'
                 : 'No services found for "${_searchQuery.value}"',
-            style: const TextStyle(fontSize: 16, color: Colors.grey),
+            style: TextStyle(fontSize: 16, color: AppTheme.textSecondary),
           ),
           const SizedBox(height: 20),
           ElevatedButton(
@@ -247,7 +248,7 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
               _tabController.animateTo(0);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green[700],
+              backgroundColor: AppTheme.primaryColor,
             ),
             child: const Text('View All Services', style: TextStyle(color: Colors.white)),
           ),
@@ -274,163 +275,178 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: isHover
-              ? [
-                  BoxShadow(
-                                            color: service.color.withValues(alpha: 0.3),
-                    blurRadius: 15,
-                    spreadRadius: 1,
-                    offset: const Offset(0, 5),
-                  ),
-                ]
-              : [
-                  const BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 5,
-                    spreadRadius: 1,
-                    offset: Offset(0, 3),
-                  ),
-                ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                  child: service.videoUrl != null
-                      ? _VideoThumbnail(videoUrl: service.videoUrl!)
-                      : Image.asset(
-                          service.imageUrl ?? 'assets/images/logo.jpg',
-                          height: 120,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
-                ),
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Obx(() => IconButton(
-                    icon: FaIcon(
-                      _favorites.contains(service.title) 
-                        ? FontAwesomeIcons.solidHeart 
-                        : FontAwesomeIcons.heart,
-                      color: _favorites.contains(service.title) 
-                        ? Colors.red 
-                        : Colors.white,
-                    ),
-                    onPressed: () {
-                      if (_favorites.contains(service.title)) {
-                        _favorites.remove(service.title);
-                      } else {
-                        _favorites.add(service.title);
-                      }
-                    },
-                  )),
-                ),
-                if (service.price != null)
-                  Positioned(
-                    bottom: 8,
-                    left: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.green[700],
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        'From \$${service.price}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  ),
-                if (service.videoUrl != null)
-                  Positioned(
-                    bottom: 8,
-                    right: 8,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.5),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.play_arrow,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-              ],
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.shadow,
+              blurRadius: isHover ? 15 : 8,
+              spreadRadius: 1,
+              offset: const Offset(0, 5),
             ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: service.color.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(4),
+          ],
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              service.color.withOpacity(0.13),
+              AppTheme.surfaceLight,
+            ],
+          ),
+        ),
+        child: Stack(
+          children: [
+            // Decorative background circle
+            Positioned(
+              top: -30,
+              right: -30,
+              child: Container(
+                width: 70,
+                height: 70,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: service.color.withOpacity(0.08),
+                ),
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                      child: service.videoUrl != null
+                          ? _VideoThumbnail(videoUrl: service.videoUrl!)
+                          : Image.asset(
+                              service.imageUrl ?? 'assets/images/logo.jpg',
+                              height: 120,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
                     ),
-                    child: Text(
-                      service.category,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: service.color,
-                        fontWeight: FontWeight.bold,
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Obx(() => IconButton(
+                        icon: FaIcon(
+                          _favorites.contains(service.title)
+                              ? FontAwesomeIcons.solidHeart
+                              : FontAwesomeIcons.heart,
+                          color: _favorites.contains(service.title)
+                              ? Colors.red
+                              : AppTheme.primaryColor,
+                        ),
+                        onPressed: () {
+                          if (_favorites.contains(service.title)) {
+                            _favorites.remove(service.title);
+                          } else {
+                            _favorites.add(service.title);
+                          }
+                        },
+                      )),
+                    ),
+                    if (service.price != null)
+                      Positioned(
+                        bottom: 8,
+                        left: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryColor,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            'From \$${service.price}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    service.title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    service.description,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    if (service.videoUrl != null)
+                      Positioned(
+                        bottom: 8,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.5),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.play_arrow,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: service.color.withOpacity(0.13),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          service.category,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: service.color,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
                       Text(
-                        'Learn More',
+                        service.title,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        service.description,
                         style: TextStyle(
                           fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: service.color,
+                          color: AppTheme.textSecondary,
                         ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      FaIcon(
-                        FontAwesomeIcons.arrowRight,
-                        size: 14,
-                        color: service.color,
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Learn More',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: service.color,
+                            ),
+                          ),
+                          FaIcon(
+                            FontAwesomeIcons.arrowRight,
+                            size: 14,
+                            color: service.color,
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ],
         ),
@@ -729,7 +745,7 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          FaIcon(icon, size: 18, color: Colors.green[700]),
+          FaIcon(icon, size: 18, color: AppTheme.primaryColor),
           const SizedBox(width: 10),
           SizedBox(
             width: 120,

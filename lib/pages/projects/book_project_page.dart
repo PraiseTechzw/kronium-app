@@ -26,6 +26,16 @@ class _BookProjectPageState extends State<BookProjectPage> {
   final TextEditingController _notesController = TextEditingController();
 
   Service? _selectedService;
+  String? _selectedCategory;
+  final List<String> _categories = [
+    'All Projects',
+    'Greenhouses',
+    'Steel Structures',
+    'Solar Systems',
+    'Construction',
+    'Logistics',
+    'IoT & Automation',
+  ];
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
   bool _isSubmitting = false;
@@ -42,9 +52,41 @@ class _BookProjectPageState extends State<BookProjectPage> {
       initialDate: _selectedDate ?? DateTime.now().add(const Duration(days: 1)),
       firstDate: DateTime.now().add(const Duration(days: 1)),
       lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: AppTheme.primaryColor,
+              onPrimary: Colors.white,
+              surface: AppTheme.surfaceLight,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     if (picked != null && picked != _selectedDate) {
-      setState(() => _selectedDate = picked);
+      // Simulated taken dates
+      final List<DateTime> takenDates = [
+        DateTime(2024, 6, 10),
+        DateTime(2024, 6, 15),
+        DateTime(2024, 6, 20),
+      ];
+      if (takenDates.any((d) => d.year == picked.year && d.month == picked.month && d.day == picked.day)) {
+        // Date is taken, propose next available
+        DateTime nextAvailable = picked.add(const Duration(days: 1));
+        while (takenDates.any((d) => d.year == nextAvailable.year && d.month == nextAvailable.month && d.day == nextAvailable.day)) {
+          nextAvailable = nextAvailable.add(const Duration(days: 1));
+        }
+        Get.snackbar(
+          'Date Unavailable',
+          'The selected date is already booked. Next available: ${nextAvailable.toLocal().toString().split(' ')[0]}',
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+        );
+      } else {
+        setState(() => _selectedDate = picked);
+      }
     }
   }
 
@@ -106,7 +148,7 @@ class _BookProjectPageState extends State<BookProjectPage> {
       Get.snackbar(
         'Success', 
         'Booking submitted successfully! We will contact you soon.',
-        backgroundColor: Colors.green,
+        backgroundColor: AppTheme.primaryColor,
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
       );
@@ -116,7 +158,7 @@ class _BookProjectPageState extends State<BookProjectPage> {
       Get.snackbar(
         'Error',
         'Failed to submit booking. Please try again.',
-        backgroundColor: Colors.red,
+        backgroundColor: AppTheme.errorColor,
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
       );
@@ -128,7 +170,7 @@ class _BookProjectPageState extends State<BookProjectPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppTheme.backgroundLight,
       appBar: AppBar(
         title: const Text(
           'Book a Service',
@@ -143,6 +185,21 @@ class _BookProjectPageState extends State<BookProjectPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Category selection
+            DropdownButtonFormField<String>(
+              value: _selectedCategory,
+              decoration: InputDecoration(
+                labelText: 'Project Category',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              items: _categories.map((cat) => DropdownMenuItem(
+                value: cat,
+                child: Text(cat),
+              )).toList(),
+              onChanged: (val) => setState(() => _selectedCategory = val),
+            ),
+            const SizedBox(height: 16),
+
             if (_selectedService == null) ...[
               FadeInDown(
                 child: const Text(

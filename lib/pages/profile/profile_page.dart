@@ -22,7 +22,7 @@ class ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: AppTheme.backgroundLight,
       appBar: AppBar(
         title: const Text('My Profile'),
         actions: [
@@ -89,7 +89,7 @@ class ProfilePageState extends State<ProfilePage> {
                         width: 40,
                         height: 40,
                         decoration: const BoxDecoration(
-                          color: Colors.white,
+                          color: AppTheme.surfaceLight,
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(

@@ -17,7 +17,7 @@ class CustomerDashboardPage extends StatelessWidget {
     final firebaseService = Get.find<FirebaseService>();
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppTheme.backgroundLight,
       appBar: AppBar(
         title: const Text('My Dashboard'),
         actions: [
@@ -244,7 +244,7 @@ class CustomerDashboardPage extends StatelessWidget {
                 delay: const Duration(milliseconds: 600),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppTheme.surfaceLight,
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
@@ -298,7 +298,7 @@ class CustomerDashboardPage extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.surfaceLight,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
@@ -347,7 +347,7 @@ class CustomerDashboardPage extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceLight,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(

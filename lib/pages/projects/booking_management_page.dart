@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:kronium/core/app_theme.dart';
 
 class BookingsManagementPage extends StatefulWidget {
   const BookingsManagementPage({super.key});
@@ -17,7 +18,18 @@ class _BookingsManagementPageState extends State<BookingsManagementPage> {
   String _selectedSort = 'Newest';
   bool _isLoading = true;
 
-  final List<String> _filterOptions = ['All', 'Upcoming', 'Completed', 'Cancelled'];
+  final List<String> _filterOptions = [
+    'All Projects',
+    'Greenhouses',
+    'Steel Structures',
+    'Solar Systems',
+    'Construction',
+    'Logistics',
+    'IoT & Automation',
+    'Upcoming',
+    'Completed',
+    'Cancelled',
+  ];
   final List<String> _sortOptions = ['Newest', 'Oldest', 'Price: High to Low', 'Price: Low to High'];
 
   @override
@@ -61,7 +73,7 @@ class _BookingsManagementPageState extends State<BookingsManagementPage> {
       Get.snackbar(
         'Error',
         'Failed to load bookings',
-        backgroundColor: Colors.red,
+        backgroundColor: AppTheme.errorColor,
       );
     } finally {
       setState(() => _isLoading = false);
@@ -69,13 +81,17 @@ class _BookingsManagementPageState extends State<BookingsManagementPage> {
   }
 
   void _applyFilters() {
-    // Apply status filter
+    // Apply status and category filter
     _filteredBookings.clear();
     _filteredBookings.addAll(_bookings.where((booking) {
-      if (_selectedFilter == 'All') return true;
+      if (_selectedFilter == 'All Projects') return true;
       if (_selectedFilter == 'Upcoming') return booking.status == BookingStatus.upcoming;
       if (_selectedFilter == 'Completed') return booking.status == BookingStatus.completed;
       if (_selectedFilter == 'Cancelled') return booking.status == BookingStatus.cancelled;
+      // Category filter (by serviceName)
+      if (_filterOptions.contains(_selectedFilter)) {
+        return booking.serviceName.toLowerCase().contains(_selectedFilter.toLowerCase());
+      }
       return true;
     }));
 
@@ -153,6 +169,12 @@ class _BookingsManagementPageState extends State<BookingsManagementPage> {
               leading: const Icon(Icons.calendar_today),
               title: const Text('Date'),
               subtitle: Text(DateFormat.yMMMd().format(booking.date)),
+              trailing: booking.status == BookingStatus.upcoming
+                  ? IconButton(
+                      icon: const Icon(Icons.edit, color: AppTheme.primaryColor),
+                      onPressed: () => _showRescheduleDatePicker(booking),
+                    )
+                  : null,
             ),
             ListTile(
               leading: const Icon(Icons.attach_money),
@@ -174,7 +196,7 @@ class _BookingsManagementPageState extends State<BookingsManagementPage> {
                     child: ElevatedButton(
                       onPressed: () => _updateStatus(booking, BookingStatus.completed),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
+                        backgroundColor: AppTheme.primaryColor,
                       ),
                       child: const Text('Complete'),
                     ),
@@ -185,7 +207,7 @@ class _BookingsManagementPageState extends State<BookingsManagementPage> {
               ElevatedButton(
                 onPressed: () => Get.back(),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
+                  backgroundColor: AppTheme.primaryColor,
                 ),
                 child: const Text('Close'),
               ),
@@ -206,15 +228,73 @@ class _BookingsManagementPageState extends State<BookingsManagementPage> {
       Get.snackbar(
         'Status Updated',
         'Booking #${booking.id} updated',
-        backgroundColor: Colors.green,
+        backgroundColor: AppTheme.primaryColor,
       );
+    }
+  }
+
+  // Simulated taken dates for demo
+  final List<DateTime> _takenDates = [
+    DateTime(2024, 6, 10),
+    DateTime(2024, 6, 15),
+    DateTime(2024, 6, 20),
+  ];
+
+  void _showRescheduleDatePicker(Booking booking) async {
+    DateTime now = DateTime.now();
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: booking.date.isAfter(now) ? booking.date : now,
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: AppTheme.primaryColor,
+              onPrimary: Colors.white,
+              surface: AppTheme.surfaceLight,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      if (_takenDates.any((d) => d.year == picked.year && d.month == picked.month && d.day == picked.day)) {
+        // Date is taken, propose next available
+        DateTime nextAvailable = picked.add(const Duration(days: 1));
+        while (_takenDates.any((d) => d.year == nextAvailable.year && d.month == nextAvailable.month && d.day == nextAvailable.day)) {
+          nextAvailable = nextAvailable.add(const Duration(days: 1));
+        }
+        Get.snackbar(
+          'Date Unavailable',
+          'The selected date is already booked. Next available: ${nextAvailable.toLocal().toString().split(' ')[0]}',
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+        );
+      } else {
+        setState(() {
+          final index = _bookings.indexWhere((b) => b.id == booking.id);
+          if (index != -1) {
+            _bookings[index] = booking.copyWith(date: picked);
+            _applyFilters();
+          }
+        });
+        Get.snackbar(
+          'Date Rescheduled',
+          'Booking rescheduled to: ${picked.toLocal().toString().split(' ')[0]}',
+          backgroundColor: AppTheme.primaryColor,
+          colorText: Colors.white,
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: AppTheme.backgroundLight,
       appBar: AppBar(
         title: const Text('Bookings Management'),
         actions: [

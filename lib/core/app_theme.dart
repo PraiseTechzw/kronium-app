@@ -60,7 +60,6 @@ class AppTheme {
       primary: primaryColor,
       secondary: secondaryColor,
       error: errorColor,
-      background: backgroundLight,
       surface: surfaceLight,
     ),
     scaffoldBackgroundColor: backgroundLight,

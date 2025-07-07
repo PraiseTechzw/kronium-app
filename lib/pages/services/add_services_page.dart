@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:kronium/core/app_theme.dart';
 
 class AddServicePage extends StatefulWidget {
   const AddServicePage({super.key});
@@ -67,7 +68,7 @@ class AddServicePageState extends State<AddServicePage> {
       Get.snackbar(
         'Error', 
         'Failed to pick video: ${e.toString()}',
-        backgroundColor: Colors.red, 
+        backgroundColor: AppTheme.errorColor,
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
       );
@@ -150,7 +151,7 @@ class AddServicePageState extends State<AddServicePage> {
               icon: const Icon(Icons.upload),
               label: const Text('Upload'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green[700],
+                backgroundColor: AppTheme.primaryColor,
                 foregroundColor: Colors.white,
               ),
             ),
@@ -185,7 +186,7 @@ class AddServicePageState extends State<AddServicePage> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppTheme.surfaceLight,
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
@@ -270,7 +271,7 @@ class AddServicePageState extends State<AddServicePage> {
       Get.snackbar(
         'Success',
         'Service with video added successfully',
-        backgroundColor: Colors.green,
+        backgroundColor: AppTheme.primaryColor,
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
       );
@@ -282,9 +283,9 @@ class AddServicePageState extends State<AddServicePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: AppTheme.backgroundLight,
       appBar: AppBar(
-        backgroundColor: Colors.green[700],
+        backgroundColor: AppTheme.primaryColor,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Get.back(),
@@ -464,7 +465,7 @@ class AddServicePageState extends State<AddServicePage> {
                 child: ElevatedButton(
                   onPressed: _submitForm,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green[700],
+                    backgroundColor: AppTheme.primaryColor,
                     padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),

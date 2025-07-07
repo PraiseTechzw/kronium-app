@@ -17,14 +17,14 @@ class AppDrawer extends StatelessWidget {
   final VoidCallback onShowContact;
 
   const AppDrawer({
-    Key? key,
+    super.key,
     required this.isDarkMode,
     required this.userAuthService,
     required this.adminAuthService,
     required this.onDarkModeChanged,
     required this.onShowAbout,
     required this.onShowContact,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +37,7 @@ class AppDrawer extends StatelessWidget {
             // User Info Section
             Container(
               decoration: BoxDecoration(
-                color: AppTheme.surfaceLight,
+                color: Color(0xFF0C8A44), // Green background
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(32),
                   bottomRight: Radius.circular(32),
@@ -57,7 +57,7 @@ class AppDrawer extends StatelessWidget {
                   CircleAvatar(
                     radius: 36,
                     backgroundColor: Colors.white,
-                    child: Icon(Iconsax.user, color: AppTheme.primaryColor, size: 36),
+                    child: Icon(Iconsax.user, color: Color(0xFF0C8A44), size: 36),
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -88,7 +88,7 @@ class AppDrawer extends StatelessWidget {
             if (userAuthService.isUserLoggedIn.value) ...[
               _drawerItem(context, 'My Profile', Iconsax.user_edit, AppRoutes.customerProfile),
               _drawerItem(context, 'My Projects', Iconsax.document_text, AppRoutes.projects),
-              Divider(color: Colors.white.withOpacity(0.2)),
+              Divider(color: AppTheme.divider),
               _drawerItem(context, 'Sign Out', Iconsax.logout, () async {
                 await userAuthService.logout();
                 Get.back();
@@ -96,51 +96,51 @@ class AppDrawer extends StatelessWidget {
             ] else ...[
               _drawerItem(context, 'Sign In', Iconsax.login, AppRoutes.customerLogin),
               _drawerItem(context, 'Sign Up', Iconsax.user_add, AppRoutes.customerRegister),
-              Divider(color: Colors.white.withOpacity(0.2)),
+              Divider(color: AppTheme.divider),
             ],
             // Settings Section
             ListTile(
-              leading: Icon(Iconsax.moon, color: isDarkMode ? AppTheme.primaryColor : Colors.grey[700]),
-              title: const Text('Dark Mode'),
+              leading: Icon(Iconsax.moon, color: AppTheme.primaryColor),
+              title: Text('Dark Mode', style: TextStyle(color: AppTheme.textPrimary)),
               trailing: Switch(
                 value: isDarkMode,
                 onChanged: onDarkModeChanged,
                 activeColor: AppTheme.primaryColor,
               ),
             ),
-            Divider(color: Colors.white.withOpacity(0.2)),
+            Divider(color: AppTheme.divider),
             ListTile(
               leading: Icon(Iconsax.document, color: AppTheme.primaryColor),
-              title: const Text('Privacy Policy'),
+              title: Text('Privacy Policy', style: TextStyle(color: AppTheme.textPrimary)),
               onTap: () {/* Show privacy policy dialog or page */},
             ),
             ListTile(
               leading: Icon(Iconsax.document_text, color: AppTheme.primaryColor),
-              title: const Text('Terms of Service'),
+              title: Text('Terms of Service', style: TextStyle(color: AppTheme.textPrimary)),
               onTap: () {/* Show terms of service dialog or page */},
             ),
             ListTile(
               leading: Icon(Iconsax.message_question, color: AppTheme.primaryColor),
-              title: const Text('Help & Support'),
+              title: Text('Help & Support', style: TextStyle(color: AppTheme.textPrimary)),
               onTap: () {/* Show help/support dialog or page */},
             ),
             ListTile(
               leading: Icon(Iconsax.star, color: AppTheme.primaryColor),
-              title: const Text('Rate the App'),
+              title: Text('Rate the App', style: TextStyle(color: AppTheme.textPrimary)),
               onTap: () {/* Implement rate app logic */},
             ),
             ListTile(
               leading: Icon(Iconsax.info_circle, color: AppTheme.primaryColor),
-              title: const Text('About App'),
+              title: Text('About App', style: TextStyle(color: AppTheme.textPrimary)),
               onTap: onShowAbout,
             ),
-            Divider(color: Colors.white.withOpacity(0.2)),
+            Divider(color: AppTheme.divider),
             ListTile(
               leading: Icon(Iconsax.message, color: AppTheme.primaryColor),
-              title: const Text('Contact Us'),
+              title: Text('Contact Us', style: TextStyle(color: AppTheme.textPrimary)),
               onTap: onShowContact,
             ),
-            Divider(color: Colors.white.withOpacity(0.2)),
+            Divider(color: AppTheme.divider),
             // Admin Section
             if (adminAuthService.isAdminLoggedIn.value) ...[
               _drawerItem(context, 'Admin Dashboard', Iconsax.shield_tick, AppRoutes.adminDashboard),
@@ -173,7 +173,7 @@ class AppDrawer extends StatelessWidget {
   Widget _drawerItem(BuildContext context, String title, IconData icon, dynamic routeOrAction) {
     return ListTile(
       leading: Icon(icon, color: AppTheme.primaryColor),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
+      title: Text(title, style: TextStyle(fontWeight: FontWeight.w500, color: AppTheme.textPrimary)),
       onTap: () {
         Get.back();
         if (routeOrAction is String) {

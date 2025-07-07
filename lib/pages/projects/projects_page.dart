@@ -17,7 +17,15 @@ class ProjectsPage extends StatefulWidget {
 
 class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final List<String> categories = ['All', 'Completed', 'Ongoing', 'Featured'];
+  final List<String> categories = [
+    'All Projects',
+    'Greenhouses',
+    'Steel Structures',
+    'Solar Systems',
+    'Construction',
+    'Logistics',
+    'IoT & Automation',
+  ];
   final RxString _searchQuery = ''.obs;
   final RxString _selectedSort = 'Newest'.obs;
 
@@ -25,9 +33,9 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
     {
       'title': 'Solar Farm Installation',
       'category': 'Completed',
-      'image': 'assets/projects/solar_farm.jpg',
+      'image': 'https://images.china.cn/attachement/jpg/site1007/20140903/e89a8f5fc4c21570d2e420.jpg',
       'date': 'June 2023',
-      'location': 'Nairobi, Kenya',
+      'location': 'Harare, Zimbabwe',
       'description': '5MW solar farm installation for commercial energy production',
       'features': ['50,000 panels', 'Battery storage', 'Grid integration', '20-year maintenance'],
       'client': 'Green Energy Solutions Ltd.',
@@ -36,20 +44,20 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
     {
       'title': 'Industrial Greenhouse Complex',
       'category': 'Ongoing',
-      'image': 'assets/projects/greenhouse.jpg',
+      'image': 'https://harnoisgreenhouse.com/wp-content/uploads/2024/02/Projet_Herbes-Gourmandes-2--1024x683.webp',
       'date': 'January 2024',
-      'location': 'Nakuru, Kenya',
+      'location': 'Bulawayo, Zimbabwe',
       'description': '10-acre automated greenhouse for year-round vegetable production',
       'features': ['Climate control', 'Hydroponic systems', 'Automated irrigation', 'IoT monitoring'],
-      'client': 'FreshFarms Kenya',
+      'client': 'FreshFarms Zimbabwe',
       'progress': 65,
     },
     {
       'title': 'Commercial Steel Structure',
       'category': 'Completed',
-      'image': 'assets/projects/steel_building.jpg',
+      'image': 'https://media.graphassets.com/resize=width:800/output=format:webp/82AmyZlQBWZBxJaKpGxF',
       'date': 'September 2023',
-      'location': 'Mombasa, Kenya',
+      'location': 'Mutare, Zimbabwe',
       'description': '15,000 sq ft steel warehouse with office complex',
       'features': ['Quick assembly', 'Custom design', 'Energy efficient', '10-year warranty'],
       'client': 'LogiStore Africa',
@@ -58,9 +66,9 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
     {
       'title': 'Farm Automation System',
       'category': 'Featured',
-      'image': 'assets/projects/farm_tech.jpg',
+      'image': 'https://imgproxy.divecdn.com/r1fQ9Ook6EvUz6BTCJ8YsZOfd_vXi5tUQHMOvHoQEos/g:ce/rs:fill:1200:675:1/Z3M6Ly9kaXZlc2l0ZS1zdG9yYWdlL2RpdmVpbWFnZS9HZXR0eUltYWdlcy0xNDY5NjM5NzkxLmpwZw==.webp',
       'date': 'March 2024',
-      'location': 'Eldoret, Kenya',
+      'location': 'Gweru, Zimbabwe',
       'description': 'Complete IoT solution for 500-acre wheat farm',
       'features': ['Soil sensors', 'Drone monitoring', 'Automated irrigation', 'Yield prediction'],
       'client': 'GoldenFields Agribusiness',
@@ -83,62 +91,67 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: const Text('Our Portfolio', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: AppTheme.primaryColor,
+        elevation: 0,
         centerTitle: true,
+        title: const Text(
+          'Kronium Projects',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Iconsax.search_normal),
+            icon: const Icon(Iconsax.search_normal, color: Colors.white),
             onPressed: _showSearchDialog,
             tooltip: 'Search Projects',
           ),
           IconButton(
-            icon: const Icon(Iconsax.sort),
+            icon: const Icon(Iconsax.sort, color: Colors.white),
             onPressed: _showSortDialog,
             tooltip: 'Sort Projects',
           ),
         ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(100),
-          child: Column(
-            children: [
-              FadeInDown(
-                child: Container(
-                  height: 48,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: TabBar(
-                    controller: _tabController,
-                    isScrollable: true,
-                    labelColor: Colors.white,
-                    unselectedLabelColor: Colors.white.withOpacity(0.6),
-                    indicator: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      color: Colors.white.withOpacity(0.2),
-                    ),
-                    tabs: categories.map((category) => Tab(text: category)).toList(),
-                  ),
-                ),
+          preferredSize: const Size.fromHeight(48),
+          child: Container(
+            color: AppTheme.primaryColor,
+            child: TabBar(
+              controller: _tabController,
+              isScrollable: true,
+              labelColor: Colors.white,
+              unselectedLabelColor: Colors.white.withOpacity(0.7),
+              indicator: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: Colors.white.withOpacity(0.18),
               ),
-              const SizedBox(height: 10),
-              Obx(() => _searchQuery.value.isNotEmpty
-                  ? Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Text(
-                        'Showing results for "${_searchQuery.value}"',
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    )
-                  : const SizedBox()),
-            ],
+              tabs: categories.map((category) => Tab(text: category)).toList(),
+            ),
           ),
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: categories.map((category) {
-          return _buildProjectList(category);
-        }).toList(),
+      body: Column(
+        children: [
+          if (_searchQuery.value.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              child: Text(
+                'Showing results for "${_searchQuery.value}"',
+                style: const TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold),
+              ),
+            ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: categories.map((category) {
+                return _buildProjectList(category);
+              }).toList(),
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Get.toNamed(AppRoutes.bookProject),
@@ -155,9 +168,12 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
             project['title'].toLowerCase().contains(_searchQuery.value.toLowerCase()) ||
             project['description'].toLowerCase().contains(_searchQuery.value.toLowerCase()))
             .toList()
-        : category == 'All' 
+        : category == 'All Projects'
             ? projects 
-            : projects.where((project) => project['category'] == category).toList();
+            : projects.where((project) =>
+                project['title'].toString().toLowerCase().contains(category.toLowerCase()) ||
+                (project['category']?.toString().toLowerCase() == category.toLowerCase())
+              ).toList();
 
     // Apply sorting
     filteredProjects = _sortProjects(filteredProjects);
@@ -231,7 +247,10 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
         child: _buildProjectCardContent(project, true),
       ),
       onHover: (event) {},
-      child: _buildProjectCardContent(project, false),
+      child: GestureDetector(
+        onTap: () => _showProjectDetails(project),
+        child: _buildProjectCardContent(project, false),
+      ),
     );
   }
 
@@ -247,7 +266,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
           boxShadow: isHover
               ? [
                   BoxShadow(
-                    color: AppTheme.primaryColor.withOpacity(0.2),
+                    color: AppTheme.primaryColor.withOpacity(0.13),
                     blurRadius: 15,
                     spreadRadius: 1,
                     offset: const Offset(0, 5),
@@ -264,121 +283,122 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Stack(
               children: [
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                  child: Image.asset(
+                  child: Image.network(
                     project['image'],
-                    height: 140,
+                height: 90,
                     width: double.infinity,
                     fit: BoxFit.cover,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          project['title'],
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 if (project['category'] == 'Ongoing' || project['category'] == 'Featured')
-                  Positioned(
-                    top: 10,
-                    left: 10,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        Container(
+                          margin: const EdgeInsets.only(left: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                       decoration: BoxDecoration(
                         color: project['category'] == 'Featured' 
                             ? Colors.amber 
                             : AppTheme.primaryColor,
-                        borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         project['category'],
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 12,
+                              fontSize: 10,
                           fontWeight: FontWeight.bold,
-                        ),
                       ),
                     ),
                   ),
               ],
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    project['title'],
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 5),
+                  const SizedBox(height: 3),
                   Row(
                     children: [
-                      const Icon(Iconsax.location, size: 14, color: Colors.grey),
-                      const SizedBox(width: 4),
-                      Text(
+                      const Icon(Iconsax.location, size: 12, color: Colors.grey),
+                      const SizedBox(width: 2),
+                      Expanded(
+                        child: Text(
                         project['location'],
                         style: const TextStyle(
-                          fontSize: 12,
+                            fontSize: 10,
                           color: Colors.grey,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 4),
                   Text(
                     project['description'],
                     style: const TextStyle(
-                      fontSize: 12,
+                      fontSize: 11,
                       color: Colors.grey,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 15),
-                  if (project['progress'] != null)
-                    Column(
-                      children: [
+                  if (project['progress'] != null) ...[
+                    const SizedBox(height: 6),
                         LinearProgressIndicator(
                           value: project['progress'] / 100,
-                          backgroundColor: Colors.grey[200],
+                      backgroundColor: AppTheme.surfaceLight,
                           valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
-                          minHeight: 6,
+                      minHeight: 5,
                           borderRadius: BorderRadius.circular(3),
                         ),
-                        const SizedBox(height: 5),
+                    const SizedBox(height: 2),
                         Text(
                           '${project['progress']}% Complete',
                           style: const TextStyle(
-                            fontSize: 12,
+                        fontSize: 10,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
-                    ),
-                  if (project['testimonial'] != null)
-                    Column(
+                  if (project['testimonial'] != null) ...[
+                    const SizedBox(height: 4),
+                    Row(
                       children: [
-                        const SizedBox(height: 10),
-                        Row(
-                          children: [
-                            const Icon(Iconsax.quote_down, size: 16, color: Colors.grey),
-                            const SizedBox(width: 5),
-                            Text(
+                        const Icon(Iconsax.quote_down, size: 11, color: Colors.grey),
+                        const SizedBox(width: 2),
+                        Expanded(
+                          child: Text(
                               'Client Feedback',
                               style: TextStyle(
-                                fontSize: 12,
+                              fontSize: 10,
                                 color: Colors.grey[600],
                                 fontWeight: FontWeight.bold,
-                              ),
                             ),
-                          ],
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                     ),
+                  ],
                 ],
               ),
             ),
@@ -388,87 +408,12 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
     );
   }
 
-  void _showSearchDialog() {
-    Get.dialog(
-      Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                autofocus: true,
-                decoration: InputDecoration(
-                  hintText: 'Search projects...',
-                  prefixIcon: const Icon(Iconsax.search_normal),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                onChanged: (value) {
-                  _searchQuery.value = value;
-                },
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () => Get.back(),
-                child: const Text('Close'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showSortDialog() {
-    Get.bottomSheet(
-      Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
-          ),
-        ),
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Sort Projects By',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 20),
-            ...['Newest', 'Oldest', 'Location'].map((option) => Obx(
-              () => ListTile(
-                title: Text(option),
-                leading: Radio(
-                  value: option,
-                  groupValue: _selectedSort.value,
-                  onChanged: (value) {
-                    _selectedSort.value = value.toString();
-                    Get.back();
-                  },
-                  activeColor: AppTheme.primaryColor,
-                ),
-                onTap: () {
-                  _selectedSort.value = option;
-                  Get.back();
-                },
-              ),
-            )),
-          ],
-        ),
-      ),
-    );
-  }
+  // Simulated taken dates for demo
+  final List<DateTime> _takenDates = [
+    DateTime(2024, 6, 10),
+    DateTime(2024, 6, 15),
+    DateTime(2024, 6, 20),
+  ];
 
   void _showProjectDetails(Map<String, dynamic> project) {
     Get.bottomSheet(
@@ -516,17 +461,18 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                     ),
                   ),
                   const Spacer(),
-                  Chip(
-                    label: Text(project['category']),
-                    backgroundColor: project['category'] == 'Featured'
-                        ? Colors.amber.withOpacity(0.2)
-                        : AppTheme.primaryColor.withOpacity(0.2),
-                    labelStyle: TextStyle(
-                      color: project['category'] == 'Featured'
-                          ? Colors.amber[800]
-                          : AppTheme.primaryColor,
+                  if (project['category'] != null)
+                    Chip(
+                      label: Text(project['category']),
+                      backgroundColor: project['category'] == 'Featured'
+                          ? Colors.amber.withOpacity(0.2)
+                          : AppTheme.primaryColor.withOpacity(0.2),
+                      labelStyle: TextStyle(
+                        color: project['category'] == 'Featured'
+                            ? Colors.amber[800]
+                            : AppTheme.primaryColor,
+                      ),
                     ),
-                  ),
                 ],
               ),
               const SizedBox(height: 20),
@@ -607,13 +553,13 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.grey[100],
+                    color: Colors.grey,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Iconsax.quote_down, size: 24, color: Colors.grey),
+                      const Icon(Iconsax.quote_down, size: 24, color: Colors.white),
                       const SizedBox(height: 10),
                       Text(
                         project['testimonial'],
@@ -621,6 +567,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                           fontSize: 16,
                           fontStyle: FontStyle.italic,
                           height: 1.5,
+                          color: Colors.white,
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -628,6 +575,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                         '- ${project['client']}',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
                       ),
                     ],
@@ -654,7 +602,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                     child: ElevatedButton(
                       onPressed: () {
                         Get.back();
-                        Get.toNamed(AppRoutes.bookProject);
+                        _showProjectDatePicker(project);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.primaryColor,
@@ -664,7 +612,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                         ),
                       ),
                       child: const Text(
-                        'BOOK SIMILAR PROJECT',
+                        'REQUEST SIMILAR PROJECT',
                         style: TextStyle(color: Colors.white),
                       ),
                     ),
@@ -678,23 +626,75 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
     );
   }
 
+  void _showProjectDatePicker(Map<String, dynamic> project) async {
+    DateTime now = DateTime.now();
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: now,
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: AppTheme.primaryColor,
+              onPrimary: Colors.white,
+              surface: AppTheme.surfaceLight,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      if (_takenDates.any((d) => d.year == picked.year && d.month == picked.month && d.day == picked.day)) {
+        // Date is taken, propose next available
+        DateTime nextAvailable = picked.add(const Duration(days: 1));
+        while (_takenDates.any((d) => d.year == nextAvailable.year && d.month == nextAvailable.month && d.day == nextAvailable.day)) {
+          nextAvailable = nextAvailable.add(const Duration(days: 1));
+        }
+        Get.snackbar(
+          'Date Unavailable',
+          'The selected date is already booked. Next available: ${nextAvailable.toLocal().toString().split(' ')[0]}',
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+        );
+      } else {
+        Get.snackbar(
+          'Date Selected',
+          'You selected: ${picked.toLocal().toString().split(' ')[0]}',
+          backgroundColor: AppTheme.primaryColor,
+          colorText: Colors.white,
+        );
+      }
+    }
+  }
+
   Widget _projectDetailItem(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              label,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+          const Icon(Icons.label, color: Colors.grey, size: 16),
+          const SizedBox(width: 10),
+          Text(
+            '$label: $value',
+            style: const TextStyle(
+              fontSize: 16,
+              color: Colors.grey,
             ),
           ),
-          const SizedBox(width: 10),
-          Expanded(child: Text(value)),
         ],
       ),
     );
+  }
+
+  void _showSearchDialog() {
+    // Implementation of _showSearchDialog method
+  }
+
+  void _showSortDialog() {
+    // Implementation of _showSortDialog method
   }
 }

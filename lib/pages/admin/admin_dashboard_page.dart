@@ -17,7 +17,7 @@ class AdminDashboardPage extends StatelessWidget {
     final firebaseService = Get.find<FirebaseService>();
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppTheme.backgroundLight,
       appBar: AppBar(
         title: const Text(
           'Admin Dashboard',
@@ -232,7 +232,7 @@ class AdminDashboardPage extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppTheme.surfaceLight,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
@@ -281,7 +281,7 @@ class AdminDashboardPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceLight,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -332,7 +332,7 @@ class AdminDashboardPage extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.surfaceLight,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(

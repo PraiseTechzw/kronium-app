@@ -16,9 +16,21 @@ class ProjectHistoryPage extends StatefulWidget {
 }
 
 class _ProjectHistoryPageState extends State<ProjectHistoryPage> {
-  final RxString _selectedFilter = 'All'.obs;
+  final RxString _selectedFilter = 'All Projects'.obs;
   final RxString _selectedSort = 'Newest First'.obs;
-  final List<String> filters = ['All', 'Completed', 'In Progress', 'Pending', 'Upcoming'];
+  final List<String> filters = [
+    'All Projects',
+    'Greenhouses',
+    'Steel Structures',
+    'Solar Systems',
+    'Construction',
+    'Logistics',
+    'IoT & Automation',
+    'Completed',
+    'In Progress',
+    'Pending',
+    'Upcoming',
+  ];
   final List<String> sortOptions = ['Newest First', 'Oldest First', 'By Project Name'];
   
   final List<Project> projects = [
@@ -87,8 +99,17 @@ class _ProjectHistoryPageState extends State<ProjectHistoryPage> {
     var result = projects;
     
     // Apply filter
-    if (_selectedFilter.value != 'All') {
-      result = result.where((p) => p.status == _selectedFilter.value).toList();
+    if (_selectedFilter.value != 'All Projects') {
+      // Status filter
+      if (['Completed', 'In Progress', 'Pending', 'Upcoming'].contains(_selectedFilter.value)) {
+        result = result.where((p) => p.status == _selectedFilter.value).toList();
+      } else {
+        // Category filter (by title or details)
+        result = result.where((p) =>
+          p.title.toLowerCase().contains(_selectedFilter.value.toLowerCase()) ||
+          p.details.toLowerCase().contains(_selectedFilter.value.toLowerCase())
+        ).toList();
+      }
     }
     
     // Apply sort
@@ -110,7 +131,7 @@ class _ProjectHistoryPageState extends State<ProjectHistoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: AppTheme.backgroundLight,
       appBar: AppBar(
         title: const Text('Project Portfolio', style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
@@ -235,7 +256,7 @@ class _ProjectHistoryPageState extends State<ProjectHistoryPage> {
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.surfaceLight,
           borderRadius: BorderRadius.circular(12),
           boxShadow: isHovered
               ? [
@@ -346,7 +367,7 @@ class _ProjectHistoryPageState extends State<ProjectHistoryPage> {
                         children: [
                           LinearProgressIndicator(
                             value: project.progress,
-                            backgroundColor: Colors.grey[200],
+                            backgroundColor: AppTheme.surfaceLight,
                             color: project.color,
                             minHeight: 6,
                             borderRadius: BorderRadius.circular(3),
@@ -402,7 +423,7 @@ class _ProjectHistoryPageState extends State<ProjectHistoryPage> {
           const SizedBox(height: 20),
           ElevatedButton(
             onPressed: () {
-              _selectedFilter.value = 'All';
+              _selectedFilter.value = 'All Projects';
             },
             child: const Text('Reset Filters'),
           ),
@@ -462,7 +483,7 @@ class _ProjectHistoryPageState extends State<ProjectHistoryPage> {
                   label: Text(filter),
                   selected: _selectedFilter.value == filter,
                   onSelected: (selected) {
-                    _selectedFilter.value = filter;
+                    if (selected) _selectedFilter.value = filter;
                   },
                   selectedColor: AppTheme.primaryColor.withOpacity(0.2),
                   labelStyle: TextStyle(
@@ -637,7 +658,7 @@ class _ProjectHistoryPageState extends State<ProjectHistoryPage> {
                 const SizedBox(height: 10),
                 LinearProgressIndicator(
                   value: project.progress,
-                  backgroundColor: Colors.grey[200],
+                  backgroundColor: AppTheme.surfaceLight,
                   color: project.color,
                   minHeight: 10,
                   borderRadius: BorderRadius.circular(5),
