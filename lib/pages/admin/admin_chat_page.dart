@@ -19,7 +19,7 @@ class _AdminChatPageState extends State<AdminChatPage> {
   final _messageController = TextEditingController();
   final _scrollController = ScrollController();
   ChatRoom? _selectedChatRoom;
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   @override
   void dispose() {

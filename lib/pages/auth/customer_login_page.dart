@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:kronium/core/admin_auth_service.dart';
 import 'package:kronium/core/app_theme.dart';
-import 'package:kronium/core/firebase_service.dart';
 import 'package:kronium/core/routes.dart';
 import 'package:kronium/core/user_auth_service.dart';
 
@@ -35,10 +33,31 @@ class _CustomerLoginPageState extends State<CustomerLoginPage> {
 
     setState(() => _isLoading = true);
 
+    // Hardcoded admin credentials
+    const adminEmail = 'admin@kronium.com';
+    const adminPassword = 'admin123';
+
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    // Check for admin login
+    if (email == adminEmail && password == adminPassword) {
+      setState(() => _isLoading = false);
+      Get.offAllNamed(AppRoutes.adminDashboard);
+      Get.snackbar(
+        'Admin Login',
+        'Welcome, Admin!',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
     final userAuthService = Get.find<UserAuthService>();
     final success = await userAuthService.loginUser(
-      _emailController.text.trim(),
-      _passwordController.text,
+      email,
+      password,
     );
 
     setState(() => _isLoading = false);

@@ -108,8 +108,8 @@ class HomePage extends StatelessWidget {
                   delay: const Duration(milliseconds: 300),
                   child: IconButton(
                     icon: const Icon(Iconsax.shield),
-                    onPressed: () => Get.toNamed(AppRoutes.adminLogin),
-                    tooltip: 'Admin Login',
+                    onPressed: () => Get.toNamed(AppRoutes.customerLogin),
+                    tooltip: 'Admin Login (via Customer Login)',
                   ),
                 );
               }
@@ -262,7 +262,7 @@ class HomePage extends StatelessWidget {
                 Get.back();
               }),
             ] else ...[
-              _drawerItem('Admin Login', Iconsax.shield, AppRoutes.adminLogin),
+              _drawerItem('Admin Login', Iconsax.shield, AppRoutes.customerLogin),
             ],
           ],
         ),

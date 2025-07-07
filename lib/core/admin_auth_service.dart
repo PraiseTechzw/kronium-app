@@ -41,46 +41,41 @@ class AdminAuthService extends GetxController {
     }
   }
   
-  Future<bool> loginAsAdmin(String email, String password) async {
-    try {
-      final userCredential = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      
-      // Check if user is admin in Firestore
-      final adminDoc = await _firestore
-          .collection('admins')
-          .doc(userCredential.user!.uid)
-          .get();
-          
-      if (adminDoc.exists) {
-        adminUser.value = userCredential.user;
-        isAdminLoggedIn.value = true;
-        
-        // Save admin session
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('admin_email', email);
-        
-        return true;
-      } else {
-        await _auth.signOut();
-        Get.snackbar(
-          'Access Denied',
-          'This account is not authorized as admin',
-          snackPosition: SnackPosition.BOTTOM,
-        );
-        return false;
-      }
-    } catch (e) {
-      Get.snackbar(
-        'Login Failed',
-        'Invalid email or password',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-      return false;
-    }
-  }
+  // Future<bool> loginAsAdmin(String email, String password) async {
+  //   try {
+  //     final userCredential = await _auth.signInWithEmailAndPassword(
+  //       email: email,
+  //       password: password,
+  //     );
+  //     // Check if user is admin in Firestore
+  //     final adminDoc = await _firestore
+  //         .collection('admins')
+  //         .doc(userCredential.user!.uid)
+  //         .get();
+  //     if (adminDoc.exists) {
+  //       adminUser.value = userCredential.user;
+  //       isAdminLoggedIn.value = true;
+  //       final prefs = await SharedPreferences.getInstance();
+  //       await prefs.setString('admin_email', email);
+  //       return true;
+  //     } else {
+  //       await _auth.signOut();
+  //       Get.snackbar(
+  //         'Access Denied',
+  //         'This account is not authorized as admin',
+  //         snackPosition: SnackPosition.BOTTOM,
+  //       );
+  //       return false;
+  //     }
+  //   } catch (e) {
+  //     Get.snackbar(
+  //       'Login Failed',
+  //       'Invalid email or password',
+  //       snackPosition: SnackPosition.BOTTOM,
+  //     );
+  //     return false;
+  //   }
+  // }
   
   Future<void> logout() async {
     await _logout();

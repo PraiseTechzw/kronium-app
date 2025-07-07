@@ -4,7 +4,6 @@ import 'package:iconsax/iconsax.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:kronium/core/admin_auth_service.dart';
 import 'package:kronium/core/app_theme.dart';
-import 'package:kronium/core/firebase_service.dart';
 import 'package:kronium/core/routes.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -392,7 +391,7 @@ class _AdminSetupPageState extends State<AdminSetupPage> {
 
                             // Back to Login Button
                             TextButton(
-                              onPressed: () => Get.offAllNamed(AppRoutes.adminLogin),
+                              onPressed: () => Get.offAllNamed(AppRoutes.customerLogin),
                               child: Text(
                                 'Already have an account? Sign in',
                                 style: TextStyle(

@@ -2,7 +2,6 @@ import 'package:get/get.dart';
 import 'package:kronium/pages/admin/admin_bookings_page.dart';
 import 'package:kronium/pages/admin/admin_chat_page.dart';
 import 'package:kronium/pages/admin/admin_dashboard_page.dart';
-import 'package:kronium/pages/admin/admin_login_page.dart';
 import 'package:kronium/pages/admin/admin_services_page.dart';
 import 'package:kronium/pages/admin/admin_setup_page.dart';
 import 'package:kronium/pages/auth/customer_login_page.dart';
@@ -29,7 +28,6 @@ class AppRoutes {
   static const String customerDashboard = '/customer-dashboard';
   static const String customerProfile = '/customer-profile';
   static const String customerChat = '/customer-chat';
-  static const String adminLogin = '/admin-login';
   static const String adminSetup = '/admin-setup';
   static const String adminDashboard = '/admin-dashboard';
   static const String adminServices = '/admin-services';
@@ -86,12 +84,6 @@ class AppRoutes {
     ),
     
     // Admin Pages
-    GetPage(
-      name: adminLogin,
-      page: () => const AdminLoginPage(),
-      transition: Transition.rightToLeftWithFade,
-      transitionDuration: const Duration(milliseconds: 1000),
-    ),
     GetPage(
       name: adminSetup,
       page: () => const AdminSetupPage(),
