@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "499888969163",
+    "project_id": "kromium-f338e",
+    "storage_bucket": "kromium-f338e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:499888969163:android:656c3a6ad3a920c913d24e",
+        "android_client_info": {
+          "package_name": "com.example.km"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDm6z4sxccmvJkuF8N4LscbcUWiKuRAzbw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:499888969163:android:6dd63995f90cd08313d24e",
+        "android_client_info": {
+          "package_name": "kronium.appixia.co.zw.kronium"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDm6z4sxccmvJkuF8N4LscbcUWiKuRAzbw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
