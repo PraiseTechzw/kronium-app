@@ -30,27 +30,21 @@ class AppDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Drawer(
       child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [AppTheme.primaryColor.withOpacity(0.9), AppTheme.secondaryColor.withOpacity(0.7)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
+        color: AppTheme.backgroundLight,
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
             // User Info Section
             Container(
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: AppTheme.surfaceLight,
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(32),
                   bottomRight: Radius.circular(32),
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
+                    color: AppTheme.shadow,
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),

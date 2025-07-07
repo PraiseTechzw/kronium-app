@@ -24,7 +24,7 @@ class HomePage extends StatelessWidget {
     return Obx(() {
       final isDarkMode = _isDarkMode.value;
       return Scaffold(
-        backgroundColor: isDarkMode ? Colors.grey[900] : Colors.grey[50],
+        backgroundColor: AppTheme.backgroundLight,
         // Show app bar only on Home tab
         appBar: _currentIndex.value == 0
             ? AppBar(
@@ -40,7 +40,7 @@ class HomePage extends StatelessWidget {
                   ),
                 ],
                 elevation: 0,
-                backgroundColor: isDarkMode ? Colors.grey[900] : AppTheme.primaryColor,
+                backgroundColor: AppTheme.primaryColor,
                 iconTheme: IconThemeData(color: isDarkMode ? Colors.white : Colors.black),
               )
             : null,
@@ -76,7 +76,7 @@ class HomePage extends StatelessWidget {
                 curve: Curves.easeInOut,
               );
             },
-            backgroundColor: isDarkMode ? Colors.grey[900] : Colors.white,
+            backgroundColor: AppTheme.surfaceLight,
             selectedItemColor: AppTheme.primaryColor,
             unselectedItemColor: AppTheme.secondaryColor,
             showUnselectedLabels: true,
