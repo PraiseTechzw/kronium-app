@@ -109,17 +109,17 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
         backgroundColor: Colors.green[700],
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Get.back(),
-        ),
-        title: const Text('Our Services', 
-          style: TextStyle(
-            fontWeight: FontWeight.bold, 
-            fontSize: 20, 
-            color: Colors.white
-          )
-        ),
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () => Get.back(),
+              )
+            : null,
+        title: const Text('Our Services',
+            style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+                color: Colors.white)),
         centerTitle: true,
         actions: [
           PopupMenuButton<String>(

@@ -390,12 +390,7 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                           },
                         ),
                         const Divider(height: 1),
-                        ListTile(
-                          leading: const Icon(Iconsax.notification, color: AppTheme.primaryColor),
-                          title: const Text('Notification Settings'),
-                          trailing: const Icon(Iconsax.arrow_right_3),
-                          onTap: () => Get.toNamed(AppRoutes.settings),
-                        ),
+                       
                         const Divider(height: 1),
                         ListTile(
                           leading: const Icon(Iconsax.logout, color: Colors.red),

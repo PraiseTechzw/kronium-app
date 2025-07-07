@@ -265,12 +265,7 @@ class CustomerDashboardPage extends StatelessWidget {
                         onTap: () => Get.toNamed(AppRoutes.profile),
                       ),
                       const Divider(height: 1),
-                      ListTile(
-                        leading: const Icon(Iconsax.setting_2, color: AppTheme.primaryColor),
-                        title: const Text('Settings'),
-                        trailing: const Icon(Iconsax.arrow_right_3),
-                        onTap: () => Get.toNamed(AppRoutes.settings),
-                      ),
+                     
                       const Divider(height: 1),
                       ListTile(
                         leading: const Icon(Iconsax.message, color: AppTheme.primaryColor),

@@ -16,7 +16,6 @@ import 'package:kronium/pages/projects/project_history_page.dart';
 import 'package:kronium/pages/projects/projects_page.dart';
 import 'package:kronium/pages/services/add_services_page.dart';
 import 'package:kronium/pages/services/services_page.dart';
-import 'package:kronium/pages/settings/settings_page.dart';
 import 'package:kronium/pages/splash/splash_page.dart';
 
 
@@ -40,7 +39,6 @@ class AppRoutes {
   static const String services = '/services';
   static const String addService = '/add-service';
   static const String profile = '/profile';
-  static const String settings = '/settings';
 
   static List<GetPage> pages = [
     // Splash Page
@@ -165,12 +163,6 @@ class AppRoutes {
       name: profile,
       page: () => const ProfilePage(),
       transition: Transition.size,
-      transitionDuration: const Duration(milliseconds: 800),
-    ),
-    GetPage(
-      name: settings,
-      page: () => SettingsPage(),
-      transition: Transition.circularReveal,
       transitionDuration: const Duration(milliseconds: 800),
     ),
   ];

@@ -40,6 +40,9 @@ class _CustomerLoginPageState extends State<CustomerLoginPage> {
     final email = _emailController.text.trim();
     final password = _passwordController.text;
 
+    // Debug print for troubleshooting admin login
+    print('Login attempt: email=\'$email\', password=\'$password\'');
+
     // Check for admin login
     if (email == adminEmail && password == adminPassword) {
       setState(() => _isLoading = false);
