@@ -91,6 +91,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.backgroundLight,
       appBar: AppBar(
         backgroundColor: AppTheme.primaryColor,
         elevation: 0,
@@ -281,116 +282,79 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                   ),
                 ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                  child: Image.network(
-                    project['image'],
-                height: 90,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          project['title'],
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                  ),
+        child: SizedBox(
+          height: 220,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                child: Image.network(
+                  project['image'],
+                  height: 100,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
                 ),
-                if (project['category'] == 'Ongoing' || project['category'] == 'Featured')
-                        Container(
-                          margin: const EdgeInsets.only(left: 4),
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: project['category'] == 'Featured' 
-                            ? Colors.amber 
-                            : AppTheme.primaryColor,
-                            borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        project['category'],
-                        style: const TextStyle(
-                          color: Colors.white,
-                              fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-              ],
-                  ),
-                  const SizedBox(height: 3),
-                  Row(
-                    children: [
-                      const Icon(Iconsax.location, size: 12, color: Colors.grey),
-                      const SizedBox(width: 2),
-                      Expanded(
-                        child: Text(
-                        project['location'],
-                        style: const TextStyle(
-                            fontSize: 10,
-                          color: Colors.grey,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    project['description'],
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: Colors.grey,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (project['progress'] != null) ...[
-                    const SizedBox(height: 6),
-                        LinearProgressIndicator(
-                          value: project['progress'] / 100,
-                      backgroundColor: AppTheme.surfaceLight,
-                          valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
-                      minHeight: 5,
-                          borderRadius: BorderRadius.circular(3),
-                        ),
-                    const SizedBox(height: 2),
-                        Text(
-                          '${project['progress']}% Complete',
-                          style: const TextStyle(
-                        fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                  if (project['testimonial'] != null) ...[
-                    const SizedBox(height: 4),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Row(
                       children: [
-                        const Icon(Iconsax.quote_down, size: 11, color: Colors.grey),
+                        Expanded(
+                          child: Text(
+                            project['title'],
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (project['category'] == 'Ongoing' || project['category'] == 'Featured')
+                          GestureDetector(
+                            onTap: () {
+                              if (project['category'] == 'Ongoing') {
+                                _tabController.animateTo(categories.indexOf('Ongoing'));
+                              } else if (project['category'] == 'Featured') {
+                                _tabController.animateTo(categories.indexOf('Featured'));
+                              }
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.only(left: 4),
+                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: project['category'] == 'Featured'
+                                    ? Colors.amber
+                                    : AppTheme.primaryColor,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                project['category'],
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    Row(
+                      children: [
+                        const Icon(Iconsax.location, size: 12, color: Colors.grey),
                         const SizedBox(width: 2),
                         Expanded(
                           child: Text(
-                              'Client Feedback',
-                              style: TextStyle(
+                            project['location'],
+                            style: const TextStyle(
                               fontSize: 10,
-                                color: Colors.grey[600],
-                                fontWeight: FontWeight.bold,
+                              color: Colors.grey,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -398,11 +362,60 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                         ),
                       ],
                     ),
+                    const SizedBox(height: 4),
+                    Text(
+                      project['description'],
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (project['progress'] != null) ...[
+                      const SizedBox(height: 6),
+                      LinearProgressIndicator(
+                        value: project['progress'] / 100,
+                        backgroundColor: AppTheme.surfaceLight,
+                        valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                        minHeight: 5,
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${project['progress']}% Complete',
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                    if (project['testimonial'] != null) ...[
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(Iconsax.quote_down, size: 11, color: Colors.grey),
+                          const SizedBox(width: 2),
+                          Expanded(
+                            child: Text(
+                              'Client Feedback',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.grey[600],
+                                fontWeight: FontWeight.bold,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
