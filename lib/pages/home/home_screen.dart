@@ -5,6 +5,7 @@ import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/models/service_model.dart';
 import 'package:get/get.dart';
 import 'package:kronium/core/routes.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 
 /// HomeScreen is the main dashboard for the app's Home tab.
 /// Keep this widget focused and readable. Extend as needed.
@@ -66,106 +67,95 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final List<Map<String, String>> _bannerItems = [
+      {
+        'title': 'Greenhouse Solutions',
+        'image': 'assets/images/greenhouse.jpg',
+      },
+      {
+        'title': 'IoT & Automation',
+        'image': 'assets/images/iot.jpg',
+      },
+      {
+        'title': 'Solar Systems',
+        'image': 'assets/images/solar.jpg',
+      },
+    ];
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Main Hero/Services Card (restored from old dashboard)
-          FadeInDown(
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppTheme.shadow,
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFF0C8A44), // Green
-                    Color(0xFF2ECC71), // Lighter green
-                  ],
-                ),
-              ),
-              child: Stack(
-                children: [
-                  // Decorative background circles
-                  Positioned(
-                    top: -40,
-                    right: -40,
-                    child: Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withOpacity(0.07),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: -30,
-                    left: -30,
-                    child: Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withOpacity(0.10),
-                      ),
-                    ),
-                  ),
-                  // Card content
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Professional Services',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Quality solutions for your business needs',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.white70,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      ElevatedButton.icon(
-                        onPressed: () => Get.toNamed(AppRoutes.bookProject),
-                        icon: const Icon(Iconsax.calendar_add),
-                        label: const Text('Book Now'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Color(0xFF0C8A44), // Green text/icon
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+          // Rotating Banner (Carousel)
+          CarouselSlider(
+            options: CarouselOptions(
+              height: 180,
+              autoPlay: true,
+              enlargeCenterPage: true,
+              viewportFraction: 0.9,
+              aspectRatio: 16/9,
             ),
+            items: _bannerItems.map((item) {
+              return Builder(
+                builder: (context) => Container(
+                  width: MediaQuery.of(context).size.width,
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    image: DecorationImage(
+                      image: AssetImage(item['image']!),
+                      fit: BoxFit.cover,
+                      colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.25), BlendMode.darken),
+                    ),
+                  ),
+                  child: Align(
+                    alignment: Alignment.bottomLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        item['title']!,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 22,
+                          shadows: [Shadow(blurRadius: 8, color: Colors.black54)],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 20),
+          // Quick Action Buttons
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _quickActionButton(
+                context,
+                icon: Iconsax.calendar_add,
+                label: 'Book Project',
+                color: AppTheme.primaryColor,
+                onTap: () => Get.toNamed(AppRoutes.bookProject),
+              ),
+              _quickActionButton(
+                context,
+                icon: Iconsax.truck,
+                label: 'Track Delivery',
+                color: Colors.orange,
+                onTap: () {/* Implement tracking */},
+              ),
+              _quickActionButton(
+                context,
+                icon: Iconsax.money,
+                label: 'View Prices',
+                color: Colors.blue,
+                onTap: () {/* Implement price view */},
+              ),
+            ],
           ),
           const SizedBox(height: 24),
-          // Welcome Section (optional, can be removed if redundant)
-          // FadeInDown(
-          //   child: Container(
-          //     ...
-          //   ),
-          // ),
-          // const SizedBox(height: 24),
-
           // Featured Services Section
           FadeInUp(
             delay: const Duration(milliseconds: 200),
@@ -243,6 +233,74 @@ class HomeScreen extends StatelessWidget {
                   return _buildTestimonialCard(testimonial);
                 },
               ),
+            ),
+          ),
+          // Real-time IoT Updates Section
+          const SizedBox(height: 24),
+          FadeInUp(
+            delay: const Duration(milliseconds: 700),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Real-time IoT Updates',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.08),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Text(
+                    'No IoT updates available at the moment.',
+                    style: TextStyle(color: Colors.grey, fontSize: 15),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Price Preview Section
+          const SizedBox(height: 24),
+          FadeInUp(
+            delay: const Duration(milliseconds: 800),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Price Preview',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.08),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Text(
+                    'Get instant price estimates for your next project.',
+                    style: TextStyle(color: Colors.grey, fontSize: 15),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -368,6 +426,44 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _quickActionButton(BuildContext context, {required IconData icon, required String label, required Color color, required VoidCallback onTap}) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 6),
+          padding: const EdgeInsets.symmetric(vertical: 18),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.12),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.08),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: color, size: 28),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  color: color,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

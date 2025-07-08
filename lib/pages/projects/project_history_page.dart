@@ -32,12 +32,12 @@ class _ProjectHistoryPageState extends State<ProjectHistoryPage> {
   final List<Project> projects = [
     Project(
       id: '1',
-      title: 'Solar Panel Installation',
-      description: 'Installed 20 solar panels with battery backup system for residential property',
-      location: 'Nairobi, Kenya',
-      size: '100 sqm',
-      mediaUrls: ['assets/projects/solar1.jpg', 'assets/projects/solar2.jpg'],
-      bookedDates: [],
+        title: 'Solar Panel Installation',
+        description: 'Installed 20 solar panels with battery backup system for residential property',
+        location: 'Nairobi, Kenya',
+        size: '100 sqm',
+        mediaUrls: ['assets/projects/solar1.jpg', 'assets/projects/solar2.jpg'],
+        bookedDates: [],
     ),
     Project(
       id: '2',

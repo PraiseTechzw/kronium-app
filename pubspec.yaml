@@ -75,6 +75,7 @@ dependencies:
   file_picker: ^8.0.7
   appwrite: ^17.0.1
   flutter_web_auth_2: ^4.1.0
+  carousel_slider: 4.2.0
 
 dev_dependencies:
   flutter_test:
