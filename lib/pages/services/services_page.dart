@@ -1,13 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:animate_do/animate_do.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:kronium/core/app_theme.dart';
-import 'package:kronium/core/routes.dart';
-import 'package:kronium/models/service_model.dart';
-import 'package:kronium/widgets/hover_widget.dart';
 
-import 'package:lottie/lottie.dart';
 import 'package:video_player/video_player.dart';
 import 'package:kronium/core/services_data.dart';
 
@@ -22,13 +16,13 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
   late TabController _tabController;
   final List<String> categories = ['All', ...servicesData.map((s) => s['category'] ?? '').toSet().where((c) => c != '').toList()];
   final RxString _searchQuery = ''.obs;
-  final RxList<String> _favorites = <String>[].obs;
   final RxString _selectedSort = 'Popular'.obs;
   final List<String> sortOptions = ['Popular', 'Newest', 'Price: Low to High', 'Price: High to Low'];
   final RxString _selectedCategory = 'All'.obs;
   final RxBool _isAdmin = false.obs; // Set to true only for real admin users
   final RxMap<String, int> _serviceViews = <String, int>{}.obs;
   final RxMap<String, int> _serviceBookings = <String, int>{}.obs;
+  String? _iconTapped;
 
   @override
   void initState() {
@@ -154,19 +148,6 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
         ),
       ),
       body: Obx(() => _buildServiceList(_selectedCategory.value)),
-      floatingActionButton: Obx(() => _isAdmin.value
-          ? FloatingActionButton.extended(
-              onPressed: _showAddServiceDialog,
-              icon: const Icon(Icons.add, color: Colors.white),
-              label: const Text('Add Service', style: TextStyle(color: Colors.white)),
-              backgroundColor: AppTheme.primaryColor,
-            )
-          : FloatingActionButton.extended(
-              onPressed: () => _showBookingForm(context, null),
-              icon: const Icon(Icons.calendar_today, color: Colors.white),
-        label: const Text('Book Service', style: TextStyle(color: Colors.white)),
-              backgroundColor: AppTheme.primaryColor,
-            )),
     );
   }
 
@@ -187,7 +168,7 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
               child: GridView.builder(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  childAspectRatio: 0.9, 
+                  childAspectRatio: 0.7,
                   crossAxisSpacing: 15,
                   mainAxisSpacing: 15,
                 ),
@@ -200,89 +181,145 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
   }
 
   Widget _serviceCardFromMap(Map<String, dynamic> service) {
-    return GestureDetector(
-      onTap: () {
-        _serviceViews[service['title']] = (_serviceViews[service['title']] ?? 0) + 1;
-        _showServiceDetailsFromMap(service);
-      },
-      child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        elevation: 3,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 2.0),
+      child: AnimatedOpacity(
+        opacity: 1.0,
+        duration: const Duration(milliseconds: 500),
+        child: Card(
+          elevation: 6,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(color: Colors.grey.withOpacity(0.12), width: 1),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Stack(
+            children: [
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Stack(
-              alignment: Alignment.center,
               children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                  child: Image.network(
-                    service['image'],
-                    height: 70,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
+                      SizedBox(
+                        height: 80,
+                          width: double.infinity,
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            Image.network(
+                              service['image'],
+                          fit: BoxFit.cover,
+                            ),
+                            Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.black.withOpacity(0.08),
+                                    Colors.black.withOpacity(0.18),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                 ),
                 Positioned(
-                  bottom: 4,
-                  child: CircleAvatar(
-                    backgroundColor: Colors.white70,
-                    radius: 18,
-                    child: Icon(service['icon'], color: Theme.of(context).primaryColor, size: 22),
+                        left: 12,
+                        top: 12,
+                        child: GestureDetector(
+                          onTapDown: (_) => setState(() => _iconTapped = service['title']),
+                          onTapUp: (_) => setState(() => _iconTapped = null),
+                          onTapCancel: () => setState(() => _iconTapped = null),
+                          child: AnimatedScale(
+                            scale: _iconTapped == service['title'] ? 1.15 : 1.0,
+                            duration: const Duration(milliseconds: 120),
+                    child: Container(
+                      decoration: BoxDecoration(
+                                color: _iconBgColor(service['category'], context),
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.18),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              padding: const EdgeInsets.all(7),
+                              child: Icon(
+                                service['icon'],
+                          color: Colors.white,
+                                size: 28,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                      ),
+                      if (service['category'] != null)
+                        Positioned(
+                          right: 10,
+                          top: 10,
+                          child: Chip(
+                            label: Text(
+                              service['category'],
+                              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
+                            ),
+                            backgroundColor: Theme.of(context).primaryColor,
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                            visualDensity: VisualDensity.compact,
+                    ),
+                  ),
               ],
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
               child: Column(
                 children: [
                   Text(
-                    service['title'],
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                    textAlign: TextAlign.center,
+                          service['title'],
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 0.1),
+                          textAlign: TextAlign.center,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 4),
                   Text(
-                    service['description'],
-                    style: const TextStyle(fontSize: 12, color: Colors.black87),
-                    textAlign: TextAlign.center,
+                          service['description'],
+                          style: const TextStyle(fontSize: 13, color: Colors.black87, height: 1.3),
+                          textAlign: TextAlign.center,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
+                        const SizedBox(height: 6),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      IconButton(
-                        icon: Icon(_favorites.contains(service['title']) ? Icons.favorite : Icons.favorite_border, color: Colors.red, size: 18),
-                        onPressed: () {
-                        setState(() {
-                          if (_favorites.contains(service['title'])) {
-                            _favorites.remove(service['title']);
-                          } else {
-                            _favorites.add(service['title']);
-                          }
-                        });
-                      },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.info_outline, color: Colors.blue, size: 18),
-                        onPressed: () => _showServiceDetailsFromMap(service),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.calendar_today, color: Colors.green, size: 18),
-                        onPressed: () => _showBookingForm(context, service),
+                            Tooltip(
+                              message: 'Service details',
+                              child: IconButton(
+                                icon: const Icon(Icons.info_outline, color: Colors.blue, size: 18),
+                                onPressed: () => _showServiceDetailsFromMap(service),
+                              ),
+                            ),
+                            Tooltip(
+                              message: 'Book service',
+                              child: IconButton(
+                                icon: const Icon(Icons.calendar_today, color: Colors.green, size: 18),
+                                onPressed: () => _showBookingFormBottomSheet(service),
+                              ),
                       ),
                     ],
                   ),
                 ],
               ),
-            ),
-          ],
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -293,17 +330,26 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) => FractionallySizedBox(
-        heightFactor: 0.85,
-        child: Padding(
-          padding: const EdgeInsets.all(20),
+        heightFactor: 0.92,
+        child: Container(
+        decoration: const BoxDecoration(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFFF8FAFC), Color(0xFFE3E8EF)],
+            ),
+          ),
           child: SafeArea(
-            child: SingleChildScrollView(
+        child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
                 child: Container(
@@ -315,191 +361,261 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                        child: Icon(
-                          service['icon'],
-                          color: Theme.of(context).primaryColor,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 15),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    const SizedBox(height: 18),
+                    Stack(
                       children: [
-                        Text(
-                              service['title'],
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(18),
+                          child: Image.network(
+                            service['image'],
+                            width: double.infinity,
+                            height: 180,
+                            fit: BoxFit.cover,
                           ),
                         ),
-                            if (service['category'] != null)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 4.0),
-                      child: Text(
-                                  service['category'],
-                          style: TextStyle(
-                            fontSize: 14,
-                                    color: Theme.of(context).primaryColor,
-                            fontWeight: FontWeight.bold,
+                        Positioned(
+                          left: 16,
+                          top: 16,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: _iconBgColor(service['category'], context),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.18),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            padding: const EdgeInsets.all(10),
+                            child: Icon(
+                              service['icon'],
+                              color: Colors.white,
+                              size: 32,
+                            ),
+                          ),
                         ),
+                        if (service['category'] != null)
+                          Positioned(
+                            right: 16,
+                            top: 16,
+                            child: Chip(
+                              label: Text(
+                                service['category'],
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                              ),
+                              backgroundColor: Theme.of(context).primaryColor,
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                              visualDensity: VisualDensity.compact,
                           ),
                         ),
                       ],
                     ),
-                  ),
-                    ],
+                    const SizedBox(height: 18),
+                    Text(
+                      service['title'],
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.2,
+                      ),
                     ),
-                const SizedBox(height: 20),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                    child: Image.network(
-                      service['image'],
-                    width: double.infinity,
-                    height: 180,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                const SizedBox(height: 20),
-              const Text(
-                'Service Overview',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                    service['description'],
-                style: const TextStyle(
-                  fontSize: 16,
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 30),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                    const SizedBox(height: 8),
+                    Text(
+                      service['description'],
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.black87,
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                    onPressed: () {
+                              Navigator.of(context).pop();
+                              _showBookingFormBottomSheet(service);
+                            },
+                            icon: const Icon(Icons.calendar_today, color: Colors.white),
+                            label: const Text('Book Now', style: TextStyle(color: Colors.white)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green[700],
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                      child: const Text('BACK TO SERVICES'),
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 15),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                            Navigator.of(context).pop();
-                            _showBookingForm(context, service);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green[700],
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'BOOK NOW',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ],
+            ),
           ),
-        ),
-      ),
         ),
       ),
     );
   }
 
-  void _showBookingForm(BuildContext context, Map<String, dynamic>? service) {
+  void _showBookingFormBottomSheet(Map<String, dynamic> service) {
     final _formKey = GlobalKey<FormState>();
     String name = '';
     String email = '';
     String phone = '';
     String details = '';
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(service != null ? 'Book ${service['title']}' : 'Book a Service'),
-        content: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  decoration: const InputDecoration(labelText: 'Name'),
-                  validator: (v) => v == null || v.isEmpty ? 'Enter your name' : null,
-                  onSaved: (v) => name = v ?? '',
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => FractionallySizedBox(
+        heightFactor: 0.85,
+        child: Container(
+          decoration: const BoxDecoration(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFFF8FAFC), Color(0xFFE3E8EF)],
+            ),
+          ),
+          child: SafeArea(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  left: 24, right: 24, top: 24,
+                  bottom: MediaQuery.of(context).viewInsets.bottom + 24,
                 ),
-                TextFormField(
-                  decoration: const InputDecoration(labelText: 'Email'),
-                  validator: (v) => v == null || !v.contains('@') ? 'Enter a valid email' : null,
-                  onSaved: (v) => email = v ?? '',
-                ),
-                TextFormField(
-                  decoration: const InputDecoration(labelText: 'Phone'),
-                  validator: (v) => v == null || v.length < 7 ? 'Enter a valid phone' : null,
-                  onSaved: (v) => phone = v ?? '',
-                ),
-                if (service != null)
-                  TextFormField(
-                    initialValue: service['title'],
-                    decoration: const InputDecoration(labelText: 'Service'),
-                    enabled: false,
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 60,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      Text(
+                        'Book ${service['title']}',
+                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 18),
+                      TextFormField(
+                        decoration: const InputDecoration(labelText: 'Name'),
+                        validator: (v) => v == null || v.isEmpty ? 'Enter your name' : null,
+                        onSaved: (v) => name = v ?? '',
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        decoration: const InputDecoration(labelText: 'Email'),
+                        validator: (v) => v == null || !v.contains('@') ? 'Enter a valid email' : null,
+                        onSaved: (v) => email = v ?? '',
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        decoration: const InputDecoration(labelText: 'Phone'),
+                        validator: (v) => v == null || v.length < 7 ? 'Enter a valid phone' : null,
+                        onSaved: (v) => phone = v ?? '',
+                      ),
+                      TextFormField(
+                        initialValue: service['title'],
+                        decoration: const InputDecoration(labelText: 'Service'),
+                        enabled: false,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        decoration: const InputDecoration(labelText: 'Details'),
+                        maxLines: 3,
+                        onSaved: (v) => details = v ?? '',
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            if (_formKey.currentState?.validate() ?? false) {
+                              _formKey.currentState?.save();
+                              _serviceBookings[service['title']] = (_serviceBookings[service['title']] ?? 0) + 1;
+                              Navigator.of(context).pop();
+                              _showBookingSuccessBottomSheet(service['title']);
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).primaryColor,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text('Submit Booking', style: TextStyle(color: Colors.white)),
+                        ),
+                      ),
+                    ],
                   ),
-                TextFormField(
-                  decoration: const InputDecoration(labelText: 'Details'),
-                  maxLines: 3,
-                  onSaved: (v) => details = v ?? '',
                 ),
-              ],
+              ),
             ),
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+      ),
+    );
+  }
+
+  void _showBookingSuccessBottomSheet(String serviceTitle) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => FractionallySizedBox(
+        heightFactor: 0.45,
+        child: Container(
+          decoration: const BoxDecoration(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFFF8FAFC), Color(0xFFE3E8EF)],
+            ),
           ),
-          ElevatedButton(
-            onPressed: () {
-              if (_formKey.currentState?.validate() ?? false) {
-                _formKey.currentState?.save();
-                if (service != null) {
-                  _serviceBookings[service['title']] = (_serviceBookings[service['title']] ?? 0) + 1;
-                }
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Booking submitted! We will contact you soon.')),
-                );
-              }
-            },
-            child: const Text('Submit'),
+          child: SafeArea(
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(height: 24),
+                  Icon(Icons.check_circle, color: Colors.green, size: 60),
+                  const SizedBox(height: 18),
+                  Text('Booking for "$serviceTitle" submitted!',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  const Text('We will contact you soon.',
+                    style: TextStyle(fontSize: 15, color: Colors.black54),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 32),
+                ],
+              ),
+            ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -576,6 +692,23 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
         ],
       ),
     );
+  }
+
+  Color _iconBgColor(String? category, BuildContext context) {
+    switch (category) {
+      case 'Agriculture':
+        return Colors.green.shade700;
+      case 'Water Solutions':
+        return Colors.blue.shade600;
+      case 'Drilling':
+        return Colors.brown.shade400;
+      case 'Energy':
+        return Colors.orange.shade700;
+      case 'Pumps':
+        return Colors.teal.shade700;
+      default:
+        return Theme.of(context).primaryColor.withOpacity(0.92);
+    }
   }
 }
 
