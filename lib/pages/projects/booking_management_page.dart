@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:kronium/core/app_theme.dart';
+import 'mock_project_booking_data.dart';
 
 class BookingsManagementPage extends StatefulWidget {
   const BookingsManagementPage({super.key});
@@ -38,46 +39,13 @@ class _BookingsManagementPageState extends State<BookingsManagementPage> {
     _loadBookings();
   }
 
-  Future<void> _loadBookings() async {
-    try {
-      setState(() => _isLoading = true);
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 1));
-      
-      // Replace with your actual data loading
-      _bookings.addAll([
-        Booking(
-          id: 'BKG001',
-          serviceName: 'Solar Panel Installation',
-          clientName: 'John Smith',
-          date: DateTime.now().add(const Duration(days: 2)),
-          status: BookingStatus.upcoming,
-          price: 8500,
-          location: '123 Green St',
-          contact: '555-123-4567',
-        ),
-        Booking(
-          id: 'BKG002',
-          serviceName: 'Greenhouse Construction',
-          clientName: 'Sarah Johnson',
-          date: DateTime.now().subtract(const Duration(days: 1)),
-          status: BookingStatus.completed,
-          price: 3500,
-          location: '456 Farm Rd',
-          contact: '555-987-6543',
-        ),
-      ]);
-      
+  void _loadBookings() {
+    setState(() {
+      _bookings.clear();
+      _bookings.addAll(MockProjectBookingData().bookings as Iterable<Booking>);
       _applyFilters();
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to load bookings',
-        backgroundColor: AppTheme.errorColor,
-      );
-    } finally {
-      setState(() => _isLoading = false);
-    }
+      _isLoading = false;
+    });
   }
 
   void _applyFilters() {
@@ -201,6 +169,16 @@ class _BookingsManagementPageState extends State<BookingsManagementPage> {
                       child: const Text('Complete'),
                     ),
                   ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => _removeBooking(booking),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                      ),
+                      child: const Text('Remove'),
+                    ),
+                  ),
                 ],
               )
             else
@@ -231,6 +209,23 @@ class _BookingsManagementPageState extends State<BookingsManagementPage> {
         backgroundColor: AppTheme.primaryColor,
       );
     }
+  }
+
+  void _removeBooking(Booking booking) {
+    MockProjectBookingData().removeBooking(
+      MockBooking(
+        id: booking.id,
+        clientName: booking.clientName,
+        clientContact: booking.contact,
+        date: booking.date,
+        location: booking.location,
+        size: '',
+        transportCost: 0,
+        status: booking.status.toString().split('.').last,
+      ),
+    );
+    _loadBookings();
+    Get.snackbar('Booking Removed', 'The booking has been removed and the date is now available.', backgroundColor: AppTheme.primaryColor);
   }
 
   // Simulated taken dates for demo

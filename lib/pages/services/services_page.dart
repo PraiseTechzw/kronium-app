@@ -20,11 +20,15 @@ class ServicesPage extends StatefulWidget {
 
 class ServicesPageState extends State<ServicesPage> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final List<String> categories = ['All', 'Construction', 'Renewable Energy', 'Agriculture', 'Technology'];
+  final List<String> categories = ['All', ...servicesData.map((s) => s['category'] ?? '').toSet().where((c) => c != '').toList()];
   final RxString _searchQuery = ''.obs;
   final RxList<String> _favorites = <String>[].obs;
   final RxString _selectedSort = 'Popular'.obs;
   final List<String> sortOptions = ['Popular', 'Newest', 'Price: Low to High', 'Price: High to Low'];
+  final RxString _selectedCategory = 'All'.obs;
+  final RxBool _isAdmin = false.obs; // Set to true only for real admin users
+  final RxMap<String, int> _serviceViews = <String, int>{}.obs;
+  final RxMap<String, int> _serviceBookings = <String, int>{}.obs;
 
   @override
   void initState() {
@@ -60,19 +64,19 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
         backgroundColor: AppTheme.primaryColor,
         leading: Navigator.canPop(context)
             ? IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () => Get.back(),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () => Navigator.of(context).pop(),
               )
             : null,
-        title: const Text('Our Services',
-            style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
+        title: const Text('Our Services', 
+          style: TextStyle(
+            fontWeight: FontWeight.bold, 
+            fontSize: 20, 
                 color: Colors.white)),
         centerTitle: true,
         actions: [
           PopupMenuButton<String>(
-            icon: const Icon(FontAwesomeIcons.filter, color: Colors.white, size: 20),
+            icon: const Icon(Icons.filter_alt, color: Colors.white, size: 20),
             onSelected: (value) => _selectedSort.value = value,
             itemBuilder: (BuildContext context) => sortOptions.map((String choice) {
               return PopupMenuItem<String>(
@@ -81,10 +85,12 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
               );
             }).toList(),
           ),
-          IconButton(
-            icon: const FaIcon(FontAwesomeIcons.search, size: 20, color: Colors.white),
-            onPressed: _showAdvancedSearchDialog,
-          ),
+          Obx(() => _isAdmin.value
+              ? IconButton(
+                  icon: const Icon(Icons.analytics, color: Colors.white),
+                  onPressed: _showAnalytics,
+                )
+              : const SizedBox()),
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(100),
@@ -92,21 +98,44 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
             color: AppTheme.primaryColor,
             child: Column(
               children: [
-                FadeInDown(
-                  child: Container(
-                    height: 48,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: TabBar(
-                      controller: _tabController,
-                      isScrollable: true,
-                      labelColor: Colors.white,
-                      unselectedLabelColor: Colors.white70,
-                      indicator: BoxDecoration(
+                // Search bar
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Search services...',
+                      prefixIcon: const Icon(Icons.search),
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                      border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        color: Colors.white.withOpacity(0.2),
+                        borderSide: BorderSide.none,
                       ),
-                      tabs: categories.map((category) => Tab(text: category)).toList(),
                     ),
+                    onChanged: (value) => _searchQuery.value = value,
+                  ),
+                ),
+                // Filter chips
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: categories.map((cat) => Obx(() => Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: ChoiceChip(
+                        label: Text(cat),
+                        selected: _selectedCategory.value == cat,
+                        onSelected: (selected) {
+                          if (selected) _selectedCategory.value = cat;
+                        },
+                        selectedColor: Colors.white,
+                        backgroundColor: Colors.white24,
+                        labelStyle: TextStyle(
+                          color: _selectedCategory.value == cat ? AppTheme.primaryColor : Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ))).toList(),
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -124,30 +153,31 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
           ),
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: categories.map((category) {
-          return _buildServiceList(category);
-        }).toList(),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Get.toNamed(AppRoutes.bookProject),
-        icon: const FaIcon(FontAwesomeIcons.calendarPlus, size: 20, color: Colors.white),
+      body: Obx(() => _buildServiceList(_selectedCategory.value)),
+      floatingActionButton: Obx(() => _isAdmin.value
+          ? FloatingActionButton.extended(
+              onPressed: _showAddServiceDialog,
+              icon: const Icon(Icons.add, color: Colors.white),
+              label: const Text('Add Service', style: TextStyle(color: Colors.white)),
+              backgroundColor: AppTheme.primaryColor,
+            )
+          : FloatingActionButton.extended(
+              onPressed: () => _showBookingForm(context, null),
+              icon: const Icon(Icons.calendar_today, color: Colors.white),
         label: const Text('Book Service', style: TextStyle(color: Colors.white)),
-        backgroundColor: AppTheme.primaryColor,
-      ),
+              backgroundColor: AppTheme.primaryColor,
+            )),
     );
   }
 
   Widget _buildServiceList(String category) {
-    return Obx(() {
-      List<Map<String, dynamic>> filteredServices = _searchQuery.value.isEmpty
+    List<Map<String, dynamic>> filteredServices = _searchQuery.value.isEmpty
           ? category == 'All' 
-              ? servicesData 
-              : servicesData.where((service) => service['category'] == category).toList()
-          : servicesData.where((service) => 
-              service['title'].toLowerCase().contains(_searchQuery.value.toLowerCase()) ||
-              service['description'].toLowerCase().contains(_searchQuery.value.toLowerCase()))
+            ? servicesData 
+            : servicesData.where((service) => service['category'] == category).toList()
+        : servicesData.where((service) => 
+            service['title'].toLowerCase().contains(_searchQuery.value.toLowerCase()) ||
+            service['description'].toLowerCase().contains(_searchQuery.value.toLowerCase()))
               .toList();
       filteredServices = _applySorting(filteredServices);
       return filteredServices.isEmpty
@@ -163,258 +193,117 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
                 ),
                 itemCount: filteredServices.length,
                 itemBuilder: (context, index) {
-                  return _serviceCardFromMap(filteredServices[index]);
+                return _serviceCardFromMap(filteredServices[index]);
                 },
               ),
             );
-    });
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Lottie.asset(
-            'assets/animations/search_empty.json',
-            width: 200,
-            height: 200,
-          ),
-          const SizedBox(height: 20),
-          Text(
-            _searchQuery.value.isEmpty
-                ? 'No services available in this category'
-                : 'No services found for "${_searchQuery.value}"',
-            style: TextStyle(fontSize: 16, color: AppTheme.textSecondary),
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              _searchQuery.value = '';
-              _tabController.animateTo(0);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryColor,
-            ),
-            child: const Text('View All Services', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _serviceCardFromMap(Map<String, dynamic> service) {
-    return HoverWidget(
-      hoverChild: Transform.translate(
-        offset: const Offset(0, -5),
-        child: _buildServiceCardContentFromMap(service, true),
-      ),
-      onHover: (event) {},
-      child: _buildServiceCardContentFromMap(service, false),
-    );
-  }
-
-  Widget _buildServiceCardContentFromMap(Map<String, dynamic> service, bool isHover) {
     return GestureDetector(
-      onTap: () => _showServiceDetailsFromMap(service),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: AppTheme.shadow,
-              blurRadius: isHover ? 15 : 8,
-              spreadRadius: 1,
-              offset: const Offset(0, 5),
-            ),
-          ],
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Theme.of(context).primaryColor.withOpacity(0.13),
-              AppTheme.surfaceLight,
-            ],
-          ),
-        ),
-        child: Stack(
+      onTap: () {
+        _serviceViews[service['title']] = (_serviceViews[service['title']] ?? 0) + 1;
+        _showServiceDetailsFromMap(service);
+      },
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 3,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Positioned(
-              top: -30,
-              right: -30,
-              child: Container(
-                width: 70,
-                height: 70,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Theme.of(context).primaryColor.withOpacity(0.08),
-                ),
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            Stack(
+              alignment: Alignment.center,
               children: [
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                   child: Image.network(
                     service['image'],
-                    height: 120,
+                    height: 70,
                     width: double.infinity,
                     fit: BoxFit.cover,
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (service['category'] != null)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).primaryColor.withOpacity(0.13),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            service['category'],
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Theme.of(context).primaryColor,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      const SizedBox(height: 8),
-                      Text(
-                        service['title'],
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        service['description'],
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppTheme.textSecondary,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Learn More',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).primaryColor,
-                            ),
-                          ),
-                          Icon(
-                            service['icon'],
-                            size: 18,
-                            color: Theme.of(context).primaryColor,
-                          ),
-                        ],
-                      ),
-                    ],
+                Positioned(
+                  bottom: 4,
+                  child: CircleAvatar(
+                    backgroundColor: Colors.white70,
+                    radius: 18,
+                    child: Icon(service['icon'], color: Theme.of(context).primaryColor, size: 22),
                   ),
                 ),
               ],
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showAdvancedSearchDialog() {
-    Get.dialog(
-      Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                autofocus: true,
-                decoration: InputDecoration(
-                  hintText: 'Search services...',
-                  prefixIcon: const FaIcon(FontAwesomeIcons.search, size: 16),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                onChanged: (value) => _searchQuery.value = value,
-              ),
-              const SizedBox(height: 15),
-              Obx(() => DropdownButtonFormField<String>(
-                value: _selectedSort.value,
-                decoration: InputDecoration(
-                  labelText: 'Sort by',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                items: sortOptions.map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (value) => _selectedSort.value = value!,
-              )),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
+              child: Column(
                 children: [
-                  TextButton(
-                    onPressed: () => Get.back(),
-                    child: const Text('Cancel'),
+                  Text(
+                    service['title'],
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  ElevatedButton(
-                    onPressed: () {
-                      Get.back();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green[700],
-                    ),
-                    child: const Text('Search', style: TextStyle(color: Colors.white)),
+                  const SizedBox(height: 2),
+                  Text(
+                    service['description'],
+                    style: const TextStyle(fontSize: 12, color: Colors.black87),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        icon: Icon(_favorites.contains(service['title']) ? Icons.favorite : Icons.favorite_border, color: Colors.red, size: 18),
+                        onPressed: () {
+                        setState(() {
+                          if (_favorites.contains(service['title'])) {
+                            _favorites.remove(service['title']);
+                          } else {
+                            _favorites.add(service['title']);
+                          }
+                        });
+                      },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.info_outline, color: Colors.blue, size: 18),
+                        onPressed: () => _showServiceDetailsFromMap(service),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.calendar_today, color: Colors.green, size: 18),
+                        onPressed: () => _showBookingForm(context, service),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
   void _showServiceDetailsFromMap(Map<String, dynamic> service) {
-    Get.bottomSheet(
-      Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
-          ),
-        ),
-        padding: const EdgeInsets.all(20),
-        child: SingleChildScrollView(
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => FractionallySizedBox(
+        heightFactor: 0.85,
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: SafeArea(
+            child: SingleChildScrollView(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
                 child: Container(
@@ -433,12 +322,12 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor.withOpacity(0.1),
+                          color: Theme.of(context).primaryColor.withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(
-                      service['icon'],
-                      color: Theme.of(context).primaryColor,
+                        child: Icon(
+                          service['icon'],
+                          color: Theme.of(context).primaryColor,
                       size: 24,
                     ),
                   ),
@@ -448,40 +337,40 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          service['title'],
+                              service['title'],
                           style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        if (service['category'] != null)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4.0),
-                            child: Text(
-                              service['category'],
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Theme.of(context).primaryColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                            if (service['category'] != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4.0),
+                      child: Text(
+                                  service['category'],
+                          style: TextStyle(
+                            fontSize: 14,
+                                    color: Theme.of(context).primaryColor,
+                            fontWeight: FontWeight.bold,
+                        ),
                           ),
+                        ),
                       ],
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  service['image'],
-                  width: double.infinity,
-                  height: 180,
-                  fit: BoxFit.cover,
+                    ],
+                    ),
+                const SizedBox(height: 20),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      service['image'],
+                    width: double.infinity,
+                    height: 180,
+                    fit: BoxFit.cover,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
+                const SizedBox(height: 20),
               const Text(
                 'Service Overview',
                 style: TextStyle(
@@ -491,7 +380,7 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
               ),
               const SizedBox(height: 10),
               Text(
-                service['description'],
+                    service['description'],
                 style: const TextStyle(
                   fontSize: 16,
                   height: 1.5,
@@ -502,7 +391,7 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => Get.back(),
+                          onPressed: () => Navigator.of(context).pop(),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 15),
                         shape: RoundedRectangleBorder(
@@ -516,11 +405,8 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
-                        Get.back();
-                        Get.toNamed(
-                          AppRoutes.bookProject, 
-                          arguments: service
-                        );
+                            Navigator.of(context).pop();
+                            _showBookingForm(context, service);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green[700],
@@ -540,6 +426,154 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
             ],
           ),
         ),
+      ),
+        ),
+      ),
+    );
+  }
+
+  void _showBookingForm(BuildContext context, Map<String, dynamic>? service) {
+    final _formKey = GlobalKey<FormState>();
+    String name = '';
+    String email = '';
+    String phone = '';
+    String details = '';
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(service != null ? 'Book ${service['title']}' : 'Book a Service'),
+        content: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  decoration: const InputDecoration(labelText: 'Name'),
+                  validator: (v) => v == null || v.isEmpty ? 'Enter your name' : null,
+                  onSaved: (v) => name = v ?? '',
+                ),
+                TextFormField(
+                  decoration: const InputDecoration(labelText: 'Email'),
+                  validator: (v) => v == null || !v.contains('@') ? 'Enter a valid email' : null,
+                  onSaved: (v) => email = v ?? '',
+                ),
+                TextFormField(
+                  decoration: const InputDecoration(labelText: 'Phone'),
+                  validator: (v) => v == null || v.length < 7 ? 'Enter a valid phone' : null,
+                  onSaved: (v) => phone = v ?? '',
+                ),
+                if (service != null)
+                  TextFormField(
+                    initialValue: service['title'],
+                    decoration: const InputDecoration(labelText: 'Service'),
+                    enabled: false,
+                  ),
+                TextFormField(
+                  decoration: const InputDecoration(labelText: 'Details'),
+                  maxLines: 3,
+                  onSaved: (v) => details = v ?? '',
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (_formKey.currentState?.validate() ?? false) {
+                _formKey.currentState?.save();
+                if (service != null) {
+                  _serviceBookings[service['title']] = (_serviceBookings[service['title']] ?? 0) + 1;
+                }
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Booking submitted! We will contact you soon.')),
+                );
+              }
+            },
+            child: const Text('Submit'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddServiceDialog() {
+    // For demo: just show a snackbar
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Admin: Add Service feature coming soon!')),
+    );
+  }
+
+  void _showAnalytics() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Service Analytics'),
+        content: SizedBox(
+          width: 300,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Most Viewed Services:'),
+              ...(_serviceViews.entries.toList()
+                ..sort((a, b) => b.value.compareTo(a.value)))
+                .take(3)
+                .map((e) => Text('${e.key}: ${e.value} views'))
+                .toList(),
+              const SizedBox(height: 16),
+              const Text('Most Booked Services:'),
+              ...(_serviceBookings.entries.toList()
+                ..sort((a, b) => b.value.compareTo(a.value)))
+                .take(3)
+                .map((e) => Text('${e.key}: ${e.value} bookings'))
+                .toList(),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.search_off, size: 80, color: Colors.grey[400]),
+          const SizedBox(height: 20),
+          Text(
+            _searchQuery.value.isEmpty
+                ? 'No services available in this category'
+                : 'No services found for "${_searchQuery.value}"',
+            style: TextStyle(fontSize: 16, color: AppTheme.textSecondary),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () {
+              _searchQuery.value = '';
+              _selectedCategory.value = 'All';
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryColor,
+            ),
+            child: const Text('View All Services', style: TextStyle(color: Colors.white)),
+          ),
+        ],
       ),
     );
   }

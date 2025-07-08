@@ -53,242 +53,242 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
           child: IntrinsicHeight(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Welcome Section
-                FadeInDown(
-                  child: Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                          blurRadius: 10,
-                          offset: const Offset(0, 5),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        const CircleAvatar(
-                          radius: 30,
-                          backgroundColor: Colors.white,
-                          child: Icon(
-                            Iconsax.shield_tick,
-                            color: AppTheme.primaryColor,
-                            size: 30,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Welcome back, Admin!',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Manage your business efficiently',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.white.withValues(alpha: 0.8),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Welcome Section
+            FadeInDown(
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 24),
-
-                // Statistics Cards
-                FadeInUp(
-                  delay: const Duration(milliseconds: 200),
-                  child: FutureBuilder<Map<String, dynamic>>(
-                    future: firebaseService.getAdminStats(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-
-                      final stats = snapshot.data ?? {
-                        'totalServices': 0,
-                        'totalBookings': 0,
-                        'pendingBookings': 0,
-                      };
-
-                      return GridView.count(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                        childAspectRatio: 1.2,
+                child: Row(
+                  children: [
+                    const CircleAvatar(
+                      radius: 30,
+                      backgroundColor: Colors.white,
+                      child: Icon(
+                        Iconsax.shield_tick,
+                        color: AppTheme.primaryColor,
+                        size: 30,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildStatCard(
-                            'Total Services',
-                            stats['totalServices'].toString(),
-                            Iconsax.box,
-                            Colors.blue,
+                          Text(
+                            'Welcome back, Admin!',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
-                          _buildStatCard(
-                            'Total Bookings',
-                            stats['totalBookings'].toString(),
-                            Iconsax.calendar,
-                            Colors.green,
-                          ),
-                          _buildStatCard(
-                            'Pending Bookings',
-                            stats['pendingBookings'].toString(),
-                            Iconsax.clock,
-                            Colors.orange,
-                          ),
-                          _buildStatCard(
-                            'Revenue',
-                            '\$${(stats['totalBookings'] * 100).toString()}',
-                            Iconsax.dollar_circle,
-                            Colors.purple,
+                          const SizedBox(height: 4),
+                          Text(
+                            'Manage your business efficiently',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.white.withValues(alpha: 0.8),
+                            ),
                           ),
                         ],
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Quick Actions
-                FadeInUp(
-                  delay: const Duration(milliseconds: 400),
-                  child: const Text(
-                    'Quick Actions',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-                const SizedBox(height: 16),
+              ),
+            ),
+            const SizedBox(height: 24),
 
-                FadeInUp(
-                  delay: const Duration(milliseconds: 600),
-                  child: GridView.count(
+            // Statistics Cards
+            FadeInUp(
+              delay: const Duration(milliseconds: 200),
+              child: FutureBuilder<Map<String, dynamic>>(
+                future: firebaseService.getAdminStats(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  final stats = snapshot.data ?? {
+                    'totalServices': 0,
+                    'totalBookings': 0,
+                    'pendingBookings': 0,
+                  };
+
+                  return GridView.count(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     crossAxisCount: 2,
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
-                    childAspectRatio: 1.3,
+                    childAspectRatio: 1.2,
                     children: [
-                      _buildActionCard(
-                        'Manage Services',
+                      _buildStatCard(
+                        'Total Services',
+                        stats['totalServices'].toString(),
                         Iconsax.box,
                         Colors.blue,
-                        () => Get.toNamed(AppRoutes.adminServices),
                       ),
-                      _buildActionCard(
-                        'View Bookings',
+                      _buildStatCard(
+                        'Total Bookings',
+                        stats['totalBookings'].toString(),
                         Iconsax.calendar,
                         Colors.green,
-                        () => Get.toNamed(AppRoutes.adminBookings),
                       ),
-                      _buildActionCard(
-                        'Add Service',
-                        Iconsax.add_circle,
+                      _buildStatCard(
+                        'Pending Bookings',
+                        stats['pendingBookings'].toString(),
+                        Iconsax.clock,
                         Colors.orange,
-                        () => Get.toNamed(AppRoutes.addService),
                       ),
-                      _buildActionCard(
-                        'Analytics',
-                        Iconsax.chart,
+                      _buildStatCard(
+                        'Revenue',
+                        '\$${(stats['totalBookings'] * 100).toString()}',
+                        Iconsax.dollar_circle,
                         Colors.purple,
-                        () => _showAnalytics(),
-                      ),
-                      _buildActionCard(
-                        'Customer Support',
-                        Iconsax.message,
-                        Colors.teal,
-                        () => Get.toNamed(AppRoutes.adminChat),
                       ),
                     ],
-                  ),
-                ),
-                const SizedBox(height: 24),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 24),
 
-                // Recent Activity
-                FadeInUp(
-                  delay: const Duration(milliseconds: 800),
-                  child: const Text(
-                    'Recent Activity',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+            // Quick Actions
+            FadeInUp(
+              delay: const Duration(milliseconds: 400),
+              child: const Text(
+                'Quick Actions',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                 ),
-                const SizedBox(height: 16),
+              ),
+            ),
+            const SizedBox(height: 16),
 
-                FadeInUp(
-                  delay: const Duration(milliseconds: 1000),
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
+            FadeInUp(
+              delay: const Duration(milliseconds: 600),
+              child: GridView.count(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisCount: 2,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: 1.3,
+                children: [
+                  _buildActionCard(
+                    'Manage Services',
+                    Iconsax.box,
+                    Colors.blue,
+                    () => Get.toNamed(AppRoutes.adminServices),
+                  ),
+                  _buildActionCard(
+                    'View Bookings',
+                    Iconsax.calendar,
+                    Colors.green,
+                    () => Get.toNamed(AppRoutes.adminBookings),
+                  ),
+                  _buildActionCard(
+                    'Add Service',
+                    Iconsax.add_circle,
+                    Colors.orange,
+                    () => Get.toNamed(AppRoutes.addService),
+                  ),
+                  _buildActionCard(
+                    'Analytics',
+                    Iconsax.chart,
+                    Colors.purple,
+                    () => _showAnalytics(),
+                  ),
+                  _buildActionCard(
+                    'Customer Support',
+                    Iconsax.message,
+                    Colors.teal,
+                    () => Get.toNamed(AppRoutes.adminChat),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Recent Activity
+            FadeInUp(
+              delay: const Duration(milliseconds: 800),
+              child: const Text(
+                'Recent Activity',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            FadeInUp(
+              delay: const Duration(milliseconds: 1000),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
                       color: AppTheme.surfaceLight,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withValues(alpha: 0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 5),
-                        ),
-                      ],
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withValues(alpha: 0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
                     ),
-                    child: Column(
-                      children: [
-                        _buildActivityItem(
-                          'New booking received',
-                          'Greenhouse Construction - John Doe',
-                          '2 hours ago',
-                          Iconsax.calendar_add,
-                          Colors.green,
-                        ),
-                        const Divider(),
-                        _buildActivityItem(
-                          'Service updated',
-                          'Solar Panel Installation',
-                          '4 hours ago',
-                          Iconsax.edit,
-                          Colors.blue,
-                        ),
-                        const Divider(),
-                        _buildActivityItem(
-                          'Booking completed',
-                          'Plumbing Service - Jane Smith',
-                          '1 day ago',
-                          Iconsax.tick_circle,
-                          Colors.purple,
-                        ),
-                      ],
-                    ),
-                  ),
+                  ],
                 ),
-              ],
+                child: Column(
+                  children: [
+                    _buildActivityItem(
+                      'New booking received',
+                      'Greenhouse Construction - John Doe',
+                      '2 hours ago',
+                      Iconsax.calendar_add,
+                      Colors.green,
+                    ),
+                    const Divider(),
+                    _buildActivityItem(
+                      'Service updated',
+                      'Solar Panel Installation',
+                      '4 hours ago',
+                      Iconsax.edit,
+                      Colors.blue,
+                    ),
+                    const Divider(),
+                    _buildActivityItem(
+                      'Booking completed',
+                      'Plumbing Service - Jane Smith',
+                      '1 day ago',
+                      Iconsax.tick_circle,
+                      Colors.purple,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
             ),
           ),
         ),

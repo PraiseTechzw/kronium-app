@@ -7,6 +7,7 @@ import 'package:kronium/core/routes.dart';
 import 'package:kronium/widgets/hover_widget.dart';
 
 import 'package:lottie/lottie.dart';
+import 'mock_project_booking_data.dart';
 
 class ProjectsPage extends StatefulWidget {
   const ProjectsPage({super.key});
@@ -103,7 +104,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
             fontWeight: FontWeight.bold,
             fontSize: 20,
           ),
-        ),
+          ),
         automaticallyImplyLeading: false,
         actions: [Container()],
         bottom: PreferredSize(
@@ -192,10 +193,10 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
             ),
           Expanded(
             child: TabBarView(
-              controller: _tabController,
-              children: categories.map((category) {
-                return _buildProjectList(category);
-              }).toList(),
+        controller: _tabController,
+        children: categories.map((category) {
+          return _buildProjectList(category);
+        }).toList(),
             ),
           ),
         ],
@@ -231,20 +232,20 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
     }
 
     return Padding(
-      padding: const EdgeInsets.all(16),
-      child: GridView.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 0.9,
-          crossAxisSpacing: 15,
-          mainAxisSpacing: 15,
-        ),
-        itemCount: filteredProjects.length,
-        itemBuilder: (context, index) {
-          return _projectCard(filteredProjects[index]);
-        },
-      ),
-    );
+            padding: const EdgeInsets.all(16),
+            child: GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 0.9,
+                crossAxisSpacing: 15,
+                mainAxisSpacing: 15,
+              ),
+              itemCount: filteredProjects.length,
+              itemBuilder: (context, index) {
+                return _projectCard(filteredProjects[index]);
+              },
+            ),
+          );
   }
 
   List<Map<String, dynamic>> _sortProjects(List<Map<String, dynamic>> projects) {
@@ -299,7 +300,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
       onHover: (event) {},
       child: GestureDetector(
         onTap: () => _showProjectDetails(project),
-        child: _buildProjectCardContent(project, false),
+      child: _buildProjectCardContent(project, false),
       ),
     );
   }
@@ -333,14 +334,14 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                 ],
         ),
         child: IntrinsicHeight(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                 child: SizedBox(
                   height: 100,
-                  width: double.infinity,
+                    width: double.infinity,
                   child: FittedBox(
                     fit: BoxFit.cover,
                     child: Image.network(
@@ -370,9 +371,9 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            if (project['category'] == 'Ongoing' || project['category'] == 'Featured')
+                  ),
+                ),
+                if (project['category'] == 'Ongoing' || project['category'] == 'Featured')
                               GestureDetector(
                                 onTap: () {
                                   if (project['category'] == 'Ongoing') {
@@ -381,97 +382,97 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                                     _tabController.animateTo(categories.indexOf('Featured'));
                                   }
                                 },
-                                child: Container(
+                    child: Container(
                                   margin: const EdgeInsets.only(left: 4),
                                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: project['category'] == 'Featured'
-                                        ? Colors.amber
-                                        : AppTheme.primaryColor,
+                      decoration: BoxDecoration(
+                        color: project['category'] == 'Featured' 
+                            ? Colors.amber 
+                            : AppTheme.primaryColor,
                                     borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    project['category'],
-                                    style: const TextStyle(
-                                      color: Colors.white,
+                      ),
+                      child: Text(
+                        project['category'],
+                        style: const TextStyle(
+                          color: Colors.white,
                                       fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
+                          fontWeight: FontWeight.bold,
                         ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
                         const SizedBox(height: 3),
                         Row(
-                          children: [
+                children: [
                             const Icon(Iconsax.location, size: 12, color: Colors.grey),
                             const SizedBox(width: 2),
                             Expanded(
                               child: Text(
                                 project['location'],
-                                style: const TextStyle(
+                    style: const TextStyle(
                                   fontSize: 10,
                                   color: Colors.grey,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                         ),
+                      ),
+                    ],
+                  ),
                         const SizedBox(height: 4),
-                        Text(
-                          project['description'],
-                          style: const TextStyle(
+                  Text(
+                    project['description'],
+                    style: const TextStyle(
                             fontSize: 11,
-                            color: Colors.grey,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                      color: Colors.grey,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                         if (project['progress'] != null) ...[
                           const SizedBox(height: 6),
-                          LinearProgressIndicator(
-                            value: project['progress'] / 100,
+                        LinearProgressIndicator(
+                          value: project['progress'] / 100,
                             backgroundColor: AppTheme.surfaceLight,
-                            valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                          valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
                             minHeight: 5,
-                            borderRadius: BorderRadius.circular(3),
-                          ),
+                          borderRadius: BorderRadius.circular(3),
+                        ),
                           const SizedBox(height: 2),
-                          Text(
-                            '${project['progress']}% Complete',
-                            style: const TextStyle(
+                        Text(
+                          '${project['progress']}% Complete',
+                          style: const TextStyle(
                               fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            fontWeight: FontWeight.bold,
                           ),
-                        ],
+                        ),
+                      ],
                         if (project['testimonial'] != null) ...[
                           const SizedBox(height: 4),
-                          Row(
-                            children: [
+                        Row(
+                          children: [
                               const Icon(Iconsax.quote_down, size: 11, color: Colors.grey),
                               const SizedBox(width: 2),
                               Expanded(
                                 child: Text(
-                                  'Client Feedback',
-                                  style: TextStyle(
+                              'Client Feedback',
+                              style: TextStyle(
                                     fontSize: 10,
-                                    color: Colors.grey[600],
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                color: Colors.grey[600],
+                                fontWeight: FontWeight.bold,
+                              ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                            ),
+                        ),
                       ],
                     ),
-                  ),
+                ],
+          ],
+        ),
+      ),
                 ),
               ),
             ],
@@ -481,12 +482,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
     );
   }
 
-  // Simulated taken dates for demo
-  final List<DateTime> _takenDates = [
-    DateTime(2024, 6, 10),
-    DateTime(2024, 6, 15),
-    DateTime(2024, 6, 20),
-  ];
+  List<DateTime> get _takenDates => MockProjectBookingData().bookedDates;
 
   void _showProjectDetails(Map<String, dynamic> project) {
     Get.bottomSheet(
@@ -535,17 +531,17 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                   ),
                   const Spacer(),
                   if (project['category'] != null)
-                    Chip(
-                      label: Text(project['category']),
-                      backgroundColor: project['category'] == 'Featured'
-                          ? Colors.amber.withOpacity(0.2)
-                          : AppTheme.primaryColor.withOpacity(0.2),
-                      labelStyle: TextStyle(
-                        color: project['category'] == 'Featured'
-                            ? Colors.amber[800]
-                            : AppTheme.primaryColor,
-                      ),
+                  Chip(
+                    label: Text(project['category']),
+                    backgroundColor: project['category'] == 'Featured'
+                        ? Colors.amber.withOpacity(0.2)
+                        : AppTheme.primaryColor.withOpacity(0.2),
+                    labelStyle: TextStyle(
+                      color: project['category'] == 'Featured'
+                          ? Colors.amber[800]
+                          : AppTheme.primaryColor,
                     ),
+                  ),
                 ],
               ),
               const SizedBox(height: 20),
@@ -706,6 +702,9 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
       initialDate: now,
       firstDate: now,
       lastDate: now.add(const Duration(days: 365)),
+      selectableDayPredicate: (date) {
+        return !_takenDates.any((d) => d.year == date.year && d.month == date.month && d.day == date.day);
+      },
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -733,9 +732,20 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
           colorText: Colors.white,
         );
       } else {
+        // Mark the date as booked in the provider (mock)
+        MockProjectBookingData().addBooking(MockBooking(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          clientName: 'Client',
+          clientContact: '',
+          date: picked,
+          location: project['location'] ?? '',
+          size: '',
+          transportCost: 0,
+          status: 'booked',
+        ));
         Get.snackbar(
           'Date Selected',
-          'You selected: ${picked.toLocal().toString().split(' ')[0]}',
+          'You selected: ${picked.toLocal().toString().split(' ')[0]}. Date is now reserved for you!',
           backgroundColor: AppTheme.primaryColor,
           colorText: Colors.white,
         );

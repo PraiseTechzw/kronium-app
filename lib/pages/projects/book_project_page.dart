@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:kronium/models/booking_model.dart';
 import 'package:kronium/models/service_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'mock_project_booking_data.dart';
 
 class BookProjectPage extends StatefulWidget {
   final Service? selectedService;
@@ -51,16 +52,10 @@ class _BookProjectPageState extends State<BookProjectPage> {
     _fetchUnavailableDates();
   }
 
-  Future<void> _fetchUnavailableDates() async {
-    final projectId = 'demo_project_id'; // TODO: get actual project id
-    final doc = await FirebaseFirestore.instance.collection('projects').doc(projectId).get();
-    if (doc.exists) {
-      final data = doc.data() as Map<String, dynamic>;
-      final bookedDates = (data['bookedDates'] as List<dynamic>? ?? [])
-          .map((e) => (e['date'] as Timestamp).toDate())
-          .toList();
-      setState(() => _unavailableDates = bookedDates);
-    }
+  void _fetchUnavailableDates() {
+    setState(() {
+      _unavailableDates = MockProjectBookingData().bookedDates;
+    });
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -104,8 +99,11 @@ class _BookProjectPageState extends State<BookProjectPage> {
     final location = _locationController.text.trim();
     final size = _sizeController.text.trim();
     if (location.isNotEmpty && size.isNotEmpty) {
-      const double distanceKm = 20.0;
-      setState(() => _transportCost = distanceKm * 1.5);
+      // Simple mock: base + (size length * 2) + (location length * 1.5)
+      double base = 10.0;
+      double sizeFactor = size.length * 2.0;
+      double locationFactor = location.length * 1.5;
+      setState(() => _transportCost = base + sizeFactor + locationFactor);
     } else {
       setState(() => _transportCost = null);
     }
@@ -113,24 +111,19 @@ class _BookProjectPageState extends State<BookProjectPage> {
 
   Future<void> _submitBooking() async {
     if (!_formKey.currentState!.validate()) return;
-    
     if (_selectedService == null) {
       Get.snackbar('Error', 'Please select a service first');
       return;
     }
-    
     if (_selectedDate == null) {
       Get.snackbar('Error', 'Please select a date');
       return;
     }
-
     if (_selectedTime == null) {
       Get.snackbar('Error', 'Please select a time');
       return;
     }
-
     setState(() => _isSubmitting = true);
-
     try {
       final bookingDateTime = DateTime(
         _selectedDate!.year,
@@ -139,41 +132,24 @@ class _BookProjectPageState extends State<BookProjectPage> {
         _selectedTime!.hour,
         _selectedTime!.minute,
       );
-
-      final booking = Booking(
-        serviceName: _selectedService!.title,
+      final booking = MockBooking(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
         clientName: _nameController.text,
-        clientEmail: _emailController.text,
-        clientPhone: _phoneController.text,
+        clientContact: _phoneController.text,
         date: bookingDateTime,
-        status: BookingStatus.pending,
-        price: _selectedService!.price ?? 0,
         location: _locationController.text,
-        notes: _notesController.text,
+        size: _sizeController.text,
+        transportCost: _transportCost ?? 0,
+        status: 'booked',
       );
-
-      final firebaseService = Get.find<FirebaseService>();
-      await firebaseService.addBooking(booking);
-
-      final projectId = 'demo_project_id'; // TODO: get actual project id
-      await FirebaseFirestore.instance.collection('projects').doc(projectId).update({
-        'bookedDates': FieldValue.arrayUnion([
-          {
-            'date': Timestamp.fromDate(_selectedDate!),
-            'clientId': 'client_id', // TODO: get actual client id
-            'status': 'booked',
-          }
-        ])
-      });
-
+      MockProjectBookingData().addBooking(booking);
       Get.snackbar(
-        'Success',
-        'Booking submitted successfully! We will contact you soon. Transport cost: \$${_transportCost?.toStringAsFixed(2) ?? 'N/A'}',
+        'Success', 
+        'Booking submitted! Transport cost: \$${_transportCost?.toStringAsFixed(2) ?? 'N/A'}',
         backgroundColor: AppTheme.primaryColor,
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
       );
-      
       Get.back();
     } catch (e) {
       Get.snackbar(

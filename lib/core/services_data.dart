@@ -6,36 +6,42 @@ final List<Map<String, dynamic>> servicesData = [
     'icon': Icons.agriculture,
     'description': 'Design and build modern greenhouses for all scales.',
     'image': 'https://images.unsplash.com/photo-1506744038136-46273834b3fb',
+    'category': 'Agriculture',
   },
   {
     'title': 'Irrigation Systems',
     'icon': Icons.water_drop,
     'description': 'Efficient irrigation solutions for farms and gardens.',
     'image': 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308',
+    'category': 'Water Solutions',
   },
   {
     'title': 'Borehole Siting',
     'icon': Icons.place,
     'description': 'Professional siting for optimal borehole placement.',
     'image': 'https://images.unsplash.com/photo-1464983953574-0892a716854b',
+    'category': 'Drilling',
   },
   {
     'title': 'Borehole Drilling',
     'icon': Icons.construction,
     'description': 'Reliable borehole drilling and installation services.',
     'image': 'https://images.unsplash.com/photo-1464983953574-0892a716854b',
+    'category': 'Drilling',
   },
   {
     'title': 'Solar System & Installation',
     'icon': Icons.solar_power,
     'description': 'Solar power systems for homes, businesses, and farms.',
     'image': 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308',
+    'category': 'Energy',
   },
   {
     'title': 'AC & DC Pump Installation',
     'icon': Icons.electrical_services,
     'description': 'Installation of AC and DC pumps for various applications.',
     'image': 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308',
+    'category': 'Pumps',
   },
 ];
 
