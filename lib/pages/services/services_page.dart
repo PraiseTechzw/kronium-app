@@ -472,9 +472,10 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
 
   void _showBookingFormBottomSheet(Map<String, dynamic> service) {
     final _formKey = GlobalKey<FormState>();
-    String name = '';
-    String email = '';
-    String phone = '';
+    final user = userProfile.value;
+    final TextEditingController _nameController = TextEditingController(text: user?.name ?? '');
+    final TextEditingController _emailController = TextEditingController(text: user?.email ?? '');
+    final TextEditingController _phoneController = TextEditingController(text: user?.phone ?? '');
     String details = '';
     showModalBottomSheet(
       context: context,
@@ -523,21 +524,21 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
                       ),
                       const SizedBox(height: 18),
                       TextFormField(
+                        controller: _nameController,
                         decoration: const InputDecoration(labelText: 'Name'),
                         validator: (v) => v == null || v.isEmpty ? 'Enter your name' : null,
-                        onSaved: (v) => name = v ?? '',
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
+                        controller: _emailController,
                         decoration: const InputDecoration(labelText: 'Email'),
                         validator: (v) => v == null || !v.contains('@') ? 'Enter a valid email' : null,
-                        onSaved: (v) => email = v ?? '',
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
+                        controller: _phoneController,
                         decoration: const InputDecoration(labelText: 'Phone'),
                         validator: (v) => v == null || v.length < 7 ? 'Enter a valid phone' : null,
-                        onSaved: (v) => phone = v ?? '',
                       ),
                       TextFormField(
                         initialValue: service['title'],

@@ -853,10 +853,11 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
     double? _liveTransportCost;
     final _formKey = GlobalKey<FormState>();
     
-    // Prefill user info if available
-    _nameController.text = _savedName ?? '';
-    _emailController.text = _savedEmail ?? '';
-    _phoneController.text = _savedPhone ?? '';
+    // Prefill user info if available (prefer userProfile, fallback to saved)
+    final user = UserAuthService.instance.userProfile.value;
+    _nameController.text = user?.name ?? _savedName ?? '';
+    _emailController.text = user?.email ?? _savedEmail ?? '';
+    _phoneController.text = user?.phone ?? _savedPhone ?? '';
 
     void _updateTransportCost() {
       _liveTransportCost = _calculateSmartTransportCost(_location, _size);
