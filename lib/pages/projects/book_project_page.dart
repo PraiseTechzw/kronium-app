@@ -7,6 +7,7 @@ import 'package:kronium/core/firebase_service.dart';
 import 'package:intl/intl.dart';
 import 'package:kronium/models/booking_model.dart';
 import 'package:kronium/models/service_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class BookProjectPage extends StatefulWidget {
   final Service? selectedService;
@@ -24,6 +25,7 @@ class _BookProjectPageState extends State<BookProjectPage> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
+  final TextEditingController _sizeController = TextEditingController();
 
   Service? _selectedService;
   String? _selectedCategory;
@@ -39,11 +41,26 @@ class _BookProjectPageState extends State<BookProjectPage> {
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
   bool _isSubmitting = false;
+  double? _transportCost;
+  List<DateTime> _unavailableDates = [];
 
   @override
   void initState() {
     super.initState();
     _selectedService = widget.selectedService;
+    _fetchUnavailableDates();
+  }
+
+  Future<void> _fetchUnavailableDates() async {
+    final projectId = 'demo_project_id'; // TODO: get actual project id
+    final doc = await FirebaseFirestore.instance.collection('projects').doc(projectId).get();
+    if (doc.exists) {
+      final data = doc.data() as Map<String, dynamic>;
+      final bookedDates = (data['bookedDates'] as List<dynamic>? ?? [])
+          .map((e) => (e['date'] as Timestamp).toDate())
+          .toList();
+      setState(() => _unavailableDates = bookedDates);
+    }
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -52,6 +69,9 @@ class _BookProjectPageState extends State<BookProjectPage> {
       initialDate: _selectedDate ?? DateTime.now().add(const Duration(days: 1)),
       firstDate: DateTime.now().add(const Duration(days: 1)),
       lastDate: DateTime.now().add(const Duration(days: 365)),
+      selectableDayPredicate: (date) {
+        return !_unavailableDates.any((d) => d.year == date.year && d.month == date.month && d.day == date.day);
+      },
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -66,27 +86,7 @@ class _BookProjectPageState extends State<BookProjectPage> {
       },
     );
     if (picked != null && picked != _selectedDate) {
-      // Simulated taken dates
-      final List<DateTime> takenDates = [
-        DateTime(2024, 6, 10),
-        DateTime(2024, 6, 15),
-        DateTime(2024, 6, 20),
-      ];
-      if (takenDates.any((d) => d.year == picked.year && d.month == picked.month && d.day == picked.day)) {
-        // Date is taken, propose next available
-        DateTime nextAvailable = picked.add(const Duration(days: 1));
-        while (takenDates.any((d) => d.year == nextAvailable.year && d.month == nextAvailable.month && d.day == nextAvailable.day)) {
-          nextAvailable = nextAvailable.add(const Duration(days: 1));
-        }
-        Get.snackbar(
-          'Date Unavailable',
-          'The selected date is already booked. Next available: ${nextAvailable.toLocal().toString().split(' ')[0]}',
-          backgroundColor: Colors.orange,
-          colorText: Colors.white,
-        );
-      } else {
-        setState(() => _selectedDate = picked);
-      }
+      setState(() => _selectedDate = picked);
     }
   }
 
@@ -97,6 +97,17 @@ class _BookProjectPageState extends State<BookProjectPage> {
     );
     if (picked != null && picked != _selectedTime) {
       setState(() => _selectedTime = picked);
+    }
+  }
+
+  void _calculateTransportCost() {
+    final location = _locationController.text.trim();
+    final size = _sizeController.text.trim();
+    if (location.isNotEmpty && size.isNotEmpty) {
+      const double distanceKm = 20.0;
+      setState(() => _transportCost = distanceKm * 1.5);
+    } else {
+      setState(() => _transportCost = null);
     }
   }
 
@@ -121,7 +132,6 @@ class _BookProjectPageState extends State<BookProjectPage> {
     setState(() => _isSubmitting = true);
 
     try {
-      // Combine date and time
       final bookingDateTime = DateTime(
         _selectedDate!.year,
         _selectedDate!.month,
@@ -145,9 +155,20 @@ class _BookProjectPageState extends State<BookProjectPage> {
       final firebaseService = Get.find<FirebaseService>();
       await firebaseService.addBooking(booking);
 
+      final projectId = 'demo_project_id'; // TODO: get actual project id
+      await FirebaseFirestore.instance.collection('projects').doc(projectId).update({
+        'bookedDates': FieldValue.arrayUnion([
+          {
+            'date': Timestamp.fromDate(_selectedDate!),
+            'clientId': 'client_id', // TODO: get actual client id
+            'status': 'booked',
+          }
+        ])
+      });
+
       Get.snackbar(
-        'Success', 
-        'Booking submitted successfully! We will contact you soon.',
+        'Success',
+        'Booking submitted successfully! We will contact you soon. Transport cost: \$${_transportCost?.toStringAsFixed(2) ?? 'N/A'}',
         backgroundColor: AppTheme.primaryColor,
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
@@ -360,16 +381,29 @@ class _BookProjectPageState extends State<BookProjectPage> {
                         ),
                         const SizedBox(height: 16),
 
-                        _buildFormField(
-                          'Location/Address',
-                          _locationController,
-                          Iconsax.location,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your location';
-                            }
-                            return null;
-                          },
+                        // Location input
+                        TextFormField(
+                          controller: _locationController,
+                          decoration: InputDecoration(
+                            labelText: 'Project Location',
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                            prefixIcon: const Icon(Iconsax.location),
+                          ),
+                          validator: (val) => val == null || val.isEmpty ? 'Enter project location' : null,
+                          onChanged: (_) => _calculateTransportCost(),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Size input
+                        TextFormField(
+                          controller: _sizeController,
+                          decoration: InputDecoration(
+                            labelText: 'Project Size (e.g. 10 acres, 500 sqm)',
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                            prefixIcon: const Icon(Iconsax.ruler),
+                          ),
+                          validator: (val) => val == null || val.isEmpty ? 'Enter project size' : null,
+                          onChanged: (_) => _calculateTransportCost(),
                         ),
                         const SizedBox(height: 16),
 
@@ -380,6 +414,11 @@ class _BookProjectPageState extends State<BookProjectPage> {
                           maxLines: 3,
                         ),
                         const SizedBox(height: 24),
+
+                        // Show transport cost
+                        if (_transportCost != null)
+                          Text('Estimated Transport Cost: \$${_transportCost!.toStringAsFixed(2)}',
+                            style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryColor)),
 
                         // Submit Button
                         SizedBox(
@@ -660,6 +699,7 @@ class _BookProjectPageState extends State<BookProjectPage> {
     _phoneController.dispose();
     _locationController.dispose();
     _notesController.dispose();
+    _sizeController.dispose();
     super.dispose();
   }
 }

@@ -104,33 +104,79 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
             fontSize: 20,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Iconsax.search_normal, color: Colors.white),
-            onPressed: _showSearchDialog,
-            tooltip: 'Search Projects',
-          ),
-          IconButton(
-            icon: const Icon(Iconsax.sort, color: Colors.white),
-            onPressed: _showSortDialog,
-            tooltip: 'Sort Projects',
-          ),
-        ],
+        automaticallyImplyLeading: false,
+        actions: [Container()],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
-          child: Container(
-            color: AppTheme.primaryColor,
-            child: TabBar(
-              controller: _tabController,
-              isScrollable: true,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white.withOpacity(0.7),
-              indicator: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: Colors.white.withOpacity(0.18),
+          preferredSize: const Size.fromHeight(80),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Search/filter row
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                child: Row(
+                  children: [
+                    // Search bar
+                    Expanded(
+                      child: TextField(
+                        onChanged: (value) => setState(() => _searchQuery.value = value),
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'Search projects...',
+                          hintStyle: const TextStyle(color: Colors.white70),
+                          filled: true,
+                          fillColor: AppTheme.primaryColor.withOpacity(0.15),
+                          prefixIcon: const Icon(Iconsax.search_normal, color: Colors.white70, size: 20),
+                          contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 12),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          isDense: true,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Filter dropdown
+                    DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: _selectedSort.value,
+                        dropdownColor: AppTheme.primaryColor,
+                        icon: const Icon(Iconsax.arrow_down_1, color: Colors.white),
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        items: ['Newest', 'Oldest', 'Location'].map((option) {
+                          return DropdownMenuItem<String>(
+                            value: option,
+                            child: Text(option, style: const TextStyle(color: Colors.white)),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() => _selectedSort.value = value!);
+                        },
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              tabs: categories.map((category) => Tab(text: category)).toList(),
-            ),
+              // TabBar
+              SafeArea(
+                bottom: false,
+                child: Container(
+                  color: AppTheme.primaryColor,
+                  child: TabBar(
+                    controller: _tabController,
+                    isScrollable: true,
+                    labelColor: Colors.white,
+                    unselectedLabelColor: Colors.white.withOpacity(0.7),
+                    indicator: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.white.withOpacity(0.18),
+                    ),
+                    tabs: categories.map((category) => Tab(text: category)).toList(),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -179,23 +225,26 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
     // Apply sorting
     filteredProjects = _sortProjects(filteredProjects);
 
-    return filteredProjects.isEmpty
-        ? _buildEmptyState()
-        : Padding(
-            padding: const EdgeInsets.all(16),
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 0.9,
-                crossAxisSpacing: 15,
-                mainAxisSpacing: 15,
-              ),
-              itemCount: filteredProjects.length,
-              itemBuilder: (context, index) {
-                return _projectCard(filteredProjects[index]);
-              },
-            ),
-          );
+    // If no projects, show empty state only (prevents RangeError)
+    if (filteredProjects.isEmpty) {
+      return _buildEmptyState();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: GridView.builder(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 0.9,
+          crossAxisSpacing: 15,
+          mainAxisSpacing: 15,
+        ),
+        itemCount: filteredProjects.length,
+        itemBuilder: (context, index) {
+          return _projectCard(filteredProjects[index]);
+        },
+      ),
+    );
   }
 
   List<Map<String, dynamic>> _sortProjects(List<Map<String, dynamic>> projects) {
@@ -256,6 +305,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
   }
 
   Widget _buildProjectCardContent(Map<String, dynamic> project, bool isHover) {
+    // Use IntrinsicHeight to allow card to size to content, preventing overflow
     return GestureDetector(
       onTap: () => _showProjectDetails(project),
       child: AnimatedContainer(
@@ -282,136 +332,146 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                   ),
                 ],
         ),
-        child: SizedBox(
-          height: 220,
+        child: IntrinsicHeight(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                child: Image.network(
-                  project['image'],
+                child: SizedBox(
                   height: 100,
                   width: double.infinity,
-                  fit: BoxFit.cover,
+                  child: FittedBox(
+                    fit: BoxFit.cover,
+                    child: Image.network(
+                      project['image'],
+                      errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
+                    ),
+                  ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                  child: SingleChildScrollView(
+                    // If content is too long, allow scroll inside card
+                    physics: const BouncingScrollPhysics(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: Text(
-                            project['title'],
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        if (project['category'] == 'Ongoing' || project['category'] == 'Featured')
-                          GestureDetector(
-                            onTap: () {
-                              if (project['category'] == 'Ongoing') {
-                                _tabController.animateTo(categories.indexOf('Ongoing'));
-                              } else if (project['category'] == 'Featured') {
-                                _tabController.animateTo(categories.indexOf('Featured'));
-                              }
-                            },
-                            child: Container(
-                              margin: const EdgeInsets.only(left: 4),
-                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: project['category'] == 'Featured'
-                                    ? Colors.amber
-                                    : AppTheme.primaryColor,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
+                        Row(
+                          children: [
+                            Expanded(
                               child: Text(
-                                project['category'],
+                                project['title'],
                                 style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
                                   fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (project['category'] == 'Ongoing' || project['category'] == 'Featured')
+                              GestureDetector(
+                                onTap: () {
+                                  if (project['category'] == 'Ongoing') {
+                                    _tabController.animateTo(categories.indexOf('Ongoing'));
+                                  } else if (project['category'] == 'Featured') {
+                                    _tabController.animateTo(categories.indexOf('Featured'));
+                                  }
+                                },
+                                child: Container(
+                                  margin: const EdgeInsets.only(left: 4),
+                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: project['category'] == 'Featured'
+                                        ? Colors.amber
+                                        : AppTheme.primaryColor,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    project['category'],
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 ),
                               ),
+                          ],
+                        ),
+                        const SizedBox(height: 3),
+                        Row(
+                          children: [
+                            const Icon(Iconsax.location, size: 12, color: Colors.grey),
+                            const SizedBox(width: 2),
+                            Expanded(
+                              child: Text(
+                                project['location'],
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.grey,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          project['description'],
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey,
                           ),
-                      ],
-                    ),
-                    const SizedBox(height: 3),
-                    Row(
-                      children: [
-                        const Icon(Iconsax.location, size: 12, color: Colors.grey),
-                        const SizedBox(width: 2),
-                        Expanded(
-                          child: Text(
-                            project['location'],
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (project['progress'] != null) ...[
+                          const SizedBox(height: 6),
+                          LinearProgressIndicator(
+                            value: project['progress'] / 100,
+                            backgroundColor: AppTheme.surfaceLight,
+                            valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                            minHeight: 5,
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${project['progress']}% Complete',
                             style: const TextStyle(
                               fontSize: 10,
-                              color: Colors.grey,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      project['description'],
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (project['progress'] != null) ...[
-                      const SizedBox(height: 6),
-                      LinearProgressIndicator(
-                        value: project['progress'] / 100,
-                        backgroundColor: AppTheme.surfaceLight,
-                        valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
-                        minHeight: 5,
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '${project['progress']}% Complete',
-                        style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                    if (project['testimonial'] != null) ...[
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          const Icon(Iconsax.quote_down, size: 11, color: Colors.grey),
-                          const SizedBox(width: 2),
-                          Expanded(
-                            child: Text(
-                              'Client Feedback',
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey[600],
-                                fontWeight: FontWeight.bold,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ],
-                      ),
-                    ],
-                  ],
+                        if (project['testimonial'] != null) ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(Iconsax.quote_down, size: 11, color: Colors.grey),
+                              const SizedBox(width: 2),
+                              Expanded(
+                                child: Text(
+                                  'Client Feedback',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.grey[600],
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -701,13 +761,5 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
         ],
       ),
     );
-  }
-
-  void _showSearchDialog() {
-    // Implementation of _showSearchDialog method
-  }
-
-  void _showSortDialog() {
-    // Implementation of _showSortDialog method
   }
 }

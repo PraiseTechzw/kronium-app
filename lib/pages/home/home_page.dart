@@ -64,9 +64,7 @@ class HomePage extends StatelessWidget {
             ProjectsPage(),
           ],
         ),
-        // Floating action button for quick booking
-        floatingActionButton: _buildFloatingActionButton(),
-        // Themed bottom navigation
+            // Themed bottom navigation
         bottomNavigationBar: Obx(() => FadeInUp(
           child: BottomNavigationBar(
             currentIndex: _currentIndex.value,
@@ -103,32 +101,7 @@ class HomePage extends StatelessWidget {
     });
   }
 
-  /// Floating action button for booking a service
-  Widget _buildFloatingActionButton() {
-    return FadeInUp(
-      delay: const Duration(milliseconds: 500),
-      child: FloatingActionButton(
-        onPressed: () {
-          final userAuthService = Get.find<UserAuthService>();
-          if (userAuthService.isUserLoggedIn.value) {
-            Get.toNamed(AppRoutes.bookProject);
-          } else {
-            Get.snackbar(
-              'Login Required',
-              'Please sign in to book a service',
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: Colors.orange,
-              colorText: Colors.white,
-            );
-            Get.toNamed(AppRoutes.customerLogin);
-          }
-        },
-        backgroundColor: AppTheme.primaryColor,
-        child: const Icon(Iconsax.add, color: Colors.white),
-      ),
-    );
-  }
-
+  
   /// Show notifications (placeholder)
   void _showNotifications() {
     Get.snackbar(

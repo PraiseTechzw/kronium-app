@@ -26,72 +26,45 @@ class _ProjectHistoryPageState extends State<ProjectHistoryPage> {
     'Construction',
     'Logistics',
     'IoT & Automation',
-    'Completed',
-    'In Progress',
-    'Pending',
-    'Upcoming',
   ];
-  final List<String> sortOptions = ['Newest First', 'Oldest First', 'By Project Name'];
+  final List<String> sortOptions = ['By Project Name'];
   
   final List<Project> projects = [
     Project(
+      id: '1',
       title: 'Solar Panel Installation',
-      date: 'June 15, 2025',
-      status: 'Completed',
-      progress: 1.0,
-      color: const Color(0xFF2ECC71),
-      icon: Iconsax.sun_1,
-      details: 'Installed 20 solar panels with battery backup system for residential property',
-      client: 'Green Energy Solutions',
+      description: 'Installed 20 solar panels with battery backup system for residential property',
       location: 'Nairobi, Kenya',
-      team: ['John M.', 'Sarah K.', 'David T.'],
-      images: [
-        'assets/projects/solar1.jpg',
-        'assets/projects/solar2.jpg',
-        'assets/projects/solar3.jpg',
-      ],
+      size: '100 sqm',
+      mediaUrls: ['assets/projects/solar1.jpg', 'assets/projects/solar2.jpg'],
+      bookedDates: [],
     ),
     Project(
+      id: '2',
       title: 'Greenhouse Construction',
-      date: 'June 20, 2025',
-      status: 'In Progress',
-      progress: 0.7,
-      color: const Color(0xFFF39C12),
-      icon: Iconsax.home_hashtag,
-      details: 'Constructing 1000 sq ft greenhouse with automated climate control systems',
-      client: 'Fresh Farms Ltd',
+      description: 'Constructing 1000 sq ft greenhouse with automated climate control systems',
       location: 'Nakuru, Kenya',
-      team: ['Michael S.', 'Grace W.', 'Peter K.'],
-      images: [
-        'assets/projects/greenhouse1.jpg',
-        'assets/projects/greenhouse2.jpg',
-      ],
+      size: '1000 sq ft',
+      mediaUrls: ['assets/projects/greenhouse1.jpg'],
+      bookedDates: [],
     ),
     Project(
+      id: '3',
       title: 'Farm Irrigation System',
-      date: 'June 25, 2025',
-      status: 'Pending',
-      progress: 0.0,
-      color: const Color(0xFFE74C3C),
-      icon: Iconsax.drop,
-      details: 'Designing water-efficient irrigation system for 5 acre commercial farm',
-      client: 'AgriProduce Kenya',
+      description: 'Designing water-efficient irrigation system for 5 acre commercial farm',
       location: 'Eldoret, Kenya',
-      team: ['James M.', 'Susan N.'],
-      images: [],
+      size: '5 acres',
+      mediaUrls: [],
+      bookedDates: [],
     ),
     Project(
+      id: '4',
       title: 'Steel Warehouse',
-      date: 'July 5, 2025',
-      status: 'Upcoming',
-      progress: 0.0,
-      color: const Color(0xFF3498DB),
-      icon: Iconsax.buildings,
-      details: 'Planning 5000 sq ft steel structure warehouse with office complex',
-      client: 'Logistics Africa',
+      description: 'Planning 5000 sq ft steel structure warehouse with office complex',
       location: 'Mombasa, Kenya',
-      team: ['Robert K.', 'Elizabeth W.'],
-      images: [],
+      size: '5000 sq ft',
+      mediaUrls: [],
+      bookedDates: [],
     ),
   ];
 
@@ -100,30 +73,14 @@ class _ProjectHistoryPageState extends State<ProjectHistoryPage> {
     
     // Apply filter
     if (_selectedFilter.value != 'All Projects') {
-      // Status filter
-      if (['Completed', 'In Progress', 'Pending', 'Upcoming'].contains(_selectedFilter.value)) {
-        result = result.where((p) => p.status == _selectedFilter.value).toList();
-      } else {
-        // Category filter (by title or details)
-        result = result.where((p) =>
-          p.title.toLowerCase().contains(_selectedFilter.value.toLowerCase()) ||
-          p.details.toLowerCase().contains(_selectedFilter.value.toLowerCase())
-        ).toList();
-      }
+      result = result.where((p) =>
+        p.title.toLowerCase().contains(_selectedFilter.value.toLowerCase()) ||
+        p.description.toLowerCase().contains(_selectedFilter.value.toLowerCase())
+      ).toList();
     }
     
     // Apply sort
-    switch (_selectedSort.value) {
-      case 'Newest First':
-        result.sort((a, b) => b.date.compareTo(a.date));
-        break;
-      case 'Oldest First':
-        result.sort((a, b) => a.date.compareTo(b.date));
-        break;
-      case 'By Project Name':
-        result.sort((a, b) => a.title.compareTo(b.title));
-        break;
-    }
+    result.sort((a, b) => a.title.compareTo(b.title));
     
     return result;
   }
@@ -166,11 +123,6 @@ class _ProjectHistoryPageState extends State<ProjectHistoryPage> {
   }
 
   Widget _buildStatsOverview() {
-    final completed = projects.where((p) => p.status == 'Completed').length;
-    final inProgress = projects.where((p) => p.status == 'In Progress').length;
-    final pending = projects.where((p) => p.status == 'Pending').length;
-    final upcoming = projects.where((p) => p.status == 'Upcoming').length;
-
     return FadeInDown(
       child: Card(
         margin: const EdgeInsets.all(16),
@@ -193,10 +145,7 @@ class _ProjectHistoryPageState extends State<ProjectHistoryPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _statItem('Completed', completed, const Color(0xFF2ECC71)),
-                  _statItem('In Progress', inProgress, const Color(0xFFF39C12)),
-                  _statItem('Pending', pending, const Color(0xFFE74C3C)),
-                  _statItem('Upcoming', upcoming, const Color(0xFF3498DB)),
+                  _statItem('Total', projects.length, Colors.blue),
                 ],
               ),
             ],
@@ -261,7 +210,7 @@ class _ProjectHistoryPageState extends State<ProjectHistoryPage> {
           boxShadow: isHovered
               ? [
                   BoxShadow(
-                    color: project.color.withOpacity(0.2),
+                    color: Colors.blue.withOpacity(0.2),
                     blurRadius: 15,
                     spreadRadius: 1,
                     offset: const Offset(0, 5),
@@ -285,21 +234,17 @@ class _ProjectHistoryPageState extends State<ProjectHistoryPage> {
                 width: 24,
                 height: 24,
                 decoration: BoxDecoration(
-                  color: project.color,
+                  color: Colors.blue,
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: project.color.withOpacity(0.3),
+                      color: Colors.blue.withOpacity(0.3),
                       blurRadius: 8,
                       spreadRadius: 2,
                     ),
                   ],
                 ),
-                child: Icon(
-                  project.icon,
-                  color: Colors.white,
-                  size: 12,
-                ),
+                child: const Icon(Iconsax.document, color: Colors.white, size: 12),
               ),
               const SizedBox(width: 15),
               Expanded(
@@ -316,31 +261,11 @@ class _ProjectHistoryPageState extends State<ProjectHistoryPage> {
                             fontSize: 16,
                           ),
                         ),
-                        Chip(
-                          backgroundColor: project.color.withOpacity(0.1),
-                          label: Text(
-                            project.status,
-                            style: TextStyle(
-                              color: project.color,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
                       ],
                     ),
                     const SizedBox(height: 5),
                     Row(
                       children: [
-                        const Icon(Iconsax.calendar, size: 14, color: Colors.grey),
-                        const SizedBox(width: 5),
-                        Text(
-                          project.date,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
-                        ),
-                        const SizedBox(width: 15),
                         const Icon(Iconsax.location, size: 14, color: Colors.grey),
                         const SizedBox(width: 5),
                         Text(
@@ -354,47 +279,13 @@ class _ProjectHistoryPageState extends State<ProjectHistoryPage> {
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      project.details,
+                      project.description,
                       style: const TextStyle(
                         fontSize: 14,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 15),
-                    if (project.status == 'In Progress')
-                      Column(
-                        children: [
-                          LinearProgressIndicator(
-                            value: project.progress,
-                            backgroundColor: AppTheme.surfaceLight,
-                            color: project.color,
-                            minHeight: 6,
-                            borderRadius: BorderRadius.circular(3),
-                          ),
-                          const SizedBox(height: 5),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Project Progress',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                              Text(
-                                '${(project.progress * 100).toInt()}%',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
                   ],
                 ),
               ),
@@ -563,55 +454,34 @@ class _ProjectHistoryPageState extends State<ProjectHistoryPage> {
                 ),
               ),
               const SizedBox(height: 20),
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: project.color.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      project.icon,
-                      color: project.color,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 15),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          project.title,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          project.client,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+              Text(
+                project.title,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                project.description,
+                style: const TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 20),
-              if (project.images.isNotEmpty) ...[
+              const Divider(),
+              const SizedBox(height: 10),
+              _projectDetailItem('Location', project.location, Colors.grey[600]!),
+              _projectDetailItem('Size', project.size, Colors.grey[600]!),
+              const SizedBox(height: 10),
+              if (project.mediaUrls.isNotEmpty) ...[
                 SizedBox(
                   height: 200,
                   child: PageView.builder(
-                    itemCount: project.images.length,
+                    itemCount: project.mediaUrls.length,
                     itemBuilder: (context, index) {
                       return ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: Image.asset(
-                          project.images[index],
+                          project.mediaUrls[index],
                           fit: BoxFit.cover,
                         ),
                       );
@@ -620,63 +490,6 @@ class _ProjectHistoryPageState extends State<ProjectHistoryPage> {
                 ),
                 const SizedBox(height: 20),
               ],
-              const Text(
-                'Project Overview',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(project.details),
-              const SizedBox(height: 20),
-              const Divider(),
-              const SizedBox(height: 10),
-              const Text(
-                'Project Details',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 10),
-              _projectDetailItem('Status', project.status, project.color),
-              _projectDetailItem('Location', project.location, Colors.grey[600]!),
-              _projectDetailItem('Start Date', project.date, Colors.grey[600]!),
-              _projectDetailItem('Project Team', project.team.join(', '), Colors.grey[600]!),
-              if (project.status == 'In Progress') ...[
-                const SizedBox(height: 20),
-                const Divider(),
-                const SizedBox(height: 10),
-                const Text(
-                  'Project Progress',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                LinearProgressIndicator(
-                  value: project.progress,
-                  backgroundColor: AppTheme.surfaceLight,
-                  color: project.color,
-                  minHeight: 10,
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                const SizedBox(height: 5),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    '${(project.progress * 100).toInt()}% Complete',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-              const SizedBox(height: 30),
               ElevatedButton(
                 onPressed: () {
                   Get.back();
