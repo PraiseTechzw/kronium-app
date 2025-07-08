@@ -154,10 +154,10 @@ packages:
     dependency: "direct main"
     description:
       name: carousel_slider
-      sha256: d7256dca1ca9a4c9389126d57d70ce5d5e8fe25e7c81075b364f8a09dcba86ad
+      sha256: bcc61735345c9ab5cb81073896579e735f81e35fd588907a393143ea986be8ff
       url: "https://pub.dev"
     source: hosted
-    version: "4.2.0"
+    version: "5.1.1"
   characters:
     dependency: transitive
     description:
@@ -1419,7 +1419,7 @@ packages:
     source: hosted
     version: "2.2.2"
   url_launcher:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: url_launcher
       sha256: "9d06212b1362abc2f0f0d78e6f09f726608c74e3b9462e8368bb03314aa8d603"
