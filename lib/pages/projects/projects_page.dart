@@ -6,6 +6,7 @@ import 'package:kronium/widgets/hover_widget.dart';
 
 import 'package:lottie/lottie.dart';
 import 'mock_project_booking_data.dart';
+import 'package:kronium/core/user_auth_service.dart';
 
 class ProjectsPage extends StatefulWidget {
   const ProjectsPage({super.key});
@@ -234,14 +235,21 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
           ),
         ],
       ),
-      floatingActionButton: _selectedProject != null
+      floatingActionButton: userController.role.value == 'customer' && _selectedProject != null
         ? FloatingActionButton.extended(
             onPressed: () => _showBookingFormBottomSheet(context, _selectedProject!),
             icon: const Icon(Iconsax.message_question),
             label: const Text('Request Similar Project'),
             backgroundColor: AppTheme.primaryColor,
           )
-        : null,
+        : userController.role.value == 'guest' && _selectedProject != null
+          ? FloatingActionButton.extended(
+              onPressed: () => _showGuestPrompt(),
+              icon: const Icon(Iconsax.login),
+              label: const Text('Sign Up to Request'),
+              backgroundColor: Colors.orange,
+            )
+          : null,
     );
   }
 
@@ -340,7 +348,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
           });
           _showProjectDetails(project);
         },
-      child: _buildProjectCardContent(project, false),
+        child: _buildProjectCardContent(project, false),
       ),
     );
   }
@@ -716,7 +724,11 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                     child: ElevatedButton(
                       onPressed: () {
                         Get.back();
-                        _showBookingFormBottomSheet(context, project);
+                        if (userController.role.value == 'customer') {
+                          _showBookingFormBottomSheet(context, project);
+                        } else if (userController.role.value == 'guest') {
+                          _showGuestPrompt();
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.primaryColor,
@@ -725,9 +737,11 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text(
-                        'REQUEST SIMILAR PROJECT',
-                        style: TextStyle(color: Colors.white),
+                      child: Text(
+                        userController.role.value == 'guest'
+                          ? 'SIGN UP TO REQUEST'
+                          : 'REQUEST SIMILAR PROJECT',
+                        style: const TextStyle(color: Colors.white),
                       ),
                     ),
                   ),
@@ -1146,6 +1160,43 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
             ElevatedButton(
               onPressed: () => Get.back(),
               child: const Text('Close'),
+            ),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
+    );
+  }
+
+  void _showGuestPrompt() {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(30),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Iconsax.login, color: Colors.orange, size: 60),
+            const SizedBox(height: 20),
+            const Text('Sign Up or Log In Required', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22)),
+            const SizedBox(height: 10),
+            const Text('You need an account to request a project or book a service.'),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () => Get.toNamed('/customer-login'),
+                  child: const Text('Log In'),
+                ),
+                OutlinedButton(
+                  onPressed: () => Get.toNamed('/customer-register'),
+                  child: const Text('Sign Up'),
+                ),
+              ],
             ),
           ],
         ),

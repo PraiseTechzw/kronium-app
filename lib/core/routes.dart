@@ -11,12 +11,12 @@ import 'package:kronium/pages/customer/customer_dashboard_page.dart';
 import 'package:kronium/pages/customer/customer_profile_page.dart';
 import 'package:kronium/pages/home/home_page.dart';
 import 'package:kronium/pages/profile/profile_page.dart';
-import 'package:kronium/pages/projects/book_project_page.dart';
 import 'package:kronium/pages/projects/project_history_page.dart';
 import 'package:kronium/pages/projects/projects_page.dart';
 import 'package:kronium/pages/services/add_services_page.dart';
 import 'package:kronium/pages/services/services_page.dart';
 import 'package:kronium/pages/splash/splash_page.dart';
+import 'package:kronium/core/user_auth_service.dart';
 
 
 class AppRoutes {
@@ -33,7 +33,6 @@ class AppRoutes {
   static const String adminBookings = '/admin-bookings';
   static const String adminChat = '/admin-chat';
   static const String home = '/home';
-  static const String bookProject = '/book-project';
   static const String projects = '/projects';
   static const String projectHistory = '/project-history';
   static const String services = '/services';
@@ -123,15 +122,6 @@ class AppRoutes {
     
     // Project-related Pages
     GetPage(
-      name: bookProject,
-      page: () {
-        final args = Get.arguments;
-        return BookProjectPage(selectedService: args);
-      },
-      transition: Transition.cupertino,
-      transitionDuration: const Duration(milliseconds: 800),
-    ),
-    GetPage(
       name: projects,
       page: () => const ProjectsPage(),
       transition: Transition.cupertino,
@@ -166,4 +156,16 @@ class AppRoutes {
       transitionDuration: const Duration(milliseconds: 800),
     ),
   ];
+
+  // Helper to get initial route based on user role
+  static String getInitialRoute() {
+    switch (userController.role.value) {
+      case 'admin':
+        return adminDashboard;
+      case 'customer':
+        return customerDashboard;
+      default:
+        return home;
+    }
+  }
 }

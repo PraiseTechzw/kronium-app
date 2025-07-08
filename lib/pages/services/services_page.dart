@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:kronium/core/app_theme.dart';
 
 import 'package:video_player/video_player.dart';
 import 'package:kronium/core/services_data.dart';
+import 'package:kronium/core/user_auth_service.dart';
 
 class ServicesPage extends StatefulWidget {
   const ServicesPage({super.key});
@@ -308,9 +310,15 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
                               message: 'Book service',
                               child: IconButton(
                                 icon: const Icon(Icons.calendar_today, color: Colors.green, size: 18),
-                                onPressed: () => _showBookingFormBottomSheet(service),
+                                onPressed: () {
+                                  if (userController.role.value == 'customer') {
+                                    _showBookingFormBottomSheet(service);
+                                  } else if (userController.role.value == 'guest') {
+                                    _showGuestPrompt();
+                                  }
+                                },
                               ),
-                      ),
+                            ),
                     ],
                   ),
                 ],
@@ -709,6 +717,43 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
       default:
         return Theme.of(context).primaryColor.withOpacity(0.92);
     }
+  }
+
+  void _showGuestPrompt() {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(30),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Iconsax.login, color: Colors.orange, size: 60),
+            const SizedBox(height: 20),
+            const Text('Sign Up or Log In Required', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22)),
+            const SizedBox(height: 10),
+            const Text('You need an account to book a service or request a project.'),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () => Get.toNamed('/customer-login'),
+                  child: const Text('Log In'),
+                ),
+                OutlinedButton(
+                  onPressed: () => Get.toNamed('/customer-register'),
+                  child: const Text('Sign Up'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
+    );
   }
 }
 

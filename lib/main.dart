@@ -7,7 +7,6 @@ import 'package:kronium/core/constants.dart';
 import 'package:kronium/core/firebase_service.dart';
 import 'package:kronium/core/routes.dart';
 import 'package:kronium/core/user_auth_service.dart';
-import 'package:kronium/core/user_controller.dart';
 import 'firebase_options.dart'; 
 
 void main() async {
@@ -37,7 +36,7 @@ class KroniumProApp extends StatelessWidget {
       title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      initialRoute: AppRoutes.splash,
+      initialRoute: AppRoutes.getInitialRoute(),
       getPages: AppRoutes.pages,
       defaultTransition: Transition.fadeIn,
     );
