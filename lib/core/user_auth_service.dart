@@ -223,4 +223,30 @@ class UserAuthService extends GetxController {
   bool get isLoggedIn => isUserLoggedIn.value;
   User? get currentUserProfile => userProfile.value;
   firebase_auth.FirebaseAuth get auth => _auth;
-} 
+}
+
+// User roles: 'admin', 'customer', 'guest'
+class UserController extends GetxController {
+  RxString role = 'guest'.obs;
+  RxString userId = ''.obs;
+  RxString userName = ''.obs;
+  // Add more user info as needed
+
+  void setRole(String newRole) {
+    role.value = newRole;
+  }
+
+  void setUser(String id, String name, String newRole) {
+    userId.value = id;
+    userName.value = name;
+    role.value = newRole;
+  }
+
+  void logout() {
+    userId.value = '';
+    userName.value = '';
+    role.value = 'guest';
+  }
+}
+
+final userController = Get.put(UserController(), permanent: true); 
