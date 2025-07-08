@@ -9,6 +9,7 @@ import 'package:kronium/widgets/hover_widget.dart';
 
 import 'package:lottie/lottie.dart';
 import 'package:video_player/video_player.dart';
+import 'package:kronium/core/services_data.dart';
 
 class ServicesPage extends StatefulWidget {
   const ServicesPage({super.key});
@@ -25,59 +26,6 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
   final RxString _selectedSort = 'Popular'.obs;
   final List<String> sortOptions = ['Popular', 'Newest', 'Price: Low to High', 'Price: High to Low'];
 
-  final List<Service> services = [
-    Service(
-      id: '1',
-      title: 'Greenhouse Construction',
-      category: 'Agriculture',
-      icon: FontAwesomeIcons.warehouse,
-      color: const Color(0xFF2ECC71),
-      description: 'Professional greenhouse design and construction for optimal plant growth',
-      features: [
-        'Custom sizing options',
-        'Climate control systems',
-        'Durable polycarbonate materials',
-        '5-year warranty'
-      ],
-      imageUrl: 'assets/images/greenhouse.jpg',
-      price: 3500,
-      videoUrl: 'https://example.com/greenhouse-video.mp4',
-    ),
-    Service(
-      id: '2',
-      title: 'Solar Panel Installation',
-      category: 'Renewable Energy',
-      icon: FontAwesomeIcons.solarPanel,
-      color: const Color(0xFFF39C12),
-      description: 'Complete solar energy solutions for homes and businesses',
-      features: [
-        'Residential & commercial systems',
-        'Battery storage options',
-        'Government rebate assistance',
-        '25-year performance guarantee'
-      ],
-      imageUrl: 'assets/images/solar.jpg',
-      price: 8500,
-    ),
-    Service(
-      id: '3',
-      title: 'Steel Structures',
-      category: 'Construction',
-      icon: FontAwesomeIcons.building,
-      color: const Color(0xFF3498DB),
-      description: 'Durable steel buildings for commercial and industrial use',
-      features: [
-        'Custom engineering',
-        'Quick assembly',
-        'Low maintenance',
-        '30+ year lifespan'
-      ],
-      imageUrl: 'assets/images/steel.jpg',
-      price: 12500,
-      videoUrl: 'https://example.com/steel-structures-video.mp4',
-    ),
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -90,14 +38,14 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
     super.dispose();
   }
 
-  List<Service> _applySorting(List<Service> services) {
+  List<Map<String, dynamic>> _applySorting(List<Map<String, dynamic>> services) {
     switch (_selectedSort.value) {
       case 'Newest':
-        return services..sort((a, b) => b.title.compareTo(a.title));
+        return services..sort((a, b) => b['title'].compareTo(a['title']));
       case 'Price: Low to High':
-        return services..sort((a, b) => (a.price ?? 0).compareTo(b.price ?? 0));
+        return services..sort((a, b) => (a['price'] ?? 0).compareTo(b['price'] ?? 0));
       case 'Price: High to Low':
-        return services..sort((a, b) => (b.price ?? 0).compareTo(a.price ?? 0));
+        return services..sort((a, b) => (b['price'] ?? 0).compareTo(a['price'] ?? 0));
       case 'Popular':
       default:
         return services;
@@ -193,17 +141,15 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
 
   Widget _buildServiceList(String category) {
     return Obx(() {
-      List<Service> filteredServices = _searchQuery.value.isEmpty
+      List<Map<String, dynamic>> filteredServices = _searchQuery.value.isEmpty
           ? category == 'All' 
-              ? services 
-              : services.where((service) => service.category == category).toList()
-          : services.where((service) => 
-              service.title.toLowerCase().contains(_searchQuery.value.toLowerCase()) ||
-              service.description.toLowerCase().contains(_searchQuery.value.toLowerCase()))
+              ? servicesData 
+              : servicesData.where((service) => service['category'] == category).toList()
+          : servicesData.where((service) => 
+              service['title'].toLowerCase().contains(_searchQuery.value.toLowerCase()) ||
+              service['description'].toLowerCase().contains(_searchQuery.value.toLowerCase()))
               .toList();
-      
       filteredServices = _applySorting(filteredServices);
-      
       return filteredServices.isEmpty
           ? _buildEmptyState()
           : Padding(
@@ -217,7 +163,7 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
                 ),
                 itemCount: filteredServices.length,
                 itemBuilder: (context, index) {
-                  return _serviceCard(filteredServices[index]);
+                  return _serviceCardFromMap(filteredServices[index]);
                 },
               ),
             );
@@ -257,20 +203,20 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
     );
   }
 
-  Widget _serviceCard(Service service) {
+  Widget _serviceCardFromMap(Map<String, dynamic> service) {
     return HoverWidget(
       hoverChild: Transform.translate(
         offset: const Offset(0, -5),
-        child: _buildServiceCardContent(service, true),
+        child: _buildServiceCardContentFromMap(service, true),
       ),
       onHover: (event) {},
-      child: _buildServiceCardContent(service, false),
+      child: _buildServiceCardContentFromMap(service, false),
     );
   }
 
-  Widget _buildServiceCardContent(Service service, bool isHover) {
+  Widget _buildServiceCardContentFromMap(Map<String, dynamic> service, bool isHover) {
     return GestureDetector(
-      onTap: () => _showServiceDetails(service),
+      onTap: () => _showServiceDetailsFromMap(service),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
@@ -288,14 +234,13 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              service.color.withOpacity(0.13),
+              Theme.of(context).primaryColor.withOpacity(0.13),
               AppTheme.surfaceLight,
             ],
           ),
         ),
         child: Stack(
           children: [
-            // Decorative background circle
             Positioned(
               top: -30,
               right: -30,
@@ -304,109 +249,46 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
                 height: 70,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: service.color.withOpacity(0.08),
+                  color: Theme.of(context).primaryColor.withOpacity(0.08),
                 ),
               ),
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                      child: service.videoUrl != null
-                          ? _VideoThumbnail(videoUrl: service.videoUrl!)
-                          : Image.asset(
-                              service.imageUrl ?? 'assets/images/logo.jpg',
-                              height: 120,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                            ),
-                    ),
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Obx(() => IconButton(
-                        icon: FaIcon(
-                          _favorites.contains(service.title)
-                              ? FontAwesomeIcons.solidHeart
-                              : FontAwesomeIcons.heart,
-                          color: _favorites.contains(service.title)
-                              ? Colors.red
-                              : AppTheme.primaryColor,
-                        ),
-                        onPressed: () {
-                          if (_favorites.contains(service.title)) {
-                            _favorites.remove(service.title);
-                          } else {
-                            _favorites.add(service.title);
-                          }
-                        },
-                      )),
-                    ),
-                    if (service.price != null)
-                      Positioned(
-                        bottom: 8,
-                        left: 8,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryColor,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            'From \$${service.price}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                      ),
-                    if (service.videoUrl != null)
-                      Positioned(
-                        bottom: 8,
-                        right: 8,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.5),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.play_arrow,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                  ],
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                  child: Image.network(
+                    service['image'],
+                    height: 120,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(12),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: service.color.withOpacity(0.13),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          service.category,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: service.color,
-                            fontWeight: FontWeight.bold,
+                      if (service['category'] != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).primaryColor.withOpacity(0.13),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            service['category'],
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(context).primaryColor,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
-                      ),
                       const SizedBox(height: 8),
                       Text(
-                        service.title,
+                        service['title'],
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -416,7 +298,7 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        service.description,
+                        service['description'],
                         style: TextStyle(
                           fontSize: 12,
                           color: AppTheme.textSecondary,
@@ -433,13 +315,13 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: service.color,
+                              color: Theme.of(context).primaryColor,
                             ),
                           ),
-                          FaIcon(
-                            FontAwesomeIcons.arrowRight,
-                            size: 14,
-                            color: service.color,
+                          Icon(
+                            service['icon'],
+                            size: 18,
+                            color: Theme.of(context).primaryColor,
                           ),
                         ],
                       ),
@@ -519,7 +401,7 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
     );
   }
 
-  void _showServiceDetails(Service service) {
+  void _showServiceDetailsFromMap(Map<String, dynamic> service) {
     Get.bottomSheet(
       Container(
         decoration: const BoxDecoration(
@@ -551,12 +433,12 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: service.color.withValues(alpha: 0.1),
+                      color: Theme.of(context).primaryColor.withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: FaIcon(
-                      service.icon,
-                      color: service.color,
+                    child: Icon(
+                      service['icon'],
+                      color: Theme.of(context).primaryColor,
                       size: 24,
                     ),
                   ),
@@ -566,59 +448,40 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          service.title,
+                          service['title'],
                           style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          service.category,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: service.color,
-                            fontWeight: FontWeight.bold,
+                        if (service['category'] != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4.0),
+                            child: Text(
+                              service['category'],
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Theme.of(context).primaryColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
-                        ),
                       ],
                     ),
                   ),
-                  Obx(() => IconButton(
-                    icon: FaIcon(
-                      _favorites.contains(service.title) 
-                        ? FontAwesomeIcons.solidHeart 
-                        : FontAwesomeIcons.heart,
-                      color: _favorites.contains(service.title) 
-                        ? Colors.red 
-                        : Colors.grey,
-                    ),
-                    onPressed: () {
-                      if (_favorites.contains(service.title)) {
-                        _favorites.remove(service.title);
-                      } else {
-                        _favorites.add(service.title);
-                      }
-                    },
-                  )),
                 ],
               ),
               const SizedBox(height: 20),
-              if (service.videoUrl != null) ...[
-                _VideoPlayerWidget(videoUrl: service.videoUrl!),
-                const SizedBox(height: 20),
-              ] else ...[
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.asset(
-                    service.imageUrl ?? 'assets/images/logo.jpg',
-                    width: double.infinity,
-                    height: 180,
-                    fit: BoxFit.cover,
-                  ),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.network(
+                  service['image'],
+                  width: double.infinity,
+                  height: 180,
+                  fit: BoxFit.cover,
                 ),
-                const SizedBox(height: 20),
-              ],
+              ),
+              const SizedBox(height: 20),
               const Text(
                 'Service Overview',
                 style: TextStyle(
@@ -628,70 +491,12 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
               ),
               const SizedBox(height: 10),
               Text(
-                service.description,
+                service['description'],
                 style: const TextStyle(
                   fontSize: 16,
                   height: 1.5,
                 ),
               ),
-              const SizedBox(height: 20),
-              const Divider(),
-              const SizedBox(height: 10),
-              const Text(
-                'Key Features',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Column(
-                children: service.features.map((feature) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      FaIcon(FontAwesomeIcons.checkCircle, size: 18, color: service.color),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          feature,
-                          style: const TextStyle(fontSize: 15),
-                        ),
-                      ),
-                    ],
-                  ),
-                )).toList(),
-              ),
-              const SizedBox(height: 20),
-              const Divider(),
-              const SizedBox(height: 10),
-              const Text(
-                'Pricing & Booking',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 10),
-              _detailItem(FontAwesomeIcons.moneyBillWave, 'Starting Price', 
-                service.price != null ? '\$${service.price}' : 'Contact for quote'),
-              _detailItem(FontAwesomeIcons.clock, 'Duration', '2-6 weeks'),
-              _detailItem(FontAwesomeIcons.calendarCheck, 'Availability', 'Next 2 weeks'),
-              if (service.videoUrl != null) ...[
-                const SizedBox(height: 20),
-                const Divider(),
-                const SizedBox(height: 10),
-                const Text(
-                  'Video Demonstration',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                _detailItem(FontAwesomeIcons.video, 'Video Link', service.videoUrl!),
-              ],
               const SizedBox(height: 30),
               Row(
                 children: [
@@ -735,28 +540,6 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _detailItem(IconData icon, String title, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          FaIcon(icon, size: 18, color: AppTheme.primaryColor),
-          const SizedBox(width: 10),
-          SizedBox(
-            width: 120,
-            child: Text(
-              title,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(child: Text(value)),
-        ],
       ),
     );
   }
