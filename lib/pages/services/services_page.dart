@@ -54,20 +54,21 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
 
   @override
   Widget build(BuildContext context) {
+    final user = UserAuthService.instance.userProfile.value;
     return Scaffold(
       backgroundColor: AppTheme.backgroundLight,
       appBar: AppBar(
         backgroundColor: AppTheme.primaryColor,
         leading: Navigator.canPop(context)
             ? IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
                 onPressed: () => Navigator.of(context).pop(),
               )
             : null,
-        title: const Text('Our Services', 
-          style: TextStyle(
-            fontWeight: FontWeight.bold, 
-            fontSize: 20, 
+        title: const Text('Our Services',
+            style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
                 color: Colors.white)),
         centerTitle: true,
         actions: [
@@ -149,7 +150,67 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
           ),
         ),
       ),
-      body: Obx(() => _buildServiceList(_selectedCategory.value)),
+      drawer: (userController.role.value == 'customer' || userController.role.value == 'admin')
+          ? Drawer(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  UserAccountsDrawerHeader(
+                    decoration: BoxDecoration(color: AppTheme.primaryColor),
+                    accountName: Text(user?.name ?? ''),
+                    accountEmail: Text(user?.email ?? ''),
+                    currentAccountPicture: CircleAvatar(
+                      backgroundColor: Colors.white,
+                      child: Text(
+                        (user?.name.isNotEmpty == true ? user!.name[0].toUpperCase() : '?'),
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryColor,
+                        ),
+                      ),
+                    ),
+                  ),
+                  ListTile(
+                    leading: const Icon(Iconsax.home),
+                    title: const Text('Home'),
+                    onTap: () => Get.toNamed('/home'),
+                  ),
+                  if (userController.role.value == 'customer')
+                    ListTile(
+                      leading: const Icon(Iconsax.profile_2user),
+                      title: const Text('Profile'),
+                      onTap: () => Get.toNamed('/customer-profile'),
+                    ),
+                  if (userController.role.value == 'admin')
+                    ListTile(
+                      leading: const Icon(Iconsax.user_cirlce_add),
+                      title: const Text('Admin Panel'),
+                      onTap: () => Get.toNamed('/admin-dashboard'),
+                    ),
+                  ListTile(
+                    leading: const Icon(Iconsax.logout),
+                    title: const Text('Logout'),
+                    onTap: () async {
+                      await UserAuthService.instance.logout();
+                      Get.offAllNamed('/customer-login');
+                    },
+                  ),
+                ],
+              ),
+            )
+          : null,
+      body: Column(
+        children: [
+          Container(
+            color: Colors.yellow,
+            width: double.infinity,
+            padding: const EdgeInsets.all(8),
+            child: Text('DEBUG: Current user role: \'${userController.role.value}\'', style: const TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          Expanded(child: Obx(() => _buildServiceList(_selectedCategory.value))),
+        ],
+      ),
     );
   }
 
@@ -472,7 +533,7 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
 
   void _showBookingFormBottomSheet(Map<String, dynamic> service) {
     final _formKey = GlobalKey<FormState>();
-    final user = userProfile.value;
+    final user = UserAuthService.instance.userProfile.value;
     final TextEditingController _nameController = TextEditingController(text: user?.name ?? '');
     final TextEditingController _emailController = TextEditingController(text: user?.email ?? '');
     final TextEditingController _phoneController = TextEditingController(text: user?.phone ?? '');

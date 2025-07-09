@@ -53,24 +53,30 @@ class UserAuthService extends GetxController {
         password: password,
       );
       
-      // Create user profile in Firestore
+      // Create user profile in Firestore with role 'customer'
       final user = User(
         name: name,
         email: email,
         phone: phone,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
+        // Add role field if your User model supports it
+        // role: 'customer',
       );
+      final userData = user.toFirestore();
+      userData['role'] = 'customer';
       
       await _firestore
           .collection('users')
           .doc(userCredential.user!.uid)
-          .set(user.toFirestore());
+          .set(userData);
       
       // Set current user
       currentUser.value = userCredential.user;
       userProfile.value = user.copyWith(id: userCredential.user!.uid);
       isUserLoggedIn.value = true;
+      // Set role in userController
+      userController.role.value = 'customer';
       
       // Save user session
       final prefs = await SharedPreferences.getInstance();
@@ -121,6 +127,9 @@ class UserAuthService extends GetxController {
         currentUser.value = userCredential.user;
         userProfile.value = User.fromFirestore(userDoc);
         isUserLoggedIn.value = true;
+        // Set role in userController from Firestore, default to 'customer'
+        final role = userDoc.data()?['role'] ?? 'customer';
+        userController.role.value = role;
         
         // Save user session
         final prefs = await SharedPreferences.getInstance();

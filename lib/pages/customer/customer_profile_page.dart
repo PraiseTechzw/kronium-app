@@ -37,12 +37,15 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
   }
 
   void _loadUserData() {
-    final userAuthService = Get.find<UserAuthService>();
-    final user = userAuthService.currentUserProfile;
+    final user = UserAuthService.instance.userProfile.value;
     if (user != null) {
       _nameController.text = user.name;
       _phoneController.text = user.phone;
       _addressController.text = user.address ?? '';
+    } else {
+      _nameController.text = '';
+      _phoneController.text = '';
+      _addressController.text = '';
     }
   }
 
