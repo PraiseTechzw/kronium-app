@@ -6,7 +6,7 @@ import 'package:animate_do/animate_do.dart';
 import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/firebase_service.dart';
 import 'package:kronium/models/service_model.dart';
-import 'package:kronium/widgets/admin_scaffold.dart';
+import 'package:kronium/core/user_auth_service.dart' show UserController;
 
 class AdminServicesPage extends StatelessWidget {
   const AdminServicesPage({super.key});
@@ -14,10 +14,51 @@ class AdminServicesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firebaseService = Get.find<FirebaseService>();
+    final userController = Get.find<UserController>(); // Added userController
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundLight,
-      bottomNavigationBar: // ... use the same Obx/BottomNavigationBar logic as home_page.dart ...,
+      bottomNavigationBar: Obx(() {
+        final role = userController.role.value;
+        final isAdmin = role == 'admin';
+        final viewAsAdmin = true; // Or use a toggle if you want
+        final List<BottomNavigationBarItem> items = [
+          const BottomNavigationBarItem(
+            icon: Icon(Iconsax.home_2),
+            label: 'Home',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Iconsax.box),
+            label: 'Services',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Iconsax.document_text),
+            label: 'Projects',
+          ),
+        ];
+        if (role == 'customer' || (isAdmin && viewAsAdmin)) {
+          items.add(const BottomNavigationBarItem(
+            icon: Icon(Iconsax.message),
+            label: 'Chat',
+          ));
+        }
+        items.add(BottomNavigationBarItem(
+          icon: const Icon(Iconsax.user),
+          label: role == 'guest' ? 'Login' : (isAdmin ? (viewAsAdmin ? 'Admin Profile' : 'Profile') : 'Profile'),
+        ));
+        return BottomNavigationBar(
+          currentIndex: 1, // Services tab
+          onTap: (index) {
+            // Navigation logic (optional: use Get.toNamed or setState)
+          },
+          backgroundColor: AppTheme.surfaceLight,
+          selectedItemColor: AppTheme.primaryColor,
+          unselectedItemColor: AppTheme.secondaryColor,
+          showUnselectedLabels: true,
+          type: BottomNavigationBarType.fixed,
+          items: items,
+        );
+      }),
       body: StreamBuilder<List<Service>>(
         stream: firebaseService.getServices(),
         builder: (context, snapshot) {
