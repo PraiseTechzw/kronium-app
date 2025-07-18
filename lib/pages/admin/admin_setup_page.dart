@@ -81,10 +81,9 @@ class _AdminSetupPageState extends State<AdminSetupPage> {
 
   @override
   Widget build(BuildContext context) {
-    return AdminScaffold(
-      title: 'Admin Setup',
-      showDrawer: false,
-      showAppBar: false,
+    return Scaffold(
+      backgroundColor: AppTheme.backgroundLight,
+      bottomNavigationBar: // ... use the same Obx/BottomNavigationBar logic as home_page.dart ...,
       body: Form(
         key: _formKey,
         child: Column(

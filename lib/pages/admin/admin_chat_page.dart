@@ -65,20 +65,9 @@ class _AdminChatPageState extends State<AdminChatPage> {
   Widget build(BuildContext context) {
     final firebaseService = Get.find<FirebaseService>();
 
-    return AdminScaffold(
-      title: 'Customer Support',
-      actions: [
-        if (_selectedChatRoom != null)
-          IconButton(
-            icon: const Icon(Iconsax.close_square),
-            onPressed: () {
-              setState(() {
-                _selectedChatRoom = null;
-              });
-            },
-            tooltip: 'Close Chat',
-          ),
-      ],
+    return Scaffold(
+      backgroundColor: AppTheme.backgroundLight,
+      bottomNavigationBar: // ... use the same Obx/BottomNavigationBar logic as home_page.dart ...,
       body: _selectedChatRoom == null
           ? _buildChatRoomsList(firebaseService)
           : _buildChatInterface(firebaseService),
