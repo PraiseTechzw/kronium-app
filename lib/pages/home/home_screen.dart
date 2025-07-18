@@ -54,276 +54,276 @@ class HomeScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Company Info Carousel (Enhanced)
-              StatefulBuilder(
-                builder: (context, setState) => Column(
-                  children: [
-                    CarouselSlider(
-                      carouselController: _carouselController,
-                      options: CarouselOptions(
-                        height: 240,
-                        autoPlay: true,
-                        enlargeCenterPage: true,
-                        viewportFraction: 0.95,
-                        aspectRatio: 16/7,
-                        autoPlayInterval: const Duration(seconds: 6),
-                        onPageChanged: (index, reason) => setState(() => _currentSlide = index),
-                      ),
-                      items: _companySlides.map((slide) {
-                        return Builder(
-                          builder: (context) => Container(
-                            width: MediaQuery.of(context).size.width,
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(18),
-                              gradient: LinearGradient(
-                                colors: [AppTheme.primaryColor, AppTheme.secondaryColor.withOpacity(0.85)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppTheme.primaryColor.withOpacity(0.13),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 5),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Company Info Carousel (Enhanced)
+                StatefulBuilder(
+                  builder: (context, setState) => Column(
+                    children: [
+                      CarouselSlider(
+                        carouselController: _carouselController,
+                        options: CarouselOptions(
+                          height: 240,
+                          autoPlay: true,
+                          enlargeCenterPage: true,
+                          viewportFraction: 0.95,
+                          aspectRatio: 16/7,
+                          autoPlayInterval: const Duration(seconds: 6),
+                          onPageChanged: (index, reason) => setState(() => _currentSlide = index),
+                        ),
+                        items: _companySlides.map((slide) {
+                          return Builder(
+                            builder: (context) => Container(
+                              width: MediaQuery.of(context).size.width,
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(18),
+                                gradient: LinearGradient(
+                                  colors: [AppTheme.primaryColor, AppTheme.secondaryColor.withOpacity(0.85)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
                                 ),
-                              ],
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      if (slide['logo'] != null)
-                                        Padding(
-                                          padding: const EdgeInsets.only(right: 12),
-                                          child: ClipRRect(
-                                            borderRadius: BorderRadius.circular(8),
-                                            child: Image.asset(
-                                              slide['logo'],
-                                              width: 40,
-                                              height: 40,
-                                              fit: BoxFit.cover,
-                                            ),
-                                          ),
-                                        ),
-                                      if (slide['icon'] != null)
-                                        Icon(slide['icon'], color: Colors.white, size: 32),
-                                      if (slide['icon'] != null) const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            if (slide['title'] != null)
-                                              Text(
-                                                slide['title'],
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 20,
-                                                  letterSpacing: 0.5,
-                                                  shadows: [Shadow(blurRadius: 8, color: Colors.black26)],
-                                                ),
-                                              ),
-                                            if (slide['subtitle'] != null)
-                                              Padding(
-                                                padding: const EdgeInsets.only(top: 2.0),
-                                                child: Text(
-                                                  slide['subtitle'],
-                                                  style: const TextStyle(
-                                                    color: Colors.white70,
-                                                    fontSize: 15,
-                                                    fontWeight: FontWeight.w400,
-                                                  ),
-                                                ),
-                                              ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppTheme.primaryColor.withOpacity(0.13),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 5),
                                   ),
-                                  const SizedBox(height: 10),
-                                  if (slide['body'] != null && slide['body'] is String)
-                                    Expanded(
-                                      child: SingleChildScrollView(
-                                        child: Text(
-                                          slide['body'],
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w400,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  if (slide['body'] != null && slide['body'] is List)
-                                    Expanded(
-                                      child: SingleChildScrollView(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            for (var item in slide['body'])
-                                              if (item is String)
-                                                Padding(
-                                                  padding: const EdgeInsets.symmetric(vertical: 2.5),
-                                                  child: Row(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                                                      const Icon(Icons.circle, size: 8, color: Colors.white70),
-                                                      const SizedBox(width: 8),
-                                                      Expanded(
-                                                        child: Text(
-                                                          item,
-                                                          style: const TextStyle(
-                                                            color: Colors.white,
-                                                            fontSize: 15,
-                                                            fontWeight: FontWeight.w400,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                )
-                                              else if (item is Map && item['type'] == 'phone')
-                                                Padding(
-                                                  padding: const EdgeInsets.symmetric(vertical: 2.5),
-                                                  child: GestureDetector(
-                                                    onTap: () => launchUrl(Uri.parse('tel:${item['value']}')),
-                                                    child: Row(
-                                                      children: [
-                                                        const Icon(Icons.phone, size: 16, color: Colors.white),
-                                                        const SizedBox(width: 8),
-                                                        Text(
-                                                          item['value'],
-                                                          style: const TextStyle(
-                                                            color: Colors.white,
-                                                            fontSize: 15,
-                                                            decoration: TextDecoration.underline,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                )
-                                              else if (item is Map && item['type'] == 'email')
-                                                Padding(
-                                                  padding: const EdgeInsets.symmetric(vertical: 2.5),
-                                                  child: GestureDetector(
-                                                    onTap: () => launchUrl(Uri.parse('mailto:${item['value']}')),
-                                                    child: Row(
-                                                      children: [
-                                                        const Icon(Icons.email, size: 16, color: Colors.white),
-                                                        const SizedBox(width: 8),
-                                                        Text(
-                                                          item['value'],
-                                                          style: const TextStyle(
-                                                            color: Colors.white,
-                                                            fontSize: 15,
-                                                            decoration: TextDecoration.underline,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                )
-                                              else if (item is Map && item['type'] == 'address')
-                                                Padding(
-                                                  padding: const EdgeInsets.symmetric(vertical: 2.5),
-                                                  child: Row(
-                                                    children: [
-                                                      const Icon(Icons.location_on, size: 16, color: Colors.white),
-                                                      const SizedBox(width: 8),
-                                                      Expanded(
-                                                        child: Text(
-                                                          item['value'],
-                                                          style: const TextStyle(
-                                                            color: Colors.white,
-                                                            fontSize: 15,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  if (slide['socials'] != null)
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 10),
-                                      child: Row(
-                                        children: [
-                                          for (var social in slide['socials'])
-                                            IconButton(
-                                              icon: Icon(social['icon'], color: Colors.white, size: 22),
-                                              onPressed: () => launchUrl(Uri.parse(social['url'])),
-                                            ),
-                                        ],
-                                      ),
-                                    ),
                                 ],
                               ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        if (slide['logo'] != null)
+                                          Padding(
+                                            padding: const EdgeInsets.only(right: 12),
+                                            child: ClipRRect(
+                                              borderRadius: BorderRadius.circular(8),
+                                              child: Image.asset(
+                                                slide['logo'],
+                                                width: 40,
+                                                height: 40,
+                                                fit: BoxFit.cover,
+                                              ),
+                                            ),
+                                          ),
+                                        if (slide['icon'] != null)
+                                          Icon(slide['icon'], color: Colors.white, size: 32),
+                                        if (slide['icon'] != null) const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              if (slide['title'] != null)
+                                                Text(
+                                                  slide['title'],
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20,
+                                                    letterSpacing: 0.5,
+                                                    shadows: [Shadow(blurRadius: 8, color: Colors.black26)],
+                                                  ),
+                                                ),
+                                              if (slide['subtitle'] != null)
+                                                Padding(
+                                                  padding: const EdgeInsets.only(top: 2.0),
+                                                  child: Text(
+                                                    slide['subtitle'],
+                                                    style: const TextStyle(
+                                                      color: Colors.white70,
+                                                      fontSize: 15,
+                                                      fontWeight: FontWeight.w400,
+                                                    ),
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 10),
+                                    if (slide['body'] != null && slide['body'] is String)
+                                      Expanded(
+                                        child: SingleChildScrollView(
+                                          child: Text(
+                                            slide['body'],
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w400,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    if (slide['body'] != null && slide['body'] is List)
+                                      Expanded(
+                                        child: SingleChildScrollView(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              for (var item in slide['body'])
+                                                if (item is String)
+                                                  Padding(
+                                                    padding: const EdgeInsets.symmetric(vertical: 2.5),
+                                                    child: Row(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        const Icon(Icons.circle, size: 8, color: Colors.white70),
+                                                        const SizedBox(width: 8),
+                                                        Expanded(
+                                                          child: Text(
+                                                            item,
+                                                            style: const TextStyle(
+                                                              color: Colors.white,
+                                                              fontSize: 15,
+                                                              fontWeight: FontWeight.w400,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  )
+                                                else if (item is Map && item['type'] == 'phone')
+                                                  Padding(
+                                                    padding: const EdgeInsets.symmetric(vertical: 2.5),
+                                                    child: GestureDetector(
+                                                      onTap: () => launchUrl(Uri.parse('tel:${item['value']}')),
+                                                      child: Row(
+                                                        children: [
+                                                          const Icon(Icons.phone, size: 16, color: Colors.white),
+                                                          const SizedBox(width: 8),
+                                                          Text(
+                                                            item['value'],
+                                                            style: const TextStyle(
+                                                              color: Colors.white,
+                                                              fontSize: 15,
+                                                              decoration: TextDecoration.underline,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  )
+                                                else if (item is Map && item['type'] == 'email')
+                                                  Padding(
+                                                    padding: const EdgeInsets.symmetric(vertical: 2.5),
+                                                    child: GestureDetector(
+                                                      onTap: () => launchUrl(Uri.parse('mailto:${item['value']}')),
+                                                      child: Row(
+                                                        children: [
+                                                          const Icon(Icons.email, size: 16, color: Colors.white),
+                                                          const SizedBox(width: 8),
+                                                          Text(
+                                                            item['value'],
+                                                            style: const TextStyle(
+                                                              color: Colors.white,
+                                                              fontSize: 15,
+                                                              decoration: TextDecoration.underline,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  )
+                                                else if (item is Map && item['type'] == 'address')
+                                                  Padding(
+                                                    padding: const EdgeInsets.symmetric(vertical: 2.5),
+                                                    child: Row(
+                                                      children: [
+                                                        const Icon(Icons.location_on, size: 16, color: Colors.white),
+                                                        const SizedBox(width: 8),
+                                                        Expanded(
+                                                          child: Text(
+                                                            item['value'],
+                                                            style: const TextStyle(
+                                                              color: Colors.white,
+                                                              fontSize: 15,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    if (slide['socials'] != null)
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 10),
+                                        child: Row(
+                                          children: [
+                                            for (var social in slide['socials'])
+                                              IconButton(
+                                                icon: Icon(social['icon'], color: Colors.white, size: 22),
+                                                onPressed: () => launchUrl(Uri.parse(social['url'])),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
                             ),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(_companySlides.length, (index) => AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          margin: const EdgeInsets.symmetric(horizontal: 3),
+                          width: _currentSlide == index ? 18 : 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: _currentSlide == index ? Colors.white : Colors.white38,
+                            borderRadius: BorderRadius.circular(6),
                           ),
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(_companySlides.length, (index) => AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        margin: const EdgeInsets.symmetric(horizontal: 3),
-                        width: _currentSlide == index ? 18 : 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: _currentSlide == index ? Colors.white : Colors.white38,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                      )),
-                    ),
-                  ],
+                        )),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 24),
-              // Rotating Banner (Carousel)
-              
-              const SizedBox(height: 24),
-              // Services/Projects List (Grid)
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
+                const SizedBox(height: 24),
+                // Rotating Banner (Carousel)
+                
+                const SizedBox(height: 24),
+                // Services/Projects List (Grid)
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
                   childAspectRatio: 0.85,
-                ),
-                itemCount: _services.length,
-                itemBuilder: (context, index) {
-                  final service = _services[index];
-                  return GestureDetector(
-                    onTap: () => _onServiceTap(context, service),
+                  ),
+                  itemCount: _services.length,
+                  itemBuilder: (context, index) {
+                    final service = _services[index];
+                    return GestureDetector(
+                      onTap: () => _onServiceTap(context, service),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       curve: Curves.easeInOut,
-                      decoration: BoxDecoration(
+                        decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
+                          boxShadow: [
+                            BoxShadow(
                             color: Colors.black.withOpacity(0.08),
                             blurRadius: 12,
                             offset: const Offset(0, 6),
-                          ),
-                        ],
-                      ),
+                            ),
+                          ],
+                        ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(20),
                         child: Stack(
@@ -351,7 +351,7 @@ class HomeScreen extends StatelessWidget {
                               child: Padding(
                                 padding: const EdgeInsets.all(16),
                                 child: Text(
-                                  service['title'],
+                              service['title'],
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
@@ -368,19 +368,19 @@ class HomeScreen extends StatelessWidget {
                             ),
                           ],
                         ),
+                        ),
                       ),
-                    ),
-                  );
-                },
-              ),
-              ContactCard(
-                contacts: _companySlides.firstWhere((s) => s['title'] == 'CONTACT & OFFICES')['body'],
-                socials: _companySlides.firstWhere((s) => s['title'] == 'CONTACT & OFFICES')['socials'],
-              ),
-            ],
+                    );
+                  },
+                ),
+                ContactCard(
+                  contacts: _companySlides.firstWhere((s) => s['title'] == 'CONTACT & OFFICES')['body'],
+                  socials: _companySlides.firstWhere((s) => s['title'] == 'CONTACT & OFFICES')['socials'],
+                ),
+              ],
+            ),
           ),
         ),
-      ),
     );
   }
 
@@ -459,23 +459,23 @@ class _ServiceDetailSheet extends StatelessWidget {
     return Stack(
       children: [
         Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
                 if (isAdmin && missing.isNotEmpty)
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     margin: const EdgeInsets.only(bottom: 8),
-                    decoration: BoxDecoration(
+                decoration: BoxDecoration(
                       color: Colors.orange[100],
                       borderRadius: const BorderRadius.only(
                         topLeft: Radius.circular(20),
@@ -521,21 +521,21 @@ class _ServiceDetailSheet extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Title and category
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  service.title,
-                                  style: const TextStyle(
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        service.title,
+                        style: const TextStyle(
                                     fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
                                 if (service.category.isNotEmpty)
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -544,16 +544,16 @@ class _ServiceDetailSheet extends StatelessWidget {
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Text(
-                                      service.category,
+                        service.category,
                                       style: const TextStyle(
                                         color: Colors.green,
-                                        fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.bold,
                                         fontSize: 13,
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
+                        ),
+                  ),
+                ),
+              ],
+            ),
                           ),
                           // Modern close button
                           IconButton(
@@ -564,66 +564,66 @@ class _ServiceDetailSheet extends StatelessWidget {
                       ),
                       const SizedBox(height: 18),
                       // Overview
-                      const Text(
-                        'Service Overview',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+            const Text(
+              'Service Overview',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
                       const SizedBox(height: 8),
-                      Text(
-                        service.description,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          height: 1.5,
-                        ),
-                      ),
+            Text(
+              service.description,
+              style: const TextStyle(
+                fontSize: 16,
+                height: 1.5,
+              ),
+            ),
                       const SizedBox(height: 18),
                       // Features
                       if (service.features.isNotEmpty) ...[
-                        const Text(
-                          'Key Features',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+            const Text(
+              'Key Features',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
                         const SizedBox(height: 8),
-                        Column(
-                          children: service.features.map((feature) => Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 6),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Icon(Icons.check_circle, color: Colors.green, size: 18),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Text(
-                                    feature,
-                                    style: const TextStyle(fontSize: 15),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )).toList(),
-                        ),
+            Column(
+              children: service.features.map((feature) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.check_circle, color: Colors.green, size: 18),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        feature,
+                        style: const TextStyle(fontSize: 15),
+                      ),
+                    ),
+                  ],
+                ),
+              )).toList(),
+            ),
                         const SizedBox(height: 18),
                       ],
                       // Pricing & Booking
-                      const Text(
-                        'Pricing & Booking',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+            const Text(
+              'Pricing & Booking',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
                       const SizedBox(height: 8),
-                      _detailItem(Icons.attach_money, 'Starting Price',
+            _detailItem(Icons.attach_money, 'Starting Price',
                         service.price != null ? '\$${service.price}' : 'Contact for quote'),
-                      _detailItem(Icons.schedule, 'Duration', '2-6 weeks'),
-                      _detailItem(Icons.event_available, 'Availability', 'Next 2 weeks'),
-                      const SizedBox(height: 30),
+            _detailItem(Icons.schedule, 'Duration', '2-6 weeks'),
+            _detailItem(Icons.event_available, 'Availability', 'Next 2 weeks'),
+            const SizedBox(height: 30),
                       // Action button
                       SizedBox(
                         width: double.infinity,
@@ -634,11 +634,11 @@ class _ServiceDetailSheet extends StatelessWidget {
                             backgroundColor: Colors.green,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onPressed: () {
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () {
                             showModalBottomSheet(
                               context: Get.context!,
                               isScrollControlled: true,
@@ -656,8 +656,8 @@ class _ServiceDetailSheet extends StatelessWidget {
                 ),
               ],
             ),
-          ),
         ),
+      ),
       ],
     );
   }

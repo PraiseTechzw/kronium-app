@@ -8,6 +8,7 @@ import 'package:kronium/core/firebase_service.dart';
 import 'package:kronium/core/routes.dart';
 import 'package:kronium/widgets/app_drawer.dart';
 import 'package:kronium/widgets/admin_scaffold.dart';
+import 'package:kronium/models/booking_model.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
@@ -26,122 +27,123 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
     return AdminScaffold(
       title: 'Admin Dashboard',
-        actions: [
-          IconButton(
-            icon: const Icon(Iconsax.logout),
-            onPressed: () async {
-              await adminAuthService.logout();
-              Get.offAllNamed(AppRoutes.home);
-            },
-          ),
-        ],
-        isDarkMode: _isDarkMode,
-        onDarkModeChanged: (val) => setState(() => _isDarkMode = val),
-      body: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Welcome Section
-              FadeInDown(
-                child: Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+      actions: [
+        IconButton(
+          icon: const Icon(Iconsax.logout),
+          onPressed: () async {
+            await adminAuthService.logout();
+            Get.offAllNamed(AppRoutes.home);
+          },
+        ),
+      ],
+      isDarkMode: _isDarkMode,
+      onDarkModeChanged: (val) => setState(() => _isDarkMode = val),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Welcome Section
+            FadeInDown(
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.primaryColor.withOpacity(0.18),
+                      blurRadius: 16,
+                      offset: const Offset(0, 8),
                     ),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                    color: AppTheme.primaryColor.withOpacity(0.3),
-                        blurRadius: 10,
-                        offset: const Offset(0, 5),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    const CircleAvatar(
+                      radius: 36,
+                      backgroundColor: Colors.white,
+                      child: Icon(
+                        Iconsax.shield_tick,
+                        color: AppTheme.primaryColor,
+                        size: 36,
                       ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      const CircleAvatar(
-                        radius: 30,
-                        backgroundColor: Colors.white,
-                        child: Icon(
-                          Iconsax.shield_tick,
-                          color: AppTheme.primaryColor,
-                          size: 30,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Welcome back, Admin!',
-                          style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
+                    ),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Welcome, Admin',
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Manage your business efficiently',
-                              style: TextStyle(
-                                fontSize: 14,
-                            color: Colors.white.withOpacity(0.8),
-                              ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Here is your business overview and latest activity.',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.white.withOpacity(0.85),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 24),
+            ),
+            const SizedBox(height: 28),
 
-              // Statistics Cards
-              FadeInUp(
-                delay: const Duration(milliseconds: 200),
-                child: FutureBuilder<Map<String, dynamic>>(
-                  future: firebaseService.getAdminStats(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
+            // Statistics Cards
+            FadeInUp(
+              delay: const Duration(milliseconds: 200),
+              child: FutureBuilder<Map<String, dynamic>>(
+                future: firebaseService.getAdminStats(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-                    final stats = snapshot.data ?? {
-                      'totalServices': 0,
-                      'totalBookings': 0,
-                      'pendingBookings': 0,
-                    };
+                  final stats = snapshot.data ?? {
+                    'totalServices': 0,
+                    'totalBookings': 0,
+                    'pendingBookings': 0,
+                  };
 
-                    return GridView.count(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      childAspectRatio: 1.2,
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
                       children: [
                         _buildStatCard(
-                          'Total Services',
+                          'Services',
                           stats['totalServices'].toString(),
                           Iconsax.box,
                           Colors.blue,
                         ),
+                        const SizedBox(width: 16),
                         _buildStatCard(
-                          'Total Bookings',
+                          'Bookings',
                           stats['totalBookings'].toString(),
                           Iconsax.calendar,
                           Colors.green,
                         ),
+                        const SizedBox(width: 16),
                         _buildStatCard(
-                          'Pending Bookings',
+                          'Pending',
                           stats['pendingBookings'].toString(),
                           Iconsax.clock,
                           Colors.orange,
                         ),
+                        const SizedBox(width: 16),
                         _buildStatCard(
                           'Revenue',
                           '\$${(stats['totalBookings'] * 100).toString()}',
@@ -149,59 +151,36 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                           Colors.purple,
                         ),
                       ],
-                    );
-                  },
-                ),
+                    ),
+                  );
+                },
               ),
-              const SizedBox(height: 24),
+            ),
+            const SizedBox(height: 32),
 
-              // Quick Actions
-              FadeInUp(
-                delay: const Duration(milliseconds: 400),
-                child: const Text(
-                  'Quick Actions',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+            // Recent Activity (Latest Bookings)
+            FadeInUp(
+              delay: const Duration(milliseconds: 400),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Recent Bookings',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 12),
+                  _RecentBookingsList(),
+                ],
               ),
-              const SizedBox(height: 16),
+            ),
+            const SizedBox(height: 32),
 
-              FadeInUp(
-                delay: const Duration(milliseconds: 600),
-                child: GridView.count(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 1.3,
-                  children: [
-                    _buildActionCard(
-                      'Manage Services',
-                      Iconsax.box,
-                      () => Get.toNamed(AppRoutes.adminServices),
-                    ),
-                    _buildActionCard(
-                  'Manage Bookings',
-                      Iconsax.calendar,
-                      () => Get.toNamed(AppRoutes.adminBookings),
-                    ),
-                    _buildActionCard(
-                      'Customer Support',
-                      Iconsax.message,
-                      () => Get.toNamed(AppRoutes.adminChat),
-                    ),
-                _buildActionCard(
-                  'Settings',
-                  Iconsax.setting_2,
-                  () {},
-                      ),
-                    ],
-                ),
-              ),
-            ],
+            // (Optional) Analytics/Graphs section can be added here
+          ],
+        ),
       ),
     );
   }
@@ -347,5 +326,82 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       'Analytics feature coming soon!',
       snackPosition: SnackPosition.BOTTOM,
     );
+  }
+}
+
+class _RecentBookingsList extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final firebaseService = Get.find<FirebaseService>();
+    return StreamBuilder<List<Booking>>(
+      stream: firebaseService.getBookings(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final bookings = snapshot.data ?? [];
+        if (bookings.isEmpty) {
+          return const Text('No recent bookings.');
+        }
+        return ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: bookings.length > 5 ? 5 : bookings.length,
+          separatorBuilder: (_, __) => const Divider(height: 18),
+          itemBuilder: (context, index) {
+            final booking = bookings[index];
+            return ListTile(
+              leading: CircleAvatar(
+                backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
+                child: const Icon(Iconsax.calendar, color: AppTheme.primaryColor),
+              ),
+              title: Text(booking.clientName, style: const TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: Text('${booking.serviceName} • ${booking.date.toLocal().toString().split(' ')[0]}'),
+              trailing: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: _statusColor(booking.status.name).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  _statusText(booking.status.name),
+                  style: TextStyle(
+                    color: _statusColor(booking.status.name),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Color _statusColor(String status) {
+    switch (status) {
+      case 'pending':
+        return Colors.orange;
+      case 'completed':
+        return Colors.green;
+      case 'cancelled':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String _statusText(String status) {
+    switch (status) {
+      case 'pending':
+        return 'Pending';
+      case 'completed':
+        return 'Completed';
+      case 'cancelled':
+        return 'Cancelled';
+      default:
+        return status;
+    }
   }
 } 
