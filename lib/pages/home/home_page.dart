@@ -100,7 +100,7 @@ class HomePage extends StatelessWidget {
 
       return BackgroundSwitcher(
         child: Scaffold(
-        backgroundColor: AppTheme.backgroundLight,
+          backgroundColor: Colors.transparent,
         appBar: _currentIndex.value == 0
             ? AppBar(
           title: FadeInLeft(
