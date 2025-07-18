@@ -15,14 +15,9 @@ class AdminServicesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final firebaseService = Get.find<FirebaseService>();
 
-    return AdminScaffold(
-      title: 'Manage Services',
-      actions: [
-        IconButton(
-          icon: const Icon(Iconsax.add),
-          onPressed: () => _showAddServiceDialog(context),
-        ),
-      ],
+    return Scaffold(
+      backgroundColor: AppTheme.backgroundLight,
+      bottomNavigationBar: // ... use the same Obx/BottomNavigationBar logic as home_page.dart ...,
       body: StreamBuilder<List<Service>>(
         stream: firebaseService.getServices(),
         builder: (context, snapshot) {
