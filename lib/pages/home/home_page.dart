@@ -10,6 +10,15 @@ import 'package:kronium/pages/services/services_page.dart';
 import 'package:kronium/pages/home/home_screen.dart';
 import 'package:kronium/pages/projects/projects_page.dart';
 import 'package:kronium/widgets/app_drawer.dart';
+import 'package:kronium/pages/customer/customer_chat_page.dart';
+import 'package:kronium/pages/customer/customer_dashboard_page.dart';
+import 'package:kronium/pages/customer/customer_profile_page.dart';
+import 'package:kronium/widgets/login_bottom_sheet.dart';
+import 'package:kronium/pages/admin/admin_dashboard_page.dart';
+import 'package:kronium/pages/admin/admin_services_page.dart';
+import 'package:kronium/pages/admin/admin_bookings_page.dart';
+import 'package:kronium/pages/admin/admin_chat_page.dart';
+import 'package:kronium/widgets/background_switcher.dart';
 
 /// HomePage is the main shell for the app's tabbed navigation.
 /// It manages the app bar, drawer, bottom navigation, and tab switching.
@@ -17,6 +26,7 @@ class HomePage extends StatelessWidget {
   final RxInt _currentIndex = 0.obs;
   final PageController _pageController = PageController();
   final RxBool _isDarkMode = false.obs;
+  final RxBool _viewAsAdmin = true.obs; // Admins can toggle this
 
   HomePage({super.key});
 
@@ -24,9 +34,73 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(() {
       final isDarkMode = _isDarkMode.value;
-      return Scaffold(
+      final role = userController.role.value;
+      final isAdmin = role == 'admin';
+      final viewAsAdmin = !isAdmin || _viewAsAdmin.value;
+      // Build tab list dynamically
+      final List<Widget> pages = [
+        const HomeScreen(),
+        const ServicesPage(),
+        const ProjectsPage(),
+      ];
+      final List<BottomNavigationBarItem> items = [
+        const BottomNavigationBarItem(
+          icon: Icon(Iconsax.home_2),
+          label: 'Home',
+        ),
+        const BottomNavigationBarItem(
+          icon: Icon(Iconsax.box),
+          label: 'Services',
+        ),
+        const BottomNavigationBarItem(
+          icon: Icon(Iconsax.document_text),
+          label: 'Projects',
+        ),
+      ];
+      if (role == 'customer' || (isAdmin && viewAsAdmin)) {
+        pages.add(const CustomerChatPage());
+        items.add(const BottomNavigationBarItem(
+          icon: Icon(Iconsax.message),
+          label: 'Chat',
+        ));
+      }
+      // Admin tabs
+      if (isAdmin && viewAsAdmin) {
+        pages.addAll([
+          const AdminDashboardPage(),
+          const AdminServicesPage(),
+          const AdminBookingsPage(),
+          const AdminChatPage(),
+        ]);
+        items.addAll([
+          const BottomNavigationBarItem(
+            icon: Icon(Iconsax.shield_tick),
+            label: 'Admin',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Iconsax.box),
+            label: 'Manage Services',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Iconsax.calendar),
+            label: 'Bookings',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Iconsax.message),
+            label: 'Admin Chat',
+          ),
+        ]);
+      }
+      // Always add Profile/Login as last tab
+      items.add(BottomNavigationBarItem(
+        icon: const Icon(Iconsax.user),
+        label: role == 'guest' ? 'Login' : (isAdmin ? (viewAsAdmin ? 'Admin Profile' : 'Profile') : 'Profile'),
+      ));
+      pages.add(const CustomerProfilePage()); // Show actual profile page
+
+      return BackgroundSwitcher(
+        child: Scaffold(
         backgroundColor: AppTheme.backgroundLight,
-        // Show app bar only on Home tab
         appBar: _currentIndex.value == 0
             ? AppBar(
           title: FadeInLeft(
@@ -39,13 +113,12 @@ class HomePage extends StatelessWidget {
                 onPressed: () => _showNotifications(),
               ),
             ),
-          ],
-          elevation: 0,
+                ],
+                elevation: 0,
                 backgroundColor: AppTheme.primaryColor,
-          iconTheme: IconThemeData(color: isDarkMode ? Colors.white : Colors.black),
+                iconTheme: IconThemeData(color: isDarkMode ? Colors.white : Colors.black),
               )
             : null,
-        // Beautiful, modular drawer
         drawer: AppDrawer(
           isDarkMode: isDarkMode,
           userAuthService: Get.find<UserAuthService>(),
@@ -53,22 +126,116 @@ class HomePage extends StatelessWidget {
           onDarkModeChanged: (val) => _isDarkMode.value = val,
           onShowAbout: _showAboutPage,
           onShowContact: _showContactInfo,
+            extraItems: isAdmin
+                ? [
+                    Obx(() => SwitchListTile(
+                          title: Text(_viewAsAdmin.value ? 'View as Admin' : 'View as Customer'),
+                          value: _viewAsAdmin.value,
+                          onChanged: (val) => _viewAsAdmin.value = val,
+                          secondary: Icon(_viewAsAdmin.value ? Iconsax.shield_tick : Iconsax.user),
+                        )),
+                  ]
+                : role == 'customer'
+              ? [
+                  ListTile(
+                    leading: const Icon(Iconsax.activity),
+                    title: const Text('Dashboard'),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      Get.to(() => const CustomerDashboardPage());
+                    },
+                  ),
+                ]
+              : [],
         ),
-        // Main tabbed content
         body: PageView(
           controller: _pageController,
           onPageChanged: (index) => _currentIndex.value = index,
-          children: const [
-            HomeScreen(),
-            ServicesPage(),
-            ProjectsPage(),
-          ],
+          children: pages,
         ),
-            // Themed bottom navigation
-        bottomNavigationBar: Obx(() => FadeInUp(
+          floatingActionButton: isAdmin && viewAsAdmin
+              ? FloatingActionButton(
+                  backgroundColor: AppTheme.primaryColor,
+                  child: const Icon(Iconsax.setting_2, color: Colors.white),
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                      ),
+                      builder: (context) => Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text('Admin Quick Actions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                            const SizedBox(height: 16),
+                            ListTile(
+                              leading: const Icon(Iconsax.shield_tick, color: AppTheme.primaryColor),
+                              title: const Text('Admin Dashboard'),
+                              onTap: () { Get.toNamed('/admin-dashboard'); Navigator.pop(context); },
+                            ),
+                            ListTile(
+                              leading: const Icon(Iconsax.box, color: AppTheme.primaryColor),
+                              title: const Text('Manage Services'),
+                              onTap: () { Get.toNamed('/admin-services'); Navigator.pop(context); },
+                            ),
+                            ListTile(
+                              leading: const Icon(Iconsax.calendar, color: AppTheme.primaryColor),
+                              title: const Text('Bookings'),
+                              onTap: () { Get.toNamed('/admin-bookings'); Navigator.pop(context); },
+                            ),
+                            ListTile(
+                              leading: const Icon(Iconsax.message, color: AppTheme.primaryColor),
+                              title: const Text('Admin Chat'),
+                              onTap: () { Get.toNamed('/admin-chat'); Navigator.pop(context); },
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                )
+              : null,
+          bottomNavigationBar: Obx(() {
+            final role = userController.role.value;
+            final isCustomer = role == 'customer';
+            final isGuest = role == 'guest';
+            final isAdmin = role == 'admin';
+            final List<BottomNavigationBarItem> items = [
+              const BottomNavigationBarItem(
+                icon: Icon(Iconsax.home_2),
+                label: 'Home',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Iconsax.box),
+                label: 'Services',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Iconsax.document_text),
+                label: 'Projects',
+              ),
+            ];
+            if (isCustomer || isAdmin) {
+              items.add(const BottomNavigationBarItem(
+                icon: Icon(Iconsax.message),
+                label: 'Chat',
+              ));
+            }
+            items.add(BottomNavigationBarItem(
+              icon: const Icon(Iconsax.user),
+              label: isGuest ? 'Login' : 'Profile',
+            ));
+            return FadeInUp(
           child: BottomNavigationBar(
             currentIndex: _currentIndex.value,
-            onTap: (index) {
+                onTap: (index) async {
+                  final isProfileTab = index == items.length - 1;
+                  final isLoggedIn = userController.role.value != 'guest';
+                  if (isProfileTab && !isLoggedIn) {
+                    Get.toNamed('/customer-login');
+                    return;
+                  }
               _currentIndex.value = index;
               _pageController.animateToPage(
                 index,
@@ -81,22 +248,11 @@ class HomePage extends StatelessWidget {
             unselectedItemColor: AppTheme.secondaryColor,
             showUnselectedLabels: true,
             type: BottomNavigationBarType.fixed,
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Iconsax.home_2),
-                label: 'Home',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Iconsax.box),
-                label: 'Services',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Iconsax.document_text),
-                label: 'Projects',
-              ),
-            ],
+            items: items,
           ),
-        )),
+            );
+          }),
+        ),
       );
     });
   }

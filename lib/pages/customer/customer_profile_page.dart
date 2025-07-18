@@ -4,7 +4,8 @@ import 'package:animate_do/animate_do.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/routes.dart';
-import 'package:kronium/core/user_auth_service.dart';
+import 'package:kronium/core/user_auth_service.dart' show userController, UserAuthService;
+import 'package:kronium/widgets/login_bottom_sheet.dart';
 
 class CustomerProfilePage extends StatefulWidget {
   const CustomerProfilePage({super.key});
@@ -70,6 +71,7 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
   @override
   Widget build(BuildContext context) {
     final userAuthService = Get.find<UserAuthService>();
+    final isLoggedIn = userController.role.value != 'guest';
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundLight,
@@ -97,6 +99,23 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
       ),
       body: Obx(() {
         final user = userAuthService.currentUserProfile;
+        if (!isLoggedIn) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Iconsax.login, size: 60, color: Colors.orange),
+                const SizedBox(height: 20),
+                const Text('Please log in to view your profile.', style: TextStyle(fontSize: 18)),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () => showLoginBottomSheet(context),
+                  child: const Text('Login'),
+                ),
+              ],
+            ),
+          );
+        }
         if (user == null) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -383,12 +402,105 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                           leading: const Icon(Iconsax.shield_tick, color: AppTheme.primaryColor),
                           title: const Text('Change Password'),
                           trailing: const Icon(Iconsax.arrow_right_3),
-                          onTap: () {
-                            // TODO: Implement change password
-                            Get.snackbar(
-                              'Coming Soon',
-                              'Password change feature will be available soon',
-                              snackPosition: SnackPosition.BOTTOM,
+                          onTap: () async {
+                            // Show bottom sheet for change password
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                              ),
+                              builder: (context) {
+                                final _passwordController = TextEditingController();
+                                final _confirmController = TextEditingController();
+                                final _formKey = GlobalKey<FormState>();
+                                bool _isLoading = false;
+                                return StatefulBuilder(
+                                  builder: (context, setState) {
+                                    return Padding(
+                                      padding: EdgeInsets.only(
+                                        left: 24,
+                                        right: 24,
+                                        top: 24,
+                                        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+                                      ),
+                                      child: Form(
+                                        key: _formKey,
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            const Text(
+                                              'Change Password',
+                                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                            ),
+                                            const SizedBox(height: 16),
+                                            TextFormField(
+                                              controller: _passwordController,
+                                              obscureText: true,
+                                              decoration: const InputDecoration(
+                                                labelText: 'New Password',
+                                                prefixIcon: Icon(Iconsax.lock),
+                                              ),
+                                              validator: (value) {
+                                                if (value == null || value.isEmpty) {
+                                                  return 'Please enter a new password';
+                                                }
+                                                if (value.length < 6) {
+                                                  return 'Password must be at least 6 characters';
+                                                }
+                                                return null;
+                                              },
+                                            ),
+                                            const SizedBox(height: 12),
+                                            TextFormField(
+                                              controller: _confirmController,
+                                              obscureText: true,
+                                              decoration: const InputDecoration(
+                                                labelText: 'Confirm Password',
+                                                prefixIcon: Icon(Iconsax.lock),
+                                              ),
+                                              validator: (value) {
+                                                if (value != _passwordController.text) {
+                                                  return 'Passwords do not match';
+                                                }
+                                                return null;
+                                              },
+                                            ),
+                                            const SizedBox(height: 24),
+                                            SizedBox(
+                                              width: double.infinity,
+                                              height: 48,
+                                              child: ElevatedButton(
+                                                onPressed: _isLoading
+                                                    ? null
+                                                    : () async {
+                                                        if (_formKey.currentState!.validate()) {
+                                                          setState(() => _isLoading = true);
+                                                          final userAuthService = Get.find<UserAuthService>();
+                                                          final success = await userAuthService.changePassword(_passwordController.text);
+                                                          setState(() => _isLoading = false);
+                                                          if (success) {
+                                                            Navigator.pop(context);
+                                                          }
+                                                        }
+                                                      },
+                                                child: _isLoading
+                                                    ? const SizedBox(
+                                                        width: 24,
+                                                        height: 24,
+                                                        child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
+                                                      )
+                                                    : const Text('Update Password'),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
                             );
                           },
                         ),

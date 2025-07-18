@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/firebase_service.dart';
 import 'package:kronium/models/booking_model.dart';
+import 'package:kronium/widgets/admin_scaffold.dart';
 
 class AdminBookingsPage extends StatelessWidget {
   const AdminBookingsPage({super.key});
@@ -15,17 +16,8 @@ class AdminBookingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final firebaseService = Get.find<FirebaseService>();
 
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: const Text(
-          'Manage Bookings',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: AppTheme.primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
+    return AdminScaffold(
+      title: 'Manage Bookings',
       body: StreamBuilder<List<Booking>>(
         stream: firebaseService.getBookings(),
         builder: (context, snapshot) {
@@ -83,7 +75,7 @@ class AdminBookingsPage extends StatelessWidget {
           }
 
           return ListView.builder(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.zero,
             itemCount: bookings.length,
             itemBuilder: (context, index) {
               final booking = bookings[index];
@@ -96,7 +88,7 @@ class AdminBookingsPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey.withValues(alpha: 0.1),
+                        color: Colors.grey.withOpacity(0.1),
                         blurRadius: 10,
                         offset: const Offset(0, 5),
                       ),
@@ -107,7 +99,7 @@ class AdminBookingsPage extends StatelessWidget {
                       width: 50,
                       height: 50,
                       decoration: BoxDecoration(
-                        color: _getStatusColor(booking.status).withValues(alpha: 0.1),
+                        color: _getStatusColor(booking.status).withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
@@ -141,7 +133,7 @@ class AdminBookingsPage extends StatelessWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: _getStatusColor(booking.status).withValues(alpha: 0.1),
+                            color: _getStatusColor(booking.status).withOpacity(0.1),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
@@ -160,14 +152,14 @@ class AdminBookingsPage extends StatelessWidget {
                         padding: const EdgeInsets.all(16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                                                      children: [
-                              _buildInfoRow('Email', booking.clientEmail),
-                              _buildInfoRow('Phone', booking.clientPhone),
-                              _buildInfoRow('Date', DateFormat('MMM dd, yyyy').format(booking.date)),
-                              _buildInfoRow('Price', '\$${booking.price}'),
-                              _buildInfoRow('Location', booking.location),
-                              if (booking.notes.isNotEmpty)
-                                _buildInfoRow('Notes', booking.notes),
+                          children: [
+                            _buildInfoRow('Email', booking.clientEmail),
+                            _buildInfoRow('Phone', booking.clientPhone),
+                            _buildInfoRow('Date', DateFormat('MMM dd, yyyy').format(booking.date)),
+                            _buildInfoRow('Price', '\$${booking.price}'),
+                            _buildInfoRow('Location', booking.location),
+                            if (booking.notes.isNotEmpty)
+                              _buildInfoRow('Notes', booking.notes),
                             const SizedBox(height: 16),
                             Row(
                               children: [
@@ -198,7 +190,7 @@ class AdminBookingsPage extends StatelessWidget {
                                 Expanded(
                                   child: OutlinedButton.icon(
                                     onPressed: () => _updateBookingStatus(booking, BookingStatus.completed),
-                                    icon: const Icon(Iconsax.tick_square, size: 16),
+                                    icon: const Icon(Iconsax.verify, size: 16),
                                     label: const Text('Complete'),
                                     style: OutlinedButton.styleFrom(
                                       foregroundColor: Colors.blue,

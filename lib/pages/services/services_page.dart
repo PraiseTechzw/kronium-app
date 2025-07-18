@@ -61,14 +61,14 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
         backgroundColor: AppTheme.primaryColor,
         leading: Navigator.canPop(context)
             ? IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
                 onPressed: () => Navigator.of(context).pop(),
               )
             : null,
-        title: const Text('Our Services',
-            style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
+        title: const Text('Our Services', 
+          style: TextStyle(
+            fontWeight: FontWeight.bold, 
+            fontSize: 20, 
                 color: Colors.white)),
         centerTitle: true,
         actions: [
@@ -273,7 +273,7 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
                             Image.network(
                               service['image'],
                           fit: BoxFit.cover,
-                            ),
+                        ),
                             Container(
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
@@ -289,7 +289,7 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
                           ],
                         ),
                 ),
-                Positioned(
+                  Positioned(
                         left: 12,
                         top: 12,
                         child: GestureDetector(
@@ -322,7 +322,7 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
                   ),
                       ),
                       if (service['category'] != null)
-                        Positioned(
+                  Positioned(
                           right: 10,
                           top: 10,
                           child: Chip(
@@ -379,13 +379,13 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
                                   }
                                 },
                               ),
-                            ),
+                      ),
                     ],
                   ),
                 ],
               ),
-                  ),
-                ],
+            ),
+          ],
               ),
             ],
           ),
@@ -417,7 +417,7 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
               child: Padding(
                 padding: const EdgeInsets.all(24),
           child: Column(
-                  mainAxisSize: MainAxisSize.min,
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
@@ -501,27 +501,27 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
                     ),
                     const SizedBox(height: 24),
                     Row(
-                      children: [
+                children: [
                         Expanded(
                           child: ElevatedButton.icon(
                     onPressed: () {
                               Navigator.of(context).pop();
                               _showBookingFormBottomSheet(service);
-                            },
+                    },
                             icon: const Icon(Icons.calendar_today, color: Colors.white),
                             label: const Text('Book Now', style: TextStyle(color: Colors.white)),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green[700],
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green[700],
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
-                              ),
+                    ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                  ),
+                ],
+              ),
+            ],
                 ),
               ),
             ),
@@ -547,7 +547,7 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
       builder: (context) => FractionallySizedBox(
         heightFactor: 0.85,
         child: Container(
-          decoration: const BoxDecoration(
+        decoration: const BoxDecoration(
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
             gradient: LinearGradient(
               begin: Alignment.topCenter,
@@ -556,7 +556,7 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
             ),
           ),
           child: SafeArea(
-            child: SingleChildScrollView(
+        child: SingleChildScrollView(
               child: Padding(
                 padding: EdgeInsets.only(
                   left: 24, right: 24, top: 24,
@@ -564,22 +564,22 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
                 ),
                 child: Form(
                   key: _formKey,
-                  child: Column(
+          child: Column(
                     mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Center(
-                        child: Container(
-                          width: 60,
-                          height: 5,
-                          decoration: BoxDecoration(
-                            color: Colors.grey[300],
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                        ),
-                      ),
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 60,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                ),
+              ),
                       const SizedBox(height: 18),
-                      Text(
+                        Text(
                         'Book ${service['title']}',
                         style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                       ),
@@ -616,7 +616,7 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () {
+                    onPressed: () {
                             if (_formKey.currentState?.validate() ?? false) {
                               _formKey.currentState?.save();
                               _serviceBookings[service['title']] = (_serviceBookings[service['title']] ?? 0) + 1;
@@ -628,7 +628,7 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
                             backgroundColor: Theme.of(context).primaryColor,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(12),
                             ),
                           ),
                           child: const Text('Submit Booking', style: TextStyle(color: Colors.white)),
@@ -729,9 +729,9 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('Close'),
-          ),
-        ],
-      ),
+                  ),
+                ],
+              ),
     );
   }
 
@@ -791,7 +791,7 @@ class ServicesPageState extends State<ServicesPage> with SingleTickerProviderSta
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: [
+        children: [
             const Icon(Iconsax.login, color: Colors.orange, size: 60),
             const SizedBox(height: 20),
             const Text('Sign Up or Log In Required', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22)),

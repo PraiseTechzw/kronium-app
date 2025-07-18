@@ -1,437 +1,540 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:animate_do/animate_do.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:kronium/core/app_theme.dart';
-import 'package:kronium/core/firebase_service.dart';
-import 'package:kronium/core/routes.dart';
 import 'package:kronium/core/user_auth_service.dart';
-import 'package:kronium/models/booking_model.dart';
+import 'package:kronium/pages/projects/mock_project_booking_data.dart';
+import 'package:kronium/widgets/login_bottom_sheet.dart';
 
-class CustomerDashboardPage extends StatelessWidget {
+// Add controllers and saved fields for booking form
+final TextEditingController _nameController = TextEditingController();
+final TextEditingController _emailController = TextEditingController();
+final TextEditingController _phoneController = TextEditingController();
+String? _savedName, _savedEmail, _savedPhone;
+
+List<DateTime> get _takenDates => MockProjectBookingData().bookedDates;
+
+double _calculateSmartTransportCost(String location, String size) {
+  double base = 10.0;
+  double sizeFactor = size.length * 2.0;
+  double locationFactor = location.length * 1.5;
+  double distanceFactor = (location.hashCode % 20).toDouble();
+  return base + sizeFactor + locationFactor + distanceFactor;
+}
+
+class CustomerDashboardPage extends StatefulWidget {
   const CustomerDashboardPage({super.key});
 
   @override
+  State<CustomerDashboardPage> createState() => _CustomerDashboardPageState();
+}
+
+class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
+  // Mock project data
+  final List<Map<String, dynamic>> _projects = [
+    {
+      'title': 'Solar Farm Installation',
+      'status': 'Completed',
+      'progress': 100,
+      'date': 'June 2023',
+      'location': 'Harare, Zimbabwe',
+      'description': '5MW solar farm installation for commercial energy production',
+      'lastUpdate': 'Completed and handed over',
+    },
+    {
+      'title': 'Industrial Greenhouse Complex',
+      'status': 'In Progress',
+      'progress': 65,
+      'date': 'January 2024',
+      'location': 'Bulawayo, Zimbabwe',
+      'description': '10-acre automated greenhouse for year-round vegetable production',
+      'lastUpdate': 'Irrigation system installed',
+    },
+    {
+      'title': 'Commercial Steel Structure',
+      'status': 'Booked',
+      'progress': 0,
+      'date': 'September 2024',
+      'location': 'Mutare, Zimbabwe',
+      'description': '15,000 sq ft steel warehouse with office complex',
+      'lastUpdate': 'Booking confirmed',
+    },
+  ];
+
+  String _selectedStatus = 'All';
+  final List<String> _statusFilters = ['All', 'Booked', 'In Progress', 'Completed'];
+
+  @override
   Widget build(BuildContext context) {
-    final userAuthService = Get.find<UserAuthService>();
-    final firebaseService = Get.find<FirebaseService>();
+    final filteredProjects = _selectedStatus == 'All'
+        ? _projects
+        : _projects.where((p) => p['status'] == _selectedStatus).toList();
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundLight,
       appBar: AppBar(
         title: const Text('My Dashboard'),
+        backgroundColor: AppTheme.primaryColor,
         actions: [
           IconButton(
-            icon: const Icon(Iconsax.logout),
-            onPressed: () async {
-              await userAuthService.logout();
-              Get.offAllNamed(AppRoutes.customerLogin);
-            },
-            tooltip: 'Logout',
+            icon: const Icon(Iconsax.add_square, color: Colors.white),
+            tooltip: 'Book New Project',
+            onPressed: _showBookProjectBottomSheet,
           ),
+          Obx(() {
+            final user = UserAuthService.instance.userProfile.value;
+            return IconButton(
+              icon: Icon(
+                user == null ? Iconsax.login : Iconsax.user,
+                color: Colors.white,
+              ),
+              tooltip: user == null ? 'Login' : 'Profile',
+              onPressed: () async {
+                if (user == null) {
+                  await showLoginBottomSheet(context);
+                } else {
+                  Get.toNamed('/customer-profile');
+                }
+              },
+            );
+          }),
         ],
       ),
-      body: Obx(() {
-        final user = userAuthService.currentUserProfile;
-        if (user == null) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Welcome Section
-              FadeInDown(
-                child: Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(16),
+      body: Column(
+        children: [
+          // Status filter chips
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            child: Row(
+              children: _statusFilters.map((status) => Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: ChoiceChip(
+                  label: Text(status),
+                  selected: _selectedStatus == status,
+                  onSelected: (selected) {
+                    if (selected) setState(() => _selectedStatus = status);
+                  },
+                  selectedColor: AppTheme.primaryColor,
+                  labelStyle: TextStyle(
+                    color: _selectedStatus == status ? Colors.white : AppTheme.primaryColor,
                   ),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 30,
-                        backgroundColor: Colors.white,
-                        child: Text(
-                          user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.primaryColor,
+                ),
+              )).toList(),
+            ),
+          ),
+          // Recent updates/notifications
+          if (_projects.any((p) => p['lastUpdate'] != null))
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Recent Updates', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  ..._projects.where((p) => p['lastUpdate'] != null).map((p) => ListTile(
+                    leading: const Icon(Iconsax.info_circle, color: AppTheme.primaryColor),
+                    title: Text(p['title']),
+                    subtitle: Text(p['lastUpdate']),
+                  )),
+                ],
+              ),
+            ),
+          // Project list
+          Expanded(
+            child: filteredProjects.isEmpty
+                ? Center(
+                    child: Text('No projects found for $_selectedStatus', style: const TextStyle(color: Colors.grey)),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: filteredProjects.length,
+                    itemBuilder: (context, index) {
+                      final project = filteredProjects[index];
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        elevation: 4,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () => _showProjectDetailsBottomSheet(project),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        project['title'],
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                                      ),
+                                    ),
+                                    Chip(
+                                      label: Text(project['status']),
+                                      backgroundColor: _statusColor(project['status']),
+                                      labelStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Text(project['description'], style: const TextStyle(fontSize: 14, color: Colors.black87)),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    const Icon(Iconsax.location, size: 16, color: Colors.grey),
+                                    const SizedBox(width: 4),
+                                    Text(project['location'], style: const TextStyle(fontSize: 13, color: Colors.grey)),
+                                    const Spacer(),
+                                    Text(project['date'], style: const TextStyle(fontSize: 13, color: Colors.grey)),
+                                  ],
+                                ),
+                                if (project['progress'] != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 8),
+                                    child: LinearProgressIndicator(
+                                      value: (project['progress'] as int) / 100,
+                                      backgroundColor: AppTheme.surfaceLight,
+                                      valueColor: AlwaysStoppedAnimation<Color>(_statusColor(project['status'])),
+                                      minHeight: 6,
+                                      borderRadius: BorderRadius.circular(3),
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Welcome back,',
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.8),
-                                fontSize: 14,
-                              ),
-                            ),
-                            Text(
-                              user.name,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
-                ),
-              ),
-              
-              const SizedBox(height: 24),
-              
-              // Quick Actions
-              FadeInLeft(
-                delay: const Duration(milliseconds: 100),
-                child: const Text(
-                  'Quick Actions',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              
-              const SizedBox(height: 16),
-              
-              FadeInUp(
-                delay: const Duration(milliseconds: 200),
-                child: Row(
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _statusColor(String status) {
+    switch (status) {
+      case 'Completed':
+        return Colors.green;
+      case 'In Progress':
+        return Colors.orange;
+      case 'Booked':
+        return AppTheme.primaryColor;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  void _showBookProjectBottomSheet() {
+    // --- Modular Booking Bottom Sheet for Project Request (copied from projects_page.dart) ---
+    final List<String> projectTypes = [
+      'Greenhouse',
+      'Construction',
+      'Solar Systems',
+      'Irrigation Systems',
+      'Logistics',
+    ];
+    int _currentStep = 0;
+    String? _selectedType = projectTypes.first;
+    DateTime? _selectedDate;
+    String _location = '';
+    String _size = '';
+    double? _liveTransportCost;
+    final _formKey = GlobalKey<FormState>();
+
+    // Prefill user info if available (prefer userProfile, fallback to saved)
+    final user = UserAuthService.instance.userProfile.value;
+    _nameController.text = user?.name ?? _savedName ?? '';
+    _emailController.text = user?.email ?? _savedEmail ?? '';
+    _phoneController.text = user?.phone ?? _savedPhone ?? '';
+
+    void _updateTransportCost() {
+      _liveTransportCost = _calculateSmartTransportCost(_location, _size);
+    }
+
+    Get.bottomSheet(
+      StatefulBuilder(
+        builder: (context, setModalState) {
+          void nextStep() {
+            if (_currentStep < 2) {
+              setModalState(() => _currentStep++);
+            }
+          }
+          void prevStep() {
+            if (_currentStep > 0) {
+              setModalState(() => _currentStep--);
+            }
+          }
+          return Container(
+            padding: const EdgeInsets.all(20),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // --- Stepper Indicator ---
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Expanded(
-                      child: _buildQuickActionCard(
-                        icon: Iconsax.box,
-                        title: 'Book Service',
-                        subtitle: 'Find and book services',
-                        color: AppTheme.primaryColor,
-                        onTap: () => Get.toNamed(AppRoutes.services),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildQuickActionCard(
-                        icon: Iconsax.document_text,
-                        title: 'My Projects',
-                        subtitle: 'View your projects',
-                        color: AppTheme.secondaryColor,
-                        onTap: () => Get.toNamed(AppRoutes.projects),
-                      ),
-                    ),
+                    Icon(Icons.looks_one, color: _currentStep == 0 ? AppTheme.primaryColor : Colors.grey),
+                    Container(width: 30, height: 2, color: _currentStep > 0 ? AppTheme.primaryColor : Colors.grey[300]),
+                    Icon(Icons.looks_two, color: _currentStep == 1 ? AppTheme.primaryColor : Colors.grey),
+                    Container(width: 30, height: 2, color: _currentStep > 1 ? AppTheme.primaryColor : Colors.grey[300]),
+                    Icon(Icons.looks_3, color: _currentStep == 2 ? AppTheme.primaryColor : Colors.grey),
                   ],
                 ),
-              ),
-              
-              const SizedBox(height: 24),
-              
-              // Recent Bookings
-              FadeInLeft(
-                delay: const Duration(milliseconds: 300),
-                child: const Text(
-                  'Recent Bookings',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                const SizedBox(height: 20),
+                if (_currentStep == 0) ...[
+                  // --- Step 1: Select Project Type ---
+                  const Text('Select Project Type', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 10,
+                    children: projectTypes.map((type) => ChoiceChip(
+                      label: Text(type),
+                      selected: _selectedType == type,
+                      onSelected: (selected) {
+                        setModalState(() => _selectedType = type);
+                      },
+                      selectedColor: AppTheme.primaryColor,
+                      labelStyle: TextStyle(color: _selectedType == type ? Colors.white : AppTheme.primaryColor),
+                    )).toList(),
                   ),
-                ),
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // Recent Bookings Stream
-              StreamBuilder<List<Booking>>(
-                stream: firebaseService.getBookings(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  
-                  if (snapshot.hasError) {
-                    return Center(
-                      child: Text('Error: ${snapshot.error}'),
-                    );
-                  }
-                  
-                  final bookings = snapshot.data ?? [];
-                  final userBookings = bookings.where((booking) => 
-                    booking.clientEmail == user.email
-                  ).toList();
-                  
-                  if (userBookings.isEmpty) {
-                    return FadeInUp(
-                      delay: const Duration(milliseconds: 400),
-                      child: Container(
-                        padding: const EdgeInsets.all(32),
-                        child: Column(
+                  const SizedBox(height: 30),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      ElevatedButton(
+                        onPressed: nextStep,
+                        child: const Text('Next'),
+                      ),
+                    ],
+                  ),
+                ] else if (_currentStep == 1) ...[
+                  // --- Step 2: User Details & Date ---
+                  const Text('Your Details & Date', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                  const SizedBox(height: 10),
+                  Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          controller: _nameController,
+                          decoration: const InputDecoration(labelText: 'Full Name'),
+                          validator: (v) => v == null || v.isEmpty ? 'Enter your name' : null,
+                        ),
+                        TextFormField(
+                          controller: _emailController,
+                          decoration: const InputDecoration(labelText: 'Email'),
+                          validator: (v) => v == null || v.isEmpty ? 'Enter your email' : null,
+                        ),
+                        TextFormField(
+                          controller: _phoneController,
+                          decoration: const InputDecoration(labelText: 'Phone'),
+                          validator: (v) => v == null || v.isEmpty ? 'Enter your phone' : null,
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
                           children: [
-                            Icon(
-                              Iconsax.document_text,
-                              size: 64,
-                              color: Colors.grey[400],
+                            Expanded(
+                              child: Text(_selectedDate == null
+                                ? 'No date selected'
+                                : 'Date: ${_selectedDate!.toLocal().toString().split(' ')[0]}'),
                             ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No bookings yet',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Start by booking your first service',
-                              style: TextStyle(
-                                color: Colors.grey[500],
-                              ),
-                            ),
-                            const SizedBox(height: 16),
                             ElevatedButton(
-                              onPressed: () => Get.toNamed(AppRoutes.services),
-                              child: const Text('Browse Services'),
+                              onPressed: () async {
+                                DateTime now = DateTime.now();
+                                DateTime? picked = await showDatePicker(
+                                  context: context,
+                                  initialDate: now,
+                                  firstDate: now,
+                                  lastDate: now.add(const Duration(days: 365)),
+                                  selectableDayPredicate: (date) {
+                                    return !_takenDates.any((d) => d.year == date.year && d.month == date.month && d.day == date.day);
+                                  },
+                                );
+                                if (picked != null) {
+                                  setModalState(() => _selectedDate = picked);
+                                }
+                              },
+                              child: const Text('Pick Date'),
                             ),
                           ],
                         ),
-                      ),
-                    );
-                  }
-                  
-                  return Column(
-                    children: userBookings.take(3).map((booking) {
-                      return FadeInUp(
-                        delay: Duration(milliseconds: 400 + (userBookings.indexOf(booking) * 100)),
-                        child: _buildBookingCard(booking),
-                      );
-                    }).toList(),
-                  );
-                },
-              ),
-              
-              const SizedBox(height: 24),
-              
-              // Profile Section
-              FadeInLeft(
-                delay: const Duration(milliseconds: 500),
-                child: const Text(
-                  'Account',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              
-              const SizedBox(height: 16),
-              
-              FadeInUp(
-                delay: const Duration(milliseconds: 600),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppTheme.surfaceLight,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
-                        spreadRadius: 1,
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      ListTile(
-                        leading: const Icon(Iconsax.user, color: AppTheme.primaryColor),
-                        title: const Text('Profile'),
-                        subtitle: Text(user.name),
-                        trailing: const Icon(Iconsax.arrow_right_3),
-                        onTap: () => Get.toNamed(AppRoutes.profile),
-                      ),
-                      const Divider(height: 1),
-                     
-                      const Divider(height: 1),
-                      ListTile(
-                        leading: const Icon(Iconsax.message, color: AppTheme.primaryColor),
-                        title: const Text('Chat Support'),
-                        trailing: const Icon(Iconsax.arrow_right_3),
-                        onTap: () => Get.toNamed(AppRoutes.customerChat),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              
-              const SizedBox(height: 32),
-            ],
-          ),
-        );
-      }),
-    );
-  }
-
-  Widget _buildQuickActionCard({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceLight,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              spreadRadius: 1,
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(icon, color: color, size: 24),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 12,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBookingCard(Booking booking) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceLight,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  booking.serviceName,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: booking.statusColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  booking.statusText,
-                  style: TextStyle(
-                    color: booking.statusColor,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Icon(Iconsax.calendar, size: 16, color: Colors.grey[600]),
-              const SizedBox(width: 8),
-              Text(
-                '${booking.date.day}/${booking.date.month}/${booking.date.year}',
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 14,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                '\$${booking.price.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                  color: AppTheme.primaryColor,
-                ),
-              ),
-            ],
-          ),
-          if (booking.location.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Icon(Iconsax.location, size: 16, color: Colors.grey[600]),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    booking.location,
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 14,
+                        if (_selectedDate != null && _takenDates.any((d) => d.year == _selectedDate!.year && d.month == _selectedDate!.month && d.day == _selectedDate!.day))
+                          const Text('Selected date is unavailable. Please pick another.', style: TextStyle(color: Colors.red)),
+                      ],
                     ),
                   ),
-                ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      OutlinedButton(onPressed: prevStep, child: const Text('Back')),
+                      ElevatedButton(
+                        onPressed: () {
+                          if (_formKey.currentState!.validate() && _selectedDate != null && !_takenDates.any((d) => d.year == _selectedDate!.year && d.month == _selectedDate!.month && d.day == _selectedDate!.day)) {
+                            nextStep();
+                          }
+                        },
+                        child: const Text('Next'),
+                      ),
+                    ],
+                  ),
+                ] else if (_currentStep == 2) ...[
+                  // --- Step 3: Location, Size, Transport Cost ---
+                  const Text('Project Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    decoration: const InputDecoration(labelText: 'Project Location'),
+                    onChanged: (v) {
+                      setModalState(() {
+                        _location = v;
+                        _updateTransportCost();
+                      });
+                    },
+                  ),
+                  TextFormField(
+                    decoration: const InputDecoration(labelText: 'Project Size (e.g. 1000 sqm)'),
+                    onChanged: (v) {
+                      setModalState(() {
+                        _size = v;
+                        _updateTransportCost();
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  if (_location.isNotEmpty && _size.isNotEmpty)
+                    Row(
+                      children: [
+                        const Text('Estimated Transport Cost: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text(_liveTransportCost != null ? '${_liveTransportCost!.toStringAsFixed(2)} USD' : '--'),
+                      ],
+                    ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      OutlinedButton(onPressed: prevStep, child: const Text('Back')),
+                      ElevatedButton(
+                        onPressed: _location.isNotEmpty && _size.isNotEmpty
+                          ? () {
+                              // Save user info for next time (mock)
+                              _savedName = _nameController.text;
+                              _savedEmail = _emailController.text;
+                              _savedPhone = _phoneController.text;
+                              // Mock booking submission
+                              Get.back();
+                              Get.bottomSheet(
+                                Container(
+                                  padding: const EdgeInsets.all(30),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                                  ),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.check_circle, color: Colors.green, size: 60),
+                                      const SizedBox(height: 20),
+                                      const Text('Request Submitted!', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22)),
+                                      const SizedBox(height: 10),
+                                      Text('We have received your request for a $_selectedType project on ${_selectedDate!.toLocal().toString().split(' ')[0]}. Our team will contact you soon.'),
+                                      const SizedBox(height: 20),
+                                      ElevatedButton(
+                                        onPressed: () => Get.back(),
+                                        child: const Text('Close'),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }
+                          : null,
+                        child: const Text('Submit'),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
-          ],
-        ],
+          );
+        },
       ),
+      isScrollControlled: true,
+    );
+  }
+
+  void _showProjectDetailsBottomSheet(Map<String, dynamic> project) {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(
+                child: Container(
+                  width: 60,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(project['title'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22)),
+              const SizedBox(height: 8),
+              Chip(
+                label: Text(project['status']),
+                backgroundColor: _statusColor(project['status']),
+                labelStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              Text(project['description'], style: const TextStyle(fontSize: 16)),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  const Icon(Iconsax.location, size: 16, color: Colors.grey),
+                  const SizedBox(width: 4),
+                  Text(project['location'], style: const TextStyle(fontSize: 14, color: Colors.grey)),
+                  const Spacer(),
+                  Text(project['date'], style: const TextStyle(fontSize: 14, color: Colors.grey)),
+                ],
+              ),
+              if (project['progress'] != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: LinearProgressIndicator(
+                    value: (project['progress'] as int) / 100,
+                    backgroundColor: AppTheme.surfaceLight,
+                    valueColor: AlwaysStoppedAnimation<Color>(_statusColor(project['status'])),
+                    minHeight: 8,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              const SizedBox(height: 24),
+              Text('Last Update:', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryColor)),
+              Text(project['lastUpdate'] ?? 'No updates yet', style: const TextStyle(fontSize: 15)),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () => Get.back(),
+                child: const Text('Close'),
+              ),
+            ],
+          ),
+        ),
+      ),
+      isScrollControlled: true,
     );
   }
 } 

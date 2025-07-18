@@ -6,6 +6,7 @@ import 'package:kronium/core/admin_auth_service.dart';
 import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/firebase_service.dart';
 import 'package:kronium/models/chat_model.dart';
+import 'package:kronium/widgets/admin_scaffold.dart';
 
 
 class AdminChatPage extends StatefulWidget {
@@ -64,23 +65,20 @@ class _AdminChatPageState extends State<AdminChatPage> {
   Widget build(BuildContext context) {
     final firebaseService = Get.find<FirebaseService>();
 
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: const Text('Customer Support'),
-        actions: [
-          if (_selectedChatRoom != null)
-            IconButton(
-              icon: const Icon(Iconsax.close_square),
-              onPressed: () {
-                setState(() {
-                  _selectedChatRoom = null;
-                });
-              },
-              tooltip: 'Close Chat',
-            ),
-        ],
-      ),
+    return AdminScaffold(
+      title: 'Customer Support',
+      actions: [
+        if (_selectedChatRoom != null)
+          IconButton(
+            icon: const Icon(Iconsax.close_square),
+            onPressed: () {
+              setState(() {
+                _selectedChatRoom = null;
+              });
+            },
+            tooltip: 'Close Chat',
+          ),
+      ],
       body: _selectedChatRoom == null
           ? _buildChatRoomsList(firebaseService)
           : _buildChatInterface(firebaseService),

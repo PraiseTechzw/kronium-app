@@ -4,7 +4,7 @@ import 'package:animate_do/animate_do.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/routes.dart';
-import 'package:kronium/core/user_auth_service.dart';
+import 'package:kronium/core/user_auth_service.dart' show userController, UserAuthService;
 
 class CustomerLoginPage extends StatefulWidget {
   const CustomerLoginPage({super.key});
@@ -33,29 +33,8 @@ class _CustomerLoginPageState extends State<CustomerLoginPage> {
 
     setState(() => _isLoading = true);
 
-    // Hardcoded admin credentials
-    const adminEmail = 'admin@kronium.com';
-    const adminPassword = 'admin123';
-
     final email = _emailController.text.trim();
     final password = _passwordController.text;
-
-    // Debug print for troubleshooting admin login
-    print('Login attempt: email=\'$email\', password=\'$password\'');
-
-    // Check for admin login
-    if (email == adminEmail && password == adminPassword) {
-      setState(() => _isLoading = false);
-      Get.offAllNamed(AppRoutes.adminDashboard);
-      Get.snackbar(
-        'Admin Login',
-        'Welcome, Admin!',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
-      return;
-    }
 
     final userAuthService = Get.find<UserAuthService>();
     final success = await userAuthService.loginUser(
@@ -66,7 +45,11 @@ class _CustomerLoginPageState extends State<CustomerLoginPage> {
     setState(() => _isLoading = false);
 
     if (success) {
-      Get.offAllNamed(AppRoutes.home);
+      if (userController.role.value == 'admin') {
+        Get.offAllNamed(AppRoutes.adminDashboard);
+      } else {
+        Get.offAllNamed(AppRoutes.home);
+      }
     }
   }
 
@@ -196,6 +179,17 @@ class _CustomerLoginPageState extends State<CustomerLoginPage> {
                   child: SizedBox(
                     height: 56,
                     child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                        foregroundColor: Colors.white,
+                        textStyle: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
                       onPressed: _isLoading ? null : _login,
                       child: _isLoading
                           ? const SizedBox(
@@ -210,6 +204,7 @@ class _CustomerLoginPageState extends State<CustomerLoginPage> {
                               'Sign In',
                               style: TextStyle(
                                 fontSize: 16,
+                                color: Colors.white,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -233,6 +228,9 @@ class _CustomerLoginPageState extends State<CustomerLoginPage> {
                       ),
                       TextButton(
                         onPressed: () => Get.toNamed(AppRoutes.customerRegister),
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppTheme.primaryColor,
+                        ),
                         child: const Text(
                           'Sign Up',
                           style: TextStyle(

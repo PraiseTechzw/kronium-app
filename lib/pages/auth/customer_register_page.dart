@@ -288,6 +288,7 @@ class _CustomerRegisterPageState extends State<CustomerRegisterPage> {
                               'Create Account',
                               style: TextStyle(
                                 fontSize: 16,
+                                color: Colors.white,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),

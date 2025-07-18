@@ -78,6 +78,7 @@ dependencies:
   carousel_slider: ^5.1.1
   url_launcher: ^6.2.5
 
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -112,6 +113,7 @@ flutter:
   assets:
     - assets/animations/
     - assets/images/
+    - assets/images/background/
   fonts:
     - family: Poppins
       fonts:

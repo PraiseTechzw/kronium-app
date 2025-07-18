@@ -116,31 +116,35 @@ class FirebaseService extends GetxController {
     });
   }
   
-  // Upload image to Appwrite Storage
+  // Upload image to Appwrite Storage using helper
   Future<String> uploadImage(File file, String path) async {
     try {
-      final result = await AppwriteService.storage.createFile(
-        bucketId: 'images', // Replace with your bucket ID
-        fileId: 'unique()',
-        file: InputFile.fromPath(path: file.path, filename: file.path.split('/').last),
+      // Use AppwriteService helper for upload
+      final fileId = await AppwriteService.uploadFile(
+        bucketId: 'images',
+        path: file.path,
+        bytes: await file.readAsBytes(),
+        fileName: file.path.split('/').last,
       );
-      
-      return 'https://cloud.appwrite.io/v1/storage/buckets/images/files/${result.$id}/view?project=6867ce2e001b592626ae';
+      if (fileId == null) throw Exception('Upload failed');
+      return 'https://cloud.appwrite.io/v1/storage/buckets/images/files/$fileId/view?project=6867ce2e001b592626ae';
     } catch (e) {
       throw Exception('Failed to upload image: $e');
     }
   }
-  
-  // Upload video to Appwrite Storage
+
+  // Upload video to Appwrite Storage using helper
   Future<String> uploadVideo(File file, String path) async {
     try {
-      final result = await AppwriteService.storage.createFile(
-        bucketId: 'videos', // Replace with your bucket ID
-        fileId: 'unique()',
-        file: InputFile.fromPath(path: file.path, filename: file.path.split('/').last),
+      // Use AppwriteService helper for upload
+      final fileId = await AppwriteService.uploadFile(
+        bucketId: 'videos',
+        path: file.path,
+        bytes: await file.readAsBytes(),
+        fileName: file.path.split('/').last,
       );
-      
-      return 'https://cloud.appwrite.io/v1/storage/buckets/videos/files/${result.$id}/view?project=6867ce2e001b592626ae';
+      if (fileId == null) throw Exception('Upload failed');
+      return 'https://cloud.appwrite.io/v1/storage/buckets/videos/files/$fileId/view?project=6867ce2e001b592626ae';
     } catch (e) {
       throw Exception('Failed to upload video: $e');
     }

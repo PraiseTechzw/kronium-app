@@ -6,6 +6,7 @@ import 'package:animate_do/animate_do.dart';
 import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/firebase_service.dart';
 import 'package:kronium/models/service_model.dart';
+import 'package:kronium/widgets/admin_scaffold.dart';
 
 class AdminServicesPage extends StatelessWidget {
   const AdminServicesPage({super.key});
@@ -14,23 +15,14 @@ class AdminServicesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final firebaseService = Get.find<FirebaseService>();
 
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: const Text(
-          'Manage Services',
-          style: TextStyle(fontWeight: FontWeight.bold),
+    return AdminScaffold(
+      title: 'Manage Services',
+      actions: [
+        IconButton(
+          icon: const Icon(Iconsax.add),
+          onPressed: () => _showAddServiceDialog(context),
         ),
-        backgroundColor: AppTheme.primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Iconsax.add),
-            onPressed: () => _showAddServiceDialog(context),
-          ),
-        ],
-      ),
+      ],
       body: StreamBuilder<List<Service>>(
         stream: firebaseService.getServices(),
         builder: (context, snapshot) {
@@ -97,7 +89,7 @@ class AdminServicesPage extends StatelessWidget {
           }
 
           return ListView.builder(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.zero,
             itemCount: services.length,
             itemBuilder: (context, index) {
               final service = services[index];
@@ -110,7 +102,7 @@ class AdminServicesPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey.withValues(alpha: 0.1),
+                        color: Colors.grey.withOpacity(0.1),
                         blurRadius: 10,
                         offset: const Offset(0, 5),
                       ),
@@ -122,7 +114,7 @@ class AdminServicesPage extends StatelessWidget {
                       width: 60,
                       height: 60,
                       decoration: BoxDecoration(
-                        color: service.color.withValues(alpha: 0.1),
+                        color: service.color.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
@@ -169,8 +161,8 @@ class AdminServicesPage extends StatelessWidget {
                               ),
                               decoration: BoxDecoration(
                                 color: service.isActive
-                                    ? Colors.green.withValues(alpha: 0.1)
-                                    : Colors.red.withValues(alpha: 0.1),
+                                    ? Colors.green.withOpacity(0.1)
+                                    : Colors.red.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
@@ -257,21 +249,41 @@ class AdminServicesPage extends StatelessWidget {
   }
 
   void _showAddServiceDialog(BuildContext context) {
-    Get.dialog(
-      _ServiceDialog(
-        service: null,
-        isEditing: false,
-      ),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        builder: (context) => FractionallySizedBox(
+          heightFactor: 0.85,
+          child: _ServiceDialog(
+            service: null,
+            isEditing: false,
+          ),
+        ),
+      );
+    });
   }
 
   void _showEditServiceDialog(BuildContext context, Service service) {
-    Get.dialog(
-      _ServiceDialog(
-        service: service,
-        isEditing: true,
-      ),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        builder: (context) => FractionallySizedBox(
+          heightFactor: 0.85,
+          child: _ServiceDialog(
+            service: service,
+            isEditing: true,
+          ),
+        ),
+      );
+    });
   }
 
   void _toggleServiceStatus(Service service) {

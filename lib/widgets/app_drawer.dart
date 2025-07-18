@@ -5,6 +5,7 @@ import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/routes.dart';
 import 'package:kronium/core/user_auth_service.dart';
 import 'package:kronium/core/admin_auth_service.dart';
+import 'package:kronium/core/user_auth_service.dart' show userController;
 
 /// AppDrawer is a beautiful, modular drawer for Kronium.
 /// Place all drawer logic and UI here for clean code.
@@ -15,19 +16,22 @@ class AppDrawer extends StatelessWidget {
   final ValueChanged<bool> onDarkModeChanged;
   final VoidCallback onShowAbout;
   final VoidCallback onShowContact;
+  final List<Widget>? extraItems;
 
   const AppDrawer({
-    super.key,
+    Key? key,
     required this.isDarkMode,
     required this.userAuthService,
     required this.adminAuthService,
     required this.onDarkModeChanged,
     required this.onShowAbout,
     required this.onShowContact,
-  });
+    this.extraItems,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final isAdmin = userController.role.value == 'admin';
     return Drawer(
       child: Container(
         color: AppTheme.backgroundLight,
@@ -80,24 +84,53 @@ class AppDrawer extends StatelessWidget {
                       fontWeight: FontWeight.w400,
                     ),
                   ),
+                  if (isAdmin)
+                    Container(
+                      margin: const EdgeInsets.only(top: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.orange[700],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        'Admin',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
-            // Account Section
-            if (userAuthService.isUserLoggedIn.value) ...[
-              _drawerItem(context, 'My Profile', Iconsax.user_edit, AppRoutes.customerProfile),
-              _drawerItem(context, 'My Projects', Iconsax.document_text, AppRoutes.projects),
-              Divider(color: AppTheme.divider),
-              _drawerItem(context, 'Sign Out', Iconsax.logout, () async {
-                await userAuthService.logout();
-                Get.back();
-              }),
-            ] else ...[
-              _drawerItem(context, 'Sign In', Iconsax.login, AppRoutes.customerLogin),
-              _drawerItem(context, 'Sign Up', Iconsax.user_add, AppRoutes.customerRegister),
-              Divider(color: AppTheme.divider),
+            if (isAdmin) ...[
+              ListTile(
+                leading: const Icon(Iconsax.shield_tick, color: AppTheme.primaryColor),
+                title: const Text('Admin Dashboard', style: TextStyle(color: AppTheme.textPrimary)),
+                onTap: () => Get.toNamed('/admin-dashboard'),
+              ),
+              ListTile(
+                leading: const Icon(Iconsax.box, color: AppTheme.primaryColor),
+                title: const Text('Manage Services', style: TextStyle(color: AppTheme.textPrimary)),
+                onTap: () => Get.toNamed('/admin-services'),
+              ),
+              ListTile(
+                leading: const Icon(Iconsax.calendar, color: AppTheme.primaryColor),
+                title: const Text('Bookings', style: TextStyle(color: AppTheme.textPrimary)),
+                onTap: () => Get.toNamed('/admin-bookings'),
+              ),
+              ListTile(
+                leading: const Icon(Iconsax.message, color: AppTheme.primaryColor),
+                title: const Text('Admin Chat', style: TextStyle(color: AppTheme.textPrimary)),
+                onTap: () => Get.toNamed('/admin-chat'),
+              ),
+              const Divider(),
             ],
+            // Remove any ListTile or item related to account/profile actions (e.g., My Profile, Sign Out, etc.)
+            // Only keep navigation, dashboard, help, about, etc.
+            if (extraItems != null) ...extraItems!,
             // Settings Section
             ListTile(
               leading: Icon(Iconsax.moon, color: AppTheme.primaryColor),

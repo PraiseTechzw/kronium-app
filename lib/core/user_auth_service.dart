@@ -38,6 +38,9 @@ class UserAuthService extends GetxController {
           currentUser.value = user;
           userProfile.value = User.fromFirestore(userDoc);
           isUserLoggedIn.value = true;
+          // Set role in userController from Firestore, default to 'customer'
+          final role = userDoc.data()?['role'] ?? 'customer';
+          userController.role.value = role;
         } else {
           await _logout();
         }
@@ -226,6 +229,46 @@ class UserAuthService extends GetxController {
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
+    }
+  }
+  
+  /// Changes the current user's password. Returns true if successful.
+  Future<bool> changePassword(String newPassword) async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        await user.updatePassword(newPassword);
+        Get.snackbar(
+          'Success',
+          'Password updated successfully!',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+        return true;
+      } else {
+        Get.snackbar(
+          'Error',
+          'No user is currently logged in.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return false;
+      }
+    } catch (e) {
+      String errorMessage = 'Failed to update password.';
+      if (e.toString().contains('requires-recent-login')) {
+        errorMessage = 'Please re-login and try again.';
+      }
+      Get.snackbar(
+        'Error',
+        errorMessage,
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return false;
     }
   }
   
