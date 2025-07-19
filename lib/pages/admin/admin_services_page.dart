@@ -65,7 +65,7 @@ class AdminServicesPage extends StatelessWidget {
                 // Already on services
                 break;
               case 2:
-                Get.toNamed(AppRoutes.projects);
+                Get.toNamed(AppRoutes.adminProjects);
                 break;
               case 3:
                 Get.toNamed(AppRoutes.adminChat);
