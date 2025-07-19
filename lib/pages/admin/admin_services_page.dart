@@ -7,6 +7,10 @@ import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/firebase_service.dart';
 import 'package:kronium/models/service_model.dart';
 import 'package:kronium/core/user_auth_service.dart' show UserController;
+import 'package:kronium/core/routes.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:kronium/core/appwrite_client.dart';
+import 'dart:io';
 
 class AdminServicesPage extends StatelessWidget {
   const AdminServicesPage({super.key});
@@ -17,46 +21,87 @@ class AdminServicesPage extends StatelessWidget {
     final userController = Get.find<UserController>(); // Added userController
 
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: AppTheme.primaryColor,
+        title: const Text('Admin Services', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        actions: [
+          IconButton(
+            icon: const Icon(Iconsax.user, color: Colors.white),
+            onPressed: () {
+              // Navigate to admin profile or settings
+              Get.toNamed(AppRoutes.profile);
+            },
+          ),
+        ],
+        elevation: 0,
+      ),
       backgroundColor: AppTheme.backgroundLight,
+      floatingActionButton: Obx(() {
+        final role = userController.role.value;
+        if (role == 'admin') {
+          return FloatingActionButton(
+            backgroundColor: AppTheme.primaryColor,
+            child: const Icon(Iconsax.add, color: Colors.white),
+            onPressed: () {
+              Get.toNamed(AppRoutes.adminAddService);
+            },
+            tooltip: 'Add Service',
+          );
+        }
+        return const SizedBox.shrink();
+      }),
       bottomNavigationBar: Obx(() {
         final role = userController.role.value;
         final isAdmin = role == 'admin';
         final viewAsAdmin = true; // Or use a toggle if you want
-        final List<BottomNavigationBarItem> items = [
-          const BottomNavigationBarItem(
-            icon: Icon(Iconsax.home_2),
-            label: 'Home',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Iconsax.box),
-            label: 'Services',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Iconsax.document_text),
-            label: 'Projects',
-          ),
-        ];
-        if (role == 'customer' || (isAdmin && viewAsAdmin)) {
-          items.add(const BottomNavigationBarItem(
-            icon: Icon(Iconsax.message),
-            label: 'Chat',
-          ));
-        }
-        items.add(BottomNavigationBarItem(
-          icon: const Icon(Iconsax.user),
-          label: role == 'guest' ? 'Login' : (isAdmin ? (viewAsAdmin ? 'Admin Profile' : 'Profile') : 'Profile'),
-        ));
         return BottomNavigationBar(
           currentIndex: 1, // Services tab
           onTap: (index) {
-            // Navigation logic (optional: use Get.toNamed or setState)
+            switch (index) {
+              case 0:
+                Get.toNamed(AppRoutes.adminDashboard);
+                break;
+              case 1:
+                // Already on services
+                break;
+              case 2:
+                Get.toNamed(AppRoutes.projects);
+                break;
+              case 3:
+                Get.toNamed(AppRoutes.adminChat);
+                break;
+              case 4:
+                Get.toNamed(AppRoutes.profile);
+                break;
+            }
           },
           backgroundColor: AppTheme.surfaceLight,
           selectedItemColor: AppTheme.primaryColor,
           unselectedItemColor: AppTheme.secondaryColor,
           showUnselectedLabels: true,
           type: BottomNavigationBarType.fixed,
-          items: items,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Iconsax.home_2),
+              label: 'Dashboard',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Iconsax.box),
+              label: 'Services',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Iconsax.document_text),
+              label: 'Projects',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Iconsax.message),
+              label: 'Chat',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Iconsax.user),
+              label: 'Profile',
+            ),
+          ],
         );
       }),
       body: StreamBuilder<List<Service>>(
@@ -153,11 +198,29 @@ class AdminServicesPage extends StatelessWidget {
                         color: service.color.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Icon(
-                        service.icon,
-                        color: service.color,
-                        size: 24,
-                      ),
+                      child: service.imageUrl != null && service.imageUrl!.isNotEmpty
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.network(
+                                service.imageUrl!,
+                                fit: BoxFit.cover,
+                                width: 60,
+                                height: 60,
+                                errorBuilder: (context, error, stackTrace) => Container(
+                                  color: Colors.grey[200],
+                                  child: Icon(
+                                    Icons.broken_image,
+                                    color: Colors.grey,
+                                    size: 32,
+                                  ),
+                                ),
+                              ),
+                            )
+                          : Icon(
+                              service.icon,
+                              color: service.color,
+                              size: 24,
+                            ),
                     ),
                     title: Text(
                       service.title,
@@ -379,6 +442,9 @@ class _ServiceDialogState extends State<_ServiceDialog> {
   String? _selectedIcon;
   Color _selectedColor = AppTheme.primaryColor;
   bool _isLoading = false;
+  String? _imageUrl;
+  XFile? _pickedImage;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -391,6 +457,7 @@ class _ServiceDialogState extends State<_ServiceDialog> {
       _selectedIcon = widget.service!.icon.codePoint.toString();
       _selectedColor = widget.service!.color;
       _features.addAll(widget.service!.features);
+      _imageUrl = widget.service!.imageUrl;
       for (String feature in _features) {
         _featureControllers.add(TextEditingController(text: feature));
       }
@@ -414,21 +481,55 @@ class _ServiceDialogState extends State<_ServiceDialog> {
     });
   }
 
+  Future<void> _pickImage() async {
+    final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    if (picked != null) {
+      setState(() {
+        _pickedImage = picked;
+      });
+    }
+  }
+
+  Future<String?> _uploadImageToAppwrite(XFile image) async {
+    final bytes = await image.readAsBytes();
+    final fileName = image.name;
+    const bucketId = '687a6819003de32d8af1';
+    const projectId = '6867ce160037a5704b1d';
+    print('Uploading image to Appwrite: bucketId=$bucketId, fileName=$fileName, bytes=${bytes.length}');
+    final fileId = await AppwriteService.uploadFile(
+      bucketId: bucketId,
+      path: '',
+      bytes: bytes,
+      fileName: fileName,
+    );
+    print('Appwrite upload returned fileId: $fileId');
+    if (fileId != null) {
+      final url = 'https://cloud.appwrite.io/v1/storage/buckets/$bucketId/files/$fileId/view?project=$projectId';
+      print('Appwrite file URL: $url');
+      return url;
+    }
+    print('Appwrite upload failed, fileId is null');
+    return null;
+  }
+
   Future<void> _saveService() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _isLoading = true);
-
     try {
       final firebaseService = Get.find<FirebaseService>();
-      
       // Update features from controllers
       for (int i = 0; i < _featureControllers.length; i++) {
         if (i < _features.length) {
           _features[i] = _featureControllers[i].text;
         }
       }
-
+      String? imageUrl = _imageUrl;
+      if (_pickedImage != null) {
+        imageUrl = await _uploadImageToAppwrite(_pickedImage!);
+        if (imageUrl == null) {
+          throw Exception('Image upload failed');
+        }
+      }
       final service = Service(
         id: widget.service?.id,
         title: _titleController.text,
@@ -438,14 +539,13 @@ class _ServiceDialogState extends State<_ServiceDialog> {
         description: _descriptionController.text,
         features: _features.where((f) => f.isNotEmpty).toList(),
         price: double.tryParse(_priceController.text),
+        imageUrl: imageUrl,
       );
-
       if (widget.isEditing) {
         await firebaseService.updateService(service.id!, service.toFirestore());
       } else {
         await firebaseService.addService(service);
       }
-
       Get.back();
       Get.snackbar(
         'Success',
@@ -455,7 +555,7 @@ class _ServiceDialogState extends State<_ServiceDialog> {
     } catch (e) {
       Get.snackbar(
         'Error',
-        'Failed to save service',
+        'Failed to save service: ${e.toString()}',
         snackPosition: SnackPosition.BOTTOM,
       );
     } finally {
@@ -618,6 +718,20 @@ class _ServiceDialogState extends State<_ServiceDialog> {
                         onPressed: _addFeatureField,
                         icon: const Icon(Iconsax.add),
                         label: const Text('Add Feature'),
+                      ),
+                      // Image picker and preview
+                      const SizedBox(height: 16),
+                      if (_pickedImage != null)
+                        Image.file(
+                          File(_pickedImage!.path),
+                          height: 120,
+                        )
+                      else if (_imageUrl != null && _imageUrl!.isNotEmpty)
+                        Image.network(_imageUrl!, height: 120),
+                      TextButton.icon(
+                        onPressed: _isLoading ? null : _pickImage,
+                        icon: const Icon(Iconsax.image),
+                        label: const Text('Pick Image'),
                       ),
                     ],
                   ),

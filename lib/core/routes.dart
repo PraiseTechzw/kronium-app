@@ -17,6 +17,8 @@ import 'package:kronium/pages/services/add_services_page.dart';
 import 'package:kronium/pages/services/services_page.dart';
 import 'package:kronium/pages/splash/splash_page.dart';
 import 'package:kronium/core/user_auth_service.dart';
+import 'package:kronium/pages/admin/admin_add_service_page.dart';
+import 'package:kronium/pages/admin/admin_projects_page.dart';
 
 
 class AppRoutes {
@@ -32,6 +34,8 @@ class AppRoutes {
   static const String adminServices = '/admin-services';
   static const String adminBookings = '/admin-bookings';
   static const String adminChat = '/admin-chat';
+  static const String adminAddService = '/admin-add-service';
+  static const String adminProjects = '/admin-projects';
   static const String home = '/home';
   static const String projects = '/projects';
   static const String projectHistory = '/project-history';
@@ -108,6 +112,18 @@ class AppRoutes {
     GetPage(
       name: adminChat,
       page: () => const AdminChatPage(),
+      transition: Transition.cupertino,
+      transitionDuration: const Duration(milliseconds: 800),
+    ),
+    GetPage(
+      name: adminAddService,
+      page: () => AdminAddServicePage(),
+      transition: Transition.rightToLeftWithFade,
+      transitionDuration: const Duration(milliseconds: 800),
+    ),
+    GetPage(
+      name: adminProjects,
+      page: () => const AdminProjectsPage(),
       transition: Transition.cupertino,
       transitionDuration: const Duration(milliseconds: 800),
     ),

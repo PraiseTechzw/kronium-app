@@ -7,7 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/firebase_service.dart';
 import 'package:kronium/models/booking_model.dart';
-import 'package:kronium/widgets/admin_scaffold.dart';
+import 'package:kronium/core/user_auth_service.dart' show userController;
 
 class AdminBookingsPage extends StatelessWidget {
   const AdminBookingsPage({super.key});
@@ -18,7 +18,6 @@ class AdminBookingsPage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundLight,
-      bottomNavigationBar: // ... use the same Obx/BottomNavigationBar logic as home_page.dart ...,
       body: StreamBuilder<List<Booking>>(
         stream: firebaseService.getBookings(),
         builder: (context, snapshot) {
@@ -199,6 +198,21 @@ class AdminBookingsPage extends StatelessWidget {
                                     ),
                                   ),
                                 ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: () async {
+                                      await firebaseService.deleteBooking(booking.id!);
+                                      Get.snackbar('Booking Removed', 'The booking has been cancelled and the date is now available.');
+                                    },
+                                    icon: const Icon(Iconsax.trash, size: 16),
+                                    label: const Text('Remove'),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: Colors.red,
+                                      side: const BorderSide(color: Colors.red),
+                                    ),
+                                  ),
+                                ),
                               ],
                             ),
                           ],
@@ -212,6 +226,46 @@ class AdminBookingsPage extends StatelessWidget {
           );
         },
       ),
+      bottomNavigationBar: Obx(() {
+        final role = userController.role.value;
+        final isAdmin = role == 'admin';
+        final List<BottomNavigationBarItem> items = [
+          const BottomNavigationBarItem(
+            icon: Icon(Iconsax.home_2),
+            label: 'Home',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Iconsax.box),
+            label: 'Services',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Iconsax.document_text),
+            label: 'Projects',
+          ),
+        ];
+        if (role == 'customer' || isAdmin) {
+          items.add(const BottomNavigationBarItem(
+            icon: Icon(Iconsax.message),
+            label: 'Chat',
+          ));
+        }
+        items.add(BottomNavigationBarItem(
+          icon: const Icon(Iconsax.user),
+          label: role == 'guest' ? 'Login' : (isAdmin ? 'Admin Profile' : 'Profile'),
+        ));
+        return BottomNavigationBar(
+          currentIndex: 0, // Set the correct index for this page
+          onTap: (index) {
+            // Navigation logic here
+          },
+          backgroundColor: AppTheme.surfaceLight,
+          selectedItemColor: AppTheme.primaryColor,
+          unselectedItemColor: AppTheme.secondaryColor,
+          showUnselectedLabels: true,
+          type: BottomNavigationBarType.fixed,
+          items: items,
+        );
+      }),
     );
   }
 

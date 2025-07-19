@@ -146,9 +146,13 @@ class ServicesPageState extends State<ServicesPage> {
                           fit: StackFit.expand,
                           children: [
                               service.imageUrl != null && service.imageUrl!.isNotEmpty
-                                  ? Image.asset(
+                                  ? Image.network(
                                       service.imageUrl!,
                           fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) => Container(
+                                        color: Colors.grey[200],
+                                        child: const Icon(Icons.broken_image, size: 48, color: Colors.grey),
+                                      ),
                                     )
                                   : Container(
                                       color: Colors.grey[200],
@@ -283,7 +287,7 @@ class _ServiceDetailSheet extends StatelessWidget {
                       children: [
                     const Icon(Icons.warning, color: Colors.orange, size: 22),
                     const SizedBox(width: 10),
-                    Expanded(
+                        Expanded(
                       child: Text(
                         'Missing info: ${missing.join(', ')}',
                         style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
@@ -296,11 +300,17 @@ class _ServiceDetailSheet extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
               child: service.imageUrl != null && service.imageUrl!.isNotEmpty
-                  ? Image.asset(
+                  ? Image.network(
                       service.imageUrl!,
                       width: double.infinity,
                       height: 180,
                       fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        width: double.infinity,
+                        height: 180,
+                        color: Colors.grey[200],
+                        child: const Icon(Icons.broken_image, size: 48, color: Colors.grey),
+                      ),
                     )
                   : Container(
                       width: double.infinity,

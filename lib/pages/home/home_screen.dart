@@ -694,202 +694,118 @@ class ServiceBookingForm extends StatefulWidget {
 
 class _ServiceBookingFormState extends State<ServiceBookingForm> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _notesController = TextEditingController();
+  final _locationController = TextEditingController();
+  final _sizeController = TextEditingController();
   DateTime? _selectedDate;
   bool _isLoading = false;
-  bool _success = false;
+  List<DateTime> _bookedDates = [];
 
   @override
   void initState() {
     super.initState();
-    final user = UserAuthService.instance.userProfile.value;
-    if (user != null) {
-      _nameController.text = user.name;
-      _emailController.text = user.email;
-      _phoneController.text = user.phone;
-    }
+    _fetchBookedDates();
   }
 
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
-    _notesController.dispose();
-    super.dispose();
+  Future<void> _fetchBookedDates() async {
+    final bookings = await FirebaseService.instance.getBookings().first;
+    setState(() {
+      _bookedDates = bookings
+        .where((b) => b.serviceName == widget.service.title)
+        .map((b) => DateTime(b.date.year, b.date.month, b.date.day))
+        .toList();
+    });
   }
 
-  Future<void> _submit() async {
-    if (!_formKey.currentState!.validate() || _selectedDate == null) return;
-    setState(() => _isLoading = true);
-    try {
-      final booking = Booking(
-        serviceName: widget.service.title,
-        clientName: _nameController.text.trim(),
-        clientEmail: _emailController.text.trim(),
-        clientPhone: _phoneController.text.trim(),
-        date: _selectedDate!,
-        status: BookingStatus.pending,
-        price: widget.service.price ?? 0.0,
-        location: '',
-        notes: _notesController.text.trim(),
-      );
-      await FirebaseService.instance.addBooking(booking);
-      setState(() {
-        _isLoading = false;
-        _success = true;
-      });
-      await Future.delayed(const Duration(seconds: 2));
-      if (mounted) Navigator.of(context).pop();
-    } catch (e) {
-      setState(() => _isLoading = false);
-      Get.snackbar('Booking Failed', 'Could not submit booking. Please try again.', backgroundColor: Colors.red, colorText: Colors.white);
-    }
+  bool _isDateBooked(DateTime date) {
+    return _bookedDates.any((d) => d.year == date.year && d.month == date.month && d.day == date.day);
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return FractionallySizedBox(
-      heightFactor: 0.95,
-      child: Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
-          ),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-        child: _success
-            ? Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.check_circle, color: Colors.green, size: 64),
-                  const SizedBox(height: 24),
-                  Text('Booking Successful!', style: theme.textTheme.headlineSmall?.copyWith(color: Colors.green, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 12),
-                  Text('We have received your booking for ${widget.service.title}.', textAlign: TextAlign.center),
-                ],
-              )
-            : SingleChildScrollView(
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Center(
-                        child: Container(
-                          width: 60,
-                          height: 5,
-                          margin: const EdgeInsets.only(bottom: 24),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[300],
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                        ),
-                      ),
-                      Center(
-                        child: Text(
-                          'Book ${widget.service.title}',
-                          style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      TextFormField(
-                        controller: _nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Full Name',
-                          prefixIcon: Icon(Iconsax.user),
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (v) => v == null || v.isEmpty ? 'Enter your name' : null,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _emailController,
-                        decoration: const InputDecoration(
-                          labelText: 'Email',
-                          prefixIcon: Icon(Iconsax.sms),
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (v) => v == null || v.isEmpty ? 'Enter your email' : null,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _phoneController,
-                        decoration: const InputDecoration(
-                          labelText: 'Phone',
-                          prefixIcon: Icon(Iconsax.call),
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (v) => v == null || v.isEmpty ? 'Enter your phone' : null,
-                      ),
-                      const SizedBox(height: 16),
-                      GestureDetector(
-                        onTap: () async {
-                          final picked = await showDatePicker(
-                            context: context,
-                            initialDate: DateTime.now().add(const Duration(days: 1)),
-                            firstDate: DateTime.now(),
-                            lastDate: DateTime.now().add(const Duration(days: 365)),
-                          );
-                          if (picked != null) setState(() => _selectedDate = picked);
-                        },
-                        child: AbsorbPointer(
-                          child: TextFormField(
-                            decoration: InputDecoration(
-                              labelText: 'Preferred Date',
-                              prefixIcon: const Icon(Iconsax.calendar),
-                              border: const OutlineInputBorder(),
-                              hintText: 'Select date',
-                            ),
-                            controller: TextEditingController(
-                              text: _selectedDate != null ? DateFormat('yMMMd').format(_selectedDate!) : '',
-                            ),
-                            validator: (v) => _selectedDate == null ? 'Select a date' : null,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _notesController,
-                        maxLines: 3,
-                        decoration: const InputDecoration(
-                          labelText: 'Notes (optional)',
-                          prefixIcon: Icon(Iconsax.edit),
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      const SizedBox(height: 28),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _isLoading ? null : _submit,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: _isLoading
-                              ? const SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                )
-                              : const Text('Submit Booking', style: TextStyle(fontWeight: FontWeight.bold)),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+    return Form(
+      key: _formKey,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Calendar picker
+            Text('Select Project Date', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            ElevatedButton(
+              onPressed: () async {
+                final picked = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now().add(const Duration(days: 1)),
+                  firstDate: DateTime.now(),
+                  lastDate: DateTime.now().add(const Duration(days: 365)),
+                  selectableDayPredicate: (date) => !_isDateBooked(date),
+                );
+                if (picked != null) setState(() => _selectedDate = picked);
+              },
+              child: Text(_selectedDate == null
+                  ? 'Pick a date'
+                  : DateFormat('yMMMd').format(_selectedDate!)),
+            ),
+            const SizedBox(height: 16),
+            // Location
+            TextFormField(
+              controller: _locationController,
+              decoration: const InputDecoration(
+                labelText: 'Project Location',
+                border: OutlineInputBorder(),
               ),
+              validator: (v) => v == null || v.isEmpty ? 'Enter location' : null,
+            ),
+            const SizedBox(height: 16),
+            // Size
+            TextFormField(
+              controller: _sizeController,
+              decoration: const InputDecoration(
+                labelText: 'Project Size (e.g., sqm)',
+                border: OutlineInputBorder(),
+              ),
+              validator: (v) => v == null || v.isEmpty ? 'Enter size' : null,
+            ),
+            const SizedBox(height: 16),
+            // Transport cost (set by admin)
+            Text(
+              'Transport Cost: ${widget.service.price != null ? '\$${widget.service.price}' : 'Contact admin'}',
+              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
+            ),
+            const SizedBox(height: 24),
+            // Submit
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isLoading
+                    ? null
+                    : () async {
+                        if (!_formKey.currentState!.validate() || _selectedDate == null) return;
+                        setState(() => _isLoading = true);
+                        final booking = Booking(
+                          serviceName: widget.service.title,
+                          clientName: '', // Fill from user profile if available
+                          clientEmail: '',
+                          clientPhone: '',
+                          date: _selectedDate!,
+                          status: BookingStatus.pending,
+                          price: widget.service.price ?? 0.0,
+                          location: _locationController.text.trim(),
+                          notes: 'Size: ${_sizeController.text.trim()}',
+                        );
+                        await FirebaseService.instance.addBooking(booking);
+                        setState(() => _isLoading = false);
+                        Get.snackbar('Success', 'Booking submitted!');
+                        Navigator.of(context).pop();
+                      },
+                child: _isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text('Submit Booking'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

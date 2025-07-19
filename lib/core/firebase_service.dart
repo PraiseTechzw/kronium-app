@@ -107,6 +107,11 @@ class FirebaseService extends GetxController {
       'createdAt': FieldValue.serverTimestamp(),
     });
   }
+
+  // Delete booking by document ID
+  Future<void> deleteBooking(String bookingId) async {
+    await bookingsCollection.doc(bookingId).delete();
+  }
   
   // Update booking status (Admin only)
   Future<void> updateBookingStatus(String id, BookingStatus status) async {

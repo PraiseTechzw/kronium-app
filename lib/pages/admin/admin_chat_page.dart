@@ -5,8 +5,8 @@ import 'package:iconsax/iconsax.dart';
 import 'package:kronium/core/admin_auth_service.dart';
 import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/firebase_service.dart';
+import 'package:kronium/core/user_auth_service.dart' show userController;
 import 'package:kronium/models/chat_model.dart';
-import 'package:kronium/widgets/admin_scaffold.dart';
 
 
 class AdminChatPage extends StatefulWidget {
@@ -67,10 +67,72 @@ class _AdminChatPageState extends State<AdminChatPage> {
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundLight,
-      bottomNavigationBar: // ... use the same Obx/BottomNavigationBar logic as home_page.dart ...,
       body: _selectedChatRoom == null
           ? _buildChatRoomsList(firebaseService)
           : _buildChatInterface(firebaseService),
+      bottomNavigationBar: Obx(() {
+        final role = userController.role.value;
+        final isAdmin = role == 'admin';
+        final List<BottomNavigationBarItem> items = [
+          const BottomNavigationBarItem(
+            icon: Icon(Iconsax.home_2),
+            label: 'Home',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Iconsax.box),
+            label: 'Services',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Iconsax.document_text),
+            label: 'Projects',
+          ),
+        ];
+        if (role == 'customer' || isAdmin) {
+          items.add(const BottomNavigationBarItem(
+            icon: Icon(Iconsax.message),
+            label: 'Chat',
+          ));
+        }
+        items.add(BottomNavigationBarItem(
+          icon: const Icon(Iconsax.user),
+          label: role == 'guest' ? 'Login' : (isAdmin ? 'Admin Profile' : 'Profile'),
+        ));
+        return BottomNavigationBar(
+          currentIndex: 3, // Set the correct index for this page
+          onTap: (index) async {
+            final isProfileTab = index == items.length - 1;
+            final isLoggedIn = userController.role.value != 'guest';
+            if (isProfileTab && !isLoggedIn) {
+              Get.toNamed('/customer-login');
+              return;
+            }
+            // Navigation logic for each tab
+            switch (index) {
+              case 0:
+                Get.offAllNamed('/home');
+                break;
+              case 1:
+                Get.offAllNamed('/services');
+                break;
+              case 2:
+                Get.offAllNamed('/projects');
+                break;
+              case 3:
+                Get.offAllNamed('/admin-chat');
+                break;
+              case 4:
+                Get.offAllNamed(role == 'guest' ? '/customer-login' : '/customer-profile');
+                break;
+            }
+          },
+          backgroundColor: AppTheme.surfaceLight,
+          selectedItemColor: AppTheme.primaryColor,
+          unselectedItemColor: AppTheme.secondaryColor,
+          showUnselectedLabels: true,
+          type: BottomNavigationBarType.fixed,
+          items: items,
+        );
+      }),
     );
   }
 

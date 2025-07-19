@@ -13,6 +13,7 @@ class AdminScaffold extends StatefulWidget {
   final bool showAppBar;
   final bool? isDarkMode;
   final ValueChanged<bool>? onDarkModeChanged;
+  final Widget? bottomNavigationBar;
 
   const AdminScaffold({
     Key? key,
@@ -23,6 +24,7 @@ class AdminScaffold extends StatefulWidget {
     this.showAppBar = true,
     this.isDarkMode,
     this.onDarkModeChanged,
+    this.bottomNavigationBar,
   }) : super(key: key);
 
   @override
@@ -73,6 +75,7 @@ class _AdminScaffoldState extends State<AdminScaffold> {
           child: widget.body,
         ),
       ),
+      bottomNavigationBar: widget.bottomNavigationBar,
     );
   }
 } 

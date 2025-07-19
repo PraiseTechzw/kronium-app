@@ -7,6 +7,7 @@ import 'package:kronium/core/constants.dart';
 import 'package:kronium/core/firebase_service.dart';
 import 'package:kronium/core/routes.dart';
 import 'package:kronium/core/user_auth_service.dart';
+import 'package:kronium/core/appwrite_client.dart';
 import 'firebase_options.dart'; 
 
 void main() async {
@@ -23,6 +24,7 @@ void main() async {
   Get.put(UserAuthService());
   Get.put(FirebaseService());
   Get.put(UserController(), permanent: true);
+  AppwriteService.init();
   
   runApp(const KroniumProApp());
 }
