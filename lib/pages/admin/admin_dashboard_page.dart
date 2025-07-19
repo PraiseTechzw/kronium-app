@@ -194,7 +194,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               Get.toNamed(AppRoutes.adminServices);
               break;
             case 2:
-              Get.toNamed(AppRoutes.projects);
+              Get.toNamed(AppRoutes.adminProjects);
               break;
             case 3:
               Get.toNamed(AppRoutes.adminChat);

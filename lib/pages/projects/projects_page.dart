@@ -539,471 +539,200 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
 
   void _showProjectDetails(Map<String, dynamic> project) {
     Get.bottomSheet(
-      Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
-          ),
-        ),
-        padding: const EdgeInsets.all(20),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 60,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                project['title'],
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 5),
-              Row(
-                children: [
-                  const Icon(Iconsax.location, size: 16, color: Colors.grey),
-                  const SizedBox(width: 5),
-                  Text(
-                    project['location'],
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  const Spacer(),
-                  if (project['category'] != null)
-                  Chip(
-                    label: Text(project['category']),
-                    backgroundColor: project['category'] == 'Featured'
-                        ? Colors.amber.withOpacity(0.2)
-                        : AppTheme.primaryColor.withOpacity(0.2),
-                    labelStyle: TextStyle(
-                      color: project['category'] == 'Featured'
-                          ? Colors.amber[800]
-                          : AppTheme.primaryColor,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.asset(
-                  project['image'],
-                  width: double.infinity,
-                  height: 200,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Project Overview',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                project['description'],
-                style: const TextStyle(
-                  fontSize: 16,
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 20),
-              const Divider(),
-              const SizedBox(height: 10),
-              const Text(
-                'Project Details',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 10),
-              _projectDetailItem('Date Completed', project['date']),
-              _projectDetailItem('Client', project['client']),
-              if (project['progress'] != null)
-                _projectDetailItem('Progress', '${project['progress']}% Complete'),
-              const SizedBox(height: 20),
-              const Text(
-                'Key Features',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Column(
-                children: project['features'].map<Widget>((feature) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(Icons.check_circle, color: AppTheme.primaryColor, size: 20),
-                      const SizedBox(width: 10),
-                      Expanded(child: Text(feature)),
-                    ],
-                  ),
-                )).toList(),
-              ),
-              if (project['testimonial'] != null) ...[
-                const SizedBox(height: 20),
-                const Divider(),
-                const SizedBox(height: 10),
-                const Text(
-                  'Client Testimonial',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(Iconsax.quote_down, size: 24, color: Colors.white),
-                      const SizedBox(height: 10),
-                      Text(
-                        project['testimonial'],
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontStyle: FontStyle.italic,
-                          height: 1.5,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        '- ${project['client']}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-              const SizedBox(height: 30),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Get.back(),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text('VIEW MORE PROJECTS'),
-                    ),
-                  ),
-                  const SizedBox(width: 15),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Get.back();
-                        if (userController.role.value == 'customer') {
-                          _showBookingFormBottomSheet(context, project);
-                        } else if (userController.role.value == 'guest') {
-                          _showGuestPrompt();
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryColor,
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        userController.role.value == 'guest'
-                          ? 'SIGN UP TO REQUEST'
-                          : 'REQUEST SIMILAR PROJECT',
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showProjectDatePicker(Map<String, dynamic> project) async {
-    DateTime now = DateTime.now();
-    DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: now,
-      firstDate: now,
-      lastDate: now.add(const Duration(days: 365)),
-      selectableDayPredicate: (date) {
-        return !_takenDates.any((d) => d.year == date.year && d.month == date.month && d.day == date.day);
-      },
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: AppTheme.primaryColor,
-              onPrimary: Colors.white,
-              surface: AppTheme.surfaceLight,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (picked != null) {
-      if (_takenDates.any((d) => d.year == picked.year && d.month == picked.month && d.day == picked.day)) {
-        // Date is taken, propose next available
-        DateTime nextAvailable = picked.add(const Duration(days: 1));
-        while (_takenDates.any((d) => d.year == nextAvailable.year && d.month == nextAvailable.month && d.day == nextAvailable.day)) {
-          nextAvailable = nextAvailable.add(const Duration(days: 1));
-        }
-        Get.snackbar(
-          'Date Unavailable',
-          'The selected date is already booked. Next available: ${nextAvailable.toLocal().toString().split(' ')[0]}',
-          backgroundColor: Colors.orange,
-          colorText: Colors.white,
-        );
-      } else {
-        // Mark the date as booked in the provider (mock)
-        MockProjectBookingData().addBooking(MockBooking(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          clientName: 'Client',
-          clientContact: '',
-          date: picked,
-          location: project['location'] ?? '',
-          size: '',
-          transportCost: 0,
-          status: 'booked',
-        ));
-        Get.snackbar(
-          'Date Selected',
-          'You selected: ${picked.toLocal().toString().split(' ')[0]}. Date is now reserved for you!',
-          backgroundColor: AppTheme.primaryColor,
-          colorText: Colors.white,
-        );
-      }
-    }
-  }
-
-  Widget _projectDetailItem(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(Icons.label, color: Colors.grey, size: 16),
-          const SizedBox(width: 10),
-          Text(
-            '$label: $value',
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colors.grey,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Map<String, dynamic>? _getSelectedProject() {
-    return _selectedProject;
-  }
-
-  void _showBookingFormBottomSheet(BuildContext context, Map<String, dynamic> project) {
-    // --- Modular Booking Bottom Sheet for Project Request ---
-    final List<String> projectTypes = [
-      'Greenhouse',
-      'Construction',
-      'Solar Systems',
-      'Irrigation Systems',
-      'Logistics',
-    ];
-    int _currentStep = 0;
-    String? _selectedType = projectTypes.first;
-    DateTime? _selectedDate;
-    String _location = '';
-    String _size = '';
-    double? _liveTransportCost;
-    final _formKey = GlobalKey<FormState>();
-    
-    // Prefill user info if available (prefer userProfile, fallback to saved)
-    final user = UserAuthService.instance.userProfile.value;
-    _nameController.text = user?.name ?? _savedName ?? '';
-    _emailController.text = user?.email ?? _savedEmail ?? '';
-    _phoneController.text = user?.phone ?? _savedPhone ?? '';
-
-    void _updateTransportCost() {
-      _liveTransportCost = _calculateSmartTransportCost(_location, _size);
-    }
-
-    Get.bottomSheet(
       StatefulBuilder(
         builder: (context, setModalState) {
-          void nextStep() {
-            if (_currentStep < 2) {
-              setModalState(() => _currentStep++);
-            }
-          }
-          void prevStep() {
-            if (_currentStep > 0) {
-              setModalState(() => _currentStep--);
-            }
-          }
+          String location = '';
+          String size = '';
+          double? transportCost;
+          DateTime? pickedDate;
           return Container(
-            padding: const EdgeInsets.all(20),
             decoration: const BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // --- Stepper Indicator ---
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.looks_one, color: _currentStep == 0 ? AppTheme.primaryColor : Colors.grey),
-                    Container(width: 30, height: 2, color: _currentStep > 0 ? AppTheme.primaryColor : Colors.grey[300]),
-                    Icon(Icons.looks_two, color: _currentStep == 1 ? AppTheme.primaryColor : Colors.grey),
-                    Container(width: 30, height: 2, color: _currentStep > 1 ? AppTheme.primaryColor : Colors.grey[300]),
-                    Icon(Icons.looks_3, color: _currentStep == 2 ? AppTheme.primaryColor : Colors.grey),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                if (_currentStep == 0) ...[
-                  // --- Step 1: Select Project Type ---
-                  const Text('Select Project Type', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 10,
-                    children: projectTypes.map((type) => ChoiceChip(
-                      label: Text(type),
-                      selected: _selectedType == type,
-                      onSelected: (selected) {
-                        setModalState(() => _selectedType = type);
-                      },
-                      selectedColor: AppTheme.primaryColor,
-                      labelStyle: TextStyle(color: _selectedType == type ? Colors.white : AppTheme.primaryColor),
-                    )).toList(),
-                  ),
-                  const SizedBox(height: 30),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      ElevatedButton(
-                        onPressed: nextStep,
-                        child: const Text('Next'),
+            padding: const EdgeInsets.all(20),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 60,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(5),
                       ),
-                    ],
-                  ),
-                ] else if (_currentStep == 1) ...[
-                  // --- Step 2: User Details & Date ---
-                  const Text('Your Details & Date', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                  const SizedBox(height: 10),
-                  Form(
-                    key: _formKey,
-                    child: Column(
-                      children: [
-                        TextFormField(
-                          controller: _nameController,
-                          decoration: const InputDecoration(labelText: 'Full Name'),
-                          validator: (v) => v == null || v.isEmpty ? 'Enter your name' : null,
-                        ),
-                        TextFormField(
-                          controller: _emailController,
-                          decoration: const InputDecoration(labelText: 'Email'),
-                          validator: (v) => v == null || v.isEmpty ? 'Enter your email' : null,
-                        ),
-                        TextFormField(
-                          controller: _phoneController,
-                          decoration: const InputDecoration(labelText: 'Phone'),
-                          validator: (v) => v == null || v.isEmpty ? 'Enter your phone' : null,
-                        ),
-                        const SizedBox(height: 10),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(_selectedDate == null
-                                ? 'No date selected'
-                                : 'Date: \\${_selectedDate!.toLocal().toString().split(' ')[0]}'),
-                            ),
-                            ElevatedButton(
-                              onPressed: () async {
-                                DateTime now = DateTime.now();
-                                DateTime? picked = await showDatePicker(
-                                  context: context,
-                                  initialDate: now,
-                                  firstDate: now,
-                                  lastDate: now.add(const Duration(days: 365)),
-                                  selectableDayPredicate: (date) {
-                                    return !_takenDates.any((d) => d.year == date.year && d.month == date.month && d.day == date.day);
-                                  },
-                                );
-                                if (picked != null) {
-                                  setModalState(() => _selectedDate = picked);
-                                }
-                              },
-                              child: const Text('Pick Date'),
-                            ),
-                          ],
-                        ),
-                        if (_selectedDate != null && _takenDates.any((d) => d.year == _selectedDate!.year && d.month == _selectedDate!.month && d.day == _selectedDate!.day))
-                          const Text('Selected date is unavailable. Please pick another.', style: TextStyle(color: Colors.red)),
-                      ],
                     ),
                   ),
                   const SizedBox(height: 20),
+                  Text(
+                    project['title'],
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      OutlinedButton(onPressed: prevStep, child: const Text('Back')),
-                      ElevatedButton(
-                        onPressed: () {
-                          if (_formKey.currentState!.validate() && _selectedDate != null && !_takenDates.any((d) => d.year == _selectedDate!.year && d.month == _selectedDate!.month && d.day == _selectedDate!.day)) {
-                            nextStep();
-                          }
-                        },
-                        child: const Text('Next'),
+                      const Icon(Iconsax.location, size: 16, color: Colors.grey),
+                      const SizedBox(width: 5),
+                      Text(
+                        project['location'],
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey,
+                        ),
                       ),
+                      const Spacer(),
+                      if (project['category'] != null)
+                        Chip(
+                          label: Text(project['category']),
+                          backgroundColor: project['category'] == 'Featured'
+                              ? Colors.amber.withOpacity(0.2)
+                              : AppTheme.primaryColor.withOpacity(0.2),
+                          labelStyle: TextStyle(
+                            color: project['category'] == 'Featured'
+                                ? Colors.amber[800]
+                                : AppTheme.primaryColor,
+                          ),
+                        ),
                     ],
                   ),
-                ] else if (_currentStep == 2) ...[
-                  // --- Step 3: Location, Size, Transport Cost ---
-                  const Text('Project Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                  const SizedBox(height: 20),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      project['image'],
+                      width: double.infinity,
+                      height: 200,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Project Overview',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    project['description'],
+                    style: const TextStyle(
+                      fontSize: 16,
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Divider(),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Project Details',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  _projectDetailItem('Date Completed', project['date']),
+                  _projectDetailItem('Client', project['client']),
+                  if (project['progress'] != null)
+                    _projectDetailItem('Progress', '${project['progress']}% Complete'),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Key Features',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Column(
+                    children: project['features'].map<Widget>((feature) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.check_circle, color: AppTheme.primaryColor, size: 20),
+                          const SizedBox(width: 10),
+                          Expanded(child: Text(feature)),
+                        ],
+                      ),
+                    )).toList(),
+                  ),
+                  if (project['testimonial'] != null) ...[
+                    const SizedBox(height: 20),
+                    const Divider(),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'Client Testimonial',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Iconsax.quote_down, size: 24, color: Colors.white),
+                          const SizedBox(height: 10),
+                          Text(
+                            project['testimonial'],
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontStyle: FontStyle.italic,
+                              height: 1.5,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            '- ${project['client']}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 30),
+                  const Text('Booked Dates', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                  const SizedBox(height: 10),
+                  if (bookedDates.where((b) => b['project'] == project['title']).isEmpty)
+                    const Text('No booked dates.'),
+                  if (bookedDates.where((b) => b['project'] == project['title']).isNotEmpty)
+                    ...bookedDates.where((b) => b['project'] == project['title']).map((booking) => Card(
+                      child: ListTile(
+                        title: Text('Date: ${booking['date'].toLocal().toString().split(' ')[0]}'),
+                        subtitle: Text('Client: ${booking['client']}\nLocation: ${booking['location']}'),
+                      ),
+                    )),
+                  const SizedBox(height: 20),
+                  const Divider(),
+                  const Text('Book a Date for Project', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                   const SizedBox(height: 10),
                   TextFormField(
                     decoration: const InputDecoration(labelText: 'Project Location'),
                     onChanged: (v) {
                       setModalState(() {
-                        _location = v;
-                        _updateTransportCost();
+                        location = v;
+                        transportCost = _calculateTransportCost(location, size);
                       });
                     },
                   ),
@@ -1011,76 +740,79 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                     decoration: const InputDecoration(labelText: 'Project Size (e.g. 1000 sqm)'),
                     onChanged: (v) {
                       setModalState(() {
-                        _size = v;
-                        _updateTransportCost();
+                        size = v;
+                        transportCost = _calculateTransportCost(location, size);
                       });
                     },
                   ),
                   const SizedBox(height: 10),
-                  if (_location.isNotEmpty && _size.isNotEmpty)
-                    Row(
-                      children: [
-                        const Text('Estimated Transport Cost: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                        Text(_liveTransportCost != null ? '\\${_liveTransportCost!.toStringAsFixed(2)} USD' : '--'),
-                      ],
-                    ),
-                  const SizedBox(height: 20),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      OutlinedButton(onPressed: prevStep, child: const Text('Back')),
+                      Expanded(
+                        child: Text(pickedDate == null
+                            ? 'No date picked'
+                            : 'Picked Date: ${pickedDate!.toLocal().toString().split(' ')[0]}'),
+                      ),
                       ElevatedButton(
-                        onPressed: _location.isNotEmpty && _size.isNotEmpty
-                          ? () {
-                              // Save user info for next time (mock)
-                              _savedName = _nameController.text;
-                              _savedEmail = _emailController.text;
-                              _savedPhone = _phoneController.text;
-                              // Mock booking submission
-                              Get.back();
-                              Get.bottomSheet(
-                                Container(
-                                  padding: const EdgeInsets.all(30),
-                                  decoration: const BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                                  ),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(Icons.check_circle, color: Colors.green, size: 60),
-                                      const SizedBox(height: 20),
-                                      const Text('Request Submitted!', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22)),
-                                      const SizedBox(height: 10),
-                                      Text('We have received your request for a $_selectedType project on \\${_selectedDate!.toLocal().toString().split(' ')[0]}. Our team will contact you soon.'),
-                                      const SizedBox(height: 20),
-                                      ElevatedButton(
-                                        onPressed: () => Get.back(),
-                                        child: const Text('Close'),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            }
-                          : null,
-                        child: const Text('Submit'),
+                        onPressed: () async {
+                          DateTime now = DateTime.now();
+                          DateTime? picked = await showDatePicker(
+                            context: context,
+                            initialDate: now,
+                            firstDate: now,
+                            lastDate: now.add(const Duration(days: 365)),
+                            selectableDayPredicate: (date) {
+                              return !bookedDates.any((b) => b['project'] == project['title'] && b['date'].year == date.year && b['date'].month == date.month && b['date'].day == date.day);
+                            },
+                          );
+                          if (picked != null) {
+                            setModalState(() {
+                              pickedDate = picked;
+                            });
+                          }
+                        },
+                        child: const Text('Pick Date'),
                       ),
                     ],
                   ),
+                  const SizedBox(height: 10),
+                  if (location.isNotEmpty && size.isNotEmpty && pickedDate != null)
+                    Row(
+                      children: [
+                        const Text('Transport Cost: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text(transportCost != null ? ' 24${transportCost!.toStringAsFixed(2)}' : '--'),
+                      ],
+                    ),
+                  const SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: location.isNotEmpty && size.isNotEmpty && pickedDate != null
+                        ? () {
+                            setModalState(() {
+                              bookedDates.add({
+                                'project': project['title'],
+                                'date': pickedDate!,
+                                'client': 'Client',
+                                'location': location,
+                                'size': size,
+                                'transportCost': transportCost,
+                              });
+                            });
+                            Get.snackbar('Date Booked', 'Project date booked successfully!', backgroundColor: Colors.green, colorText: Colors.white);
+                          }
+                        : null,
+                    child: const Text('Book Date'),
+                  ),
                 ],
-              ],
+              ),
             ),
           );
         },
       ),
-      isScrollControlled: true,
     );
   }
 
-  // B. Smart Transport Cost Calculation (mock):
-  double _calculateSmartTransportCost(String location, String size) {
-    // Mock: base + (size length * 2) + (location length * 1.5) + random distance factor
+  double _calculateTransportCost(String location, String size) {
+    if (location.isEmpty || size.isEmpty) return 0.0;
     double base = 10.0;
     double sizeFactor = size.length * 2.0;
     double locationFactor = location.length * 1.5;
@@ -1110,8 +842,8 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                 if (bookings.isNotEmpty)
                   ...bookings.map((booking) => Card(
                     child: ListTile(
-                      title: Text('Date: \\${booking.date.toLocal().toString().split(' ')[0]}'),
-                      subtitle: Text('Client: \\${booking.clientName}\nLocation: \\${booking.location}'),
+                      title: Text('Date: ${booking.date.toLocal().toString().split(' ')[0]}'),
+                      subtitle: Text('Client: ${booking.clientName}\nLocation: ${booking.location}'),
                       trailing: IconButton(
                         icon: const Icon(Iconsax.trash, color: Colors.red),
                         tooltip: 'Remove Date',
@@ -1156,7 +888,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
             const SizedBox(height: 20),
             const Text('Booking Cancelled', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22)),
             const SizedBox(height: 10),
-            Text('Your booking for \\${booking.date.toLocal().toString().split(' ')[0]} at \\${booking.location} has been removed by admin. Please contact support or book a new date.'),
+            Text('Your booking for ${booking.date.toLocal().toString().split(' ')[0]} at ${booking.location} has been removed by admin. Please contact support or book a new date.'),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () => Get.back(),
