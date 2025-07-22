@@ -100,6 +100,9 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
   // Add this variable to the state class for admin check:
   bool _isAdmin = true; // Set to false for normal users
 
+  // Add this variable to store bookings
+  List<Map<String, dynamic>> bookedDates = [];
+
   @override
   void initState() {
     super.initState();
@@ -935,6 +938,150 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
         ),
       ),
       isScrollControlled: true,
+    );
+  }
+
+  // Show booking form bottom sheet for customer
+  void _showBookingFormBottomSheet(BuildContext context, Map<String, dynamic> project) {
+    String location = '';
+    String size = '';
+    double? transportCost;
+    DateTime? pickedDate;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+                left: 20,
+                right: 20,
+                top: 20,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 60,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Request Similar Project',
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 10),
+                    TextFormField(
+                      decoration: const InputDecoration(labelText: 'Project Location'),
+                      onChanged: (v) {
+                        setModalState(() {
+                          location = v;
+                          transportCost = _calculateTransportCost(location, size);
+                        });
+                      },
+                    ),
+                    TextFormField(
+                      decoration: const InputDecoration(labelText: 'Project Size (e.g. 1000 sqm)'),
+                      onChanged: (v) {
+                        setModalState(() {
+                          size = v;
+                          transportCost = _calculateTransportCost(location, size);
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(pickedDate == null
+                              ? 'No date picked'
+                              : 'Picked Date: ${pickedDate!.toLocal().toString().split(' ')[0]}'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () async {
+                            DateTime now = DateTime.now();
+                            DateTime? picked = await showDatePicker(
+                              context: context,
+                              initialDate: now,
+                              firstDate: now,
+                              lastDate: now.add(const Duration(days: 365)),
+                              selectableDayPredicate: (date) {
+                                return !bookedDates.any((b) => b['project'] == project['title'] && b['date'].year == date.year && b['date'].month == date.month && b['date'].day == date.day);
+                              },
+                            );
+                            if (picked != null) {
+                              setModalState(() {
+                                pickedDate = picked;
+                              });
+                            }
+                          },
+                          child: const Text('Pick Date'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    if (location.isNotEmpty && size.isNotEmpty && pickedDate != null)
+                      Row(
+                        children: [
+                          const Text('Transport Cost: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                          Text(transportCost != null ? ' 24${transportCost!.toStringAsFixed(2)}' : '--'),
+                        ],
+                      ),
+                    const SizedBox(height: 10),
+                    ElevatedButton(
+                      onPressed: location.isNotEmpty && size.isNotEmpty && pickedDate != null
+                          ? () {
+                              setModalState(() {
+                                bookedDates.add({
+                                  'project': project['title'],
+                                  'date': pickedDate!,
+                                  'client': 'Client',
+                                  'location': location,
+                                  'size': size,
+                                  'transportCost': transportCost,
+                                });
+                              });
+                              Navigator.pop(context);
+                              Get.snackbar('Date Booked', 'Project date booked successfully!', backgroundColor: Colors.green, colorText: Colors.white);
+                            }
+                          : null,
+                      child: const Text('Book Date'),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // Helper widget for project details
+  Widget _projectDetailItem(String label, String? value) {
+    if (value == null || value.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          Text('$label: ', style: const TextStyle(fontWeight: FontWeight.bold)),
+          Expanded(child: Text(value)),
+        ],
+      ),
     );
   }
 }
