@@ -8,6 +8,7 @@ import 'package:kronium/core/appwrite_client.dart';
 import 'dart:io';
 
 import 'package:kronium/models/service_model.dart';
+import 'package:kronium/models/project_model.dart';
 
 class FirebaseService extends GetxController {
   static FirebaseService get instance => Get.find();
@@ -30,6 +31,9 @@ class FirebaseService extends GetxController {
   CollectionReference get chatRoomsCollection => _firestore.collection('chat_rooms');
   CollectionReference get chatMessagesCollection => _firestore.collection('chat_messages');
   
+  // Projects Collection
+  CollectionReference get projectsCollection => _firestore.collection('projects');
+
   // Get all services
   Stream<List<Service>> getServices() {
     return servicesCollection
@@ -254,5 +258,36 @@ class FirebaseService extends GetxController {
       return ChatRoom.fromFirestore(doc.docs.first);
     }
     return null;
+  }
+
+  // Projects Collection
+  // Get all projects
+  Stream<List<Project>> getProjects() {
+    return projectsCollection
+        .orderBy('title', descending: false)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) {
+        return Project.fromFirestore(doc);
+      }).toList();
+    });
+  }
+
+  // Add new project
+  Future<void> addProject(Project project) async {
+    await projectsCollection.add(project.toMap());
+  }
+
+  // Update project
+  Future<void> updateProject(String id, Map<String, dynamic> data) async {
+    await projectsCollection.doc(id).update({
+      ...data,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  // Delete project
+  Future<void> deleteProject(String id) async {
+    await projectsCollection.doc(id).delete();
   }
 } 

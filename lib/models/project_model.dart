@@ -9,6 +9,9 @@ class Project {
   final String size; // e.g. "10 acres", "500 sqm"
   final List<String> mediaUrls; // Appwrite media URLs
   final List<BookedDate> bookedDates;
+  final List<String> features;
+  final bool approved;
+  final double progress;
 
   Project({
     required this.id,
@@ -18,6 +21,9 @@ class Project {
     required this.size,
     required this.mediaUrls,
     required this.bookedDates,
+    this.features = const [],
+    this.approved = false,
+    this.progress = 0.0,
   });
 
   // Firestore serialization
@@ -33,6 +39,11 @@ class Project {
       bookedDates: (data['bookedDates'] as List<dynamic>? ?? [])
           .map((e) => BookedDate.fromMap(e))
           .toList(),
+      features: List<String>.from(data['features'] ?? []),
+      approved: data['approved'] ?? false,
+      progress: (data['progress'] is int)
+        ? (data['progress'] as int).toDouble()
+        : (data['progress'] ?? 0.0),
     );
   }
 
@@ -43,6 +54,9 @@ class Project {
     'size': size,
     'mediaUrls': mediaUrls,
     'bookedDates': bookedDates.map((e) => e.toMap()).toList(),
+    'features': features,
+    'approved': approved,
+    'progress': progress,
   };
 }
 

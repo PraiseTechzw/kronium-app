@@ -552,183 +552,266 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
             decoration: const BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(20),
-                topRight: Radius.circular(20),
+                topLeft: Radius.circular(24),
+                topRight: Radius.circular(24),
               ),
             ),
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(0),
             child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Center(
-                    child: Container(
-                      width: 60,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    project['title'],
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  Row(
+                  // --- IMAGE & HEADER ---
+                  Stack(
                     children: [
-                      const Icon(Iconsax.location, size: 16, color: Colors.grey),
-                      const SizedBox(width: 5),
-                      Text(
-                        project['location'],
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey,
+                      ClipRRect(
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(24),
+                          topRight: Radius.circular(24),
+                        ),
+                        child: Image.network(
+                          project['image'],
+                          width: double.infinity,
+                          height: 240,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            height: 240,
+                            color: Colors.grey[200],
+                            child: const Center(child: Icon(Icons.broken_image, size: 60, color: Colors.grey)),
+                          ),
                         ),
                       ),
-                      const Spacer(),
+                      Positioned(
+                        left: 20,
+                        bottom: 20,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.6),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                    project['title'],
+                    style: const TextStyle(
+                                  color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                                  fontSize: 20,
+                                ),
+                              ),
+                            ),
                       if (project['category'] != null)
-                        Chip(
-                          label: Text(project['category']),
-                          backgroundColor: project['category'] == 'Featured'
-                              ? Colors.amber.withOpacity(0.2)
-                              : AppTheme.primaryColor.withOpacity(0.2),
-                          labelStyle: TextStyle(
+                              Container(
+                                margin: const EdgeInsets.only(top: 8),
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
                             color: project['category'] == 'Featured'
-                                ? Colors.amber[800]
-                                : AppTheme.primaryColor,
+                                      ? Colors.amber.withOpacity(0.85)
+                                      : AppTheme.primaryColor.withOpacity(0.85),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  project['category'],
+                                  style: TextStyle(
+                                    color: project['category'] == 'Featured'
+                                        ? Colors.brown[900]
+                                        : Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
                           ),
                         ),
                     ],
                   ),
-                  const SizedBox(height: 20),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.network(
-                      project['image'],
-                      width: double.infinity,
-                      height: 200,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
-                    ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 20),
+                   const SizedBox(height: 18),
+                   // --- PROJECT OVERVIEW ---
+                   Padding(
+                     padding: const EdgeInsets.symmetric(horizontal: 20),
+                     child: Card(
+                       elevation: 0,
+                       color: Colors.grey[50],
+                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                       child: Padding(
+                         padding: const EdgeInsets.all(18),
+                         child: Column(
+                           crossAxisAlignment: CrossAxisAlignment.start,
+                           children: [
+                             Row(
+                               children: [
+                                 const Icon(Iconsax.location, size: 18, color: AppTheme.primaryColor),
+                                 const SizedBox(width: 6),
+                                 Expanded(
+                                   child: Text(
+                                     project['location'],
+                                     style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                                   ),
+                                 ),
+                                 const SizedBox(width: 10),
+                                 if (project['date'] != null)
+                                   Row(
+                                     children: [
+                                       const Icon(Iconsax.calendar, size: 16, color: Colors.grey),
+                                       const SizedBox(width: 4),
+                                       Text(project['date'], style: const TextStyle(fontSize: 13, color: Colors.grey)),
+                                     ],
+                                   ),
+                               ],
+                             ),
+                             const SizedBox(height: 14),
                   const Text(
-                    'Project Overview',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    project['description'],
-                    style: const TextStyle(
-                      fontSize: 16,
-                      height: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Divider(),
-                  const SizedBox(height: 10),
-                  const Text(
-                    'Project Details',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  _projectDetailItem('Date Completed', project['date']),
+                               'Project Overview',
+                               style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                             ),
+                             const SizedBox(height: 6),
+                             Text(
+                               project['description'],
+                               style: const TextStyle(fontSize: 15, height: 1.5),
+                             ),
+                             const SizedBox(height: 14),
+                             if (project['client'] != null)
                   _projectDetailItem('Client', project['client']),
                   if (project['progress'] != null)
                     _projectDetailItem('Progress', '${project['progress']}% Complete'),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Key Features',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Column(
-                    children: project['features'].map<Widget>((feature) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Row(
+                             if (project['progress'] != null) ...[
+                               const SizedBox(height: 8),
+                               LinearProgressIndicator(
+                                 value: project['progress'] / 100,
+                                 backgroundColor: AppTheme.surfaceLight,
+                                 valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                                 minHeight: 6,
+                                 borderRadius: BorderRadius.circular(3),
+                               ),
+                             ],
+                           ],
+                         ),
+                       ),
+                     ),
+                   ),
+                   const SizedBox(height: 18),
+                   // --- KEY FEATURES ---
+                   Padding(
+                     padding: const EdgeInsets.symmetric(horizontal: 20),
+                     child: Card(
+                       elevation: 0,
+                       color: Colors.grey[50],
+                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                       child: Padding(
+                         padding: const EdgeInsets.all(18),
+                         child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.check_circle, color: AppTheme.primaryColor, size: 20),
-                          const SizedBox(width: 10),
-                          Expanded(child: Text(feature)),
-                        ],
-                      ),
-                    )).toList(),
-                  ),
-                  if (project['testimonial'] != null) ...[
-                    const SizedBox(height: 20),
-                    const Divider(),
-                    const SizedBox(height: 10),
-                    const Text(
-                      'Client Testimonial',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.grey,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                             const Text('Key Features', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                             const SizedBox(height: 10),
+                             Wrap(
+                               spacing: 8,
+                               runSpacing: 8,
+                               children: project['features']
+                                   .map<Widget>((feature) => Chip(
+                                         label: Text(feature),
+                                         backgroundColor: AppTheme.primaryColor.withOpacity(0.08),
+                                         labelStyle: const TextStyle(fontSize: 13),
+                                       ))
+                                   .toList(),
+                             ),
+                           ],
+                         ),
+                       ),
+                     ),
+                   ),
+                   if (project['testimonial'] != null) ...[
+                     const SizedBox(height: 18),
+                     Padding(
+                       padding: const EdgeInsets.symmetric(horizontal: 20),
+                       child: Card(
+                         elevation: 0,
+                         color: Colors.amber[50],
+                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                         child: Padding(
+                           padding: const EdgeInsets.all(18),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Iconsax.quote_down, size: 24, color: Colors.white),
+                               const Text('Client Testimonial', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
                           const SizedBox(height: 10),
-                          Text(
+                               Row(
+                                 crossAxisAlignment: CrossAxisAlignment.start,
+                                 children: [
+                                   const Icon(Iconsax.quote_down, size: 24, color: Colors.amber),
+                                   const SizedBox(width: 10),
+                                   Expanded(
+                                     child: Text(
                             project['testimonial'],
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontStyle: FontStyle.italic,
-                              height: 1.5,
-                              color: Colors.white,
-                            ),
+                                       style: const TextStyle(fontSize: 15, fontStyle: FontStyle.italic, height: 1.5),
+                                     ),
+                                   ),
+                                 ],
                           ),
                           const SizedBox(height: 10),
-                          Text(
+                               Align(
+                                 alignment: Alignment.centerRight,
+                                 child: Text(
                             '- ${project['client']}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                                   style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.brown),
                             ),
                           ),
                         ],
+                           ),
+                         ),
                       ),
                     ),
                   ],
-                  const SizedBox(height: 30),
-                  const Text('Booked Dates', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                   const SizedBox(height: 18),
+                   // --- BOOKED DATES ---
+                   Padding(
+                     padding: const EdgeInsets.symmetric(horizontal: 20),
+                     child: Card(
+                       elevation: 0,
+                       color: Colors.grey[50],
+                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                       child: Padding(
+                         padding: const EdgeInsets.all(18),
+                         child: Column(
+                           crossAxisAlignment: CrossAxisAlignment.start,
+                           children: [
+                             const Text('Booked Dates', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   const SizedBox(height: 10),
                   if (bookedDates.where((b) => b['project'] == project['title']).isEmpty)
                     const Text('No booked dates.'),
                   if (bookedDates.where((b) => b['project'] == project['title']).isNotEmpty)
                     ...bookedDates.where((b) => b['project'] == project['title']).map((booking) => Card(
+                                     color: Colors.white,
+                                     elevation: 0,
+                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       child: ListTile(
+                                       leading: const Icon(Iconsax.calendar, color: AppTheme.primaryColor),
                         title: Text('Date: ${booking['date'].toLocal().toString().split(' ')[0]}'),
                         subtitle: Text('Client: ${booking['client']}\nLocation: ${booking['location']}'),
                       ),
                     )),
-                  const SizedBox(height: 20),
-                  const Divider(),
-                  const Text('Book a Date for Project', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                           ],
+                         ),
+                       ),
+                     ),
+                   ),
+                   const SizedBox(height: 18),
+                   // --- BOOK A DATE ---
+                   Padding(
+                     padding: const EdgeInsets.symmetric(horizontal: 20),
+                     child: Card(
+                       elevation: 0,
+                       color: Colors.grey[50],
+                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                       child: Padding(
+                         padding: const EdgeInsets.all(18),
+                         child: Column(
+                           crossAxisAlignment: CrossAxisAlignment.start,
+                           children: [
+                             const Text('Book a Date for Project', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   const SizedBox(height: 10),
                   TextFormField(
                     decoration: const InputDecoration(labelText: 'Project Location'),
@@ -805,6 +888,12 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                         : null,
                     child: const Text('Book Date'),
                   ),
+                           ],
+                         ),
+                       ),
+                     ),
+                   ),
+                   const SizedBox(height: 30),
                 ],
               ),
             ),
