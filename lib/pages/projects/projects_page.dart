@@ -7,6 +7,8 @@ import 'package:kronium/widgets/hover_widget.dart';
 import 'package:lottie/lottie.dart';
 import 'mock_project_booking_data.dart';
 import 'package:kronium/core/user_auth_service.dart';
+import 'package:kronium/core/firebase_service.dart';
+import 'package:kronium/models/project_model.dart';
 
 class ProjectsPage extends StatefulWidget {
   const ProjectsPage({super.key});
@@ -29,52 +31,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
   final RxString _searchQuery = ''.obs;
   final RxString _selectedSort = 'Newest'.obs;
 
-  final List<Map<String, dynamic>> projects = [
-    {
-      'title': 'Solar Farm Installation',
-      'category': 'Completed',
-      'image': 'https://images.china.cn/attachement/jpg/site1007/20140903/e89a8f5fc4c21570d2e420.jpg',
-      'date': 'June 2023',
-      'location': 'Harare, Zimbabwe',
-      'description': '5MW solar farm installation for commercial energy production',
-      'features': ['50,000 panels', 'Battery storage', 'Grid integration', '20-year maintenance'],
-      'client': 'Green Energy Solutions Ltd.',
-      'testimonial': 'KRONIUM delivered ahead of schedule with excellent quality control.',
-    },
-    {
-      'title': 'Industrial Greenhouse Complex',
-      'category': 'Ongoing',
-      'image': 'https://harnoisgreenhouse.com/wp-content/uploads/2024/02/Projet_Herbes-Gourmandes-2--1024x683.webp',
-      'date': 'January 2024',
-      'location': 'Bulawayo, Zimbabwe',
-      'description': '10-acre automated greenhouse for year-round vegetable production',
-      'features': ['Climate control', 'Hydroponic systems', 'Automated irrigation', 'IoT monitoring'],
-      'client': 'FreshFarms Zimbabwe',
-      'progress': 65,
-    },
-    {
-      'title': 'Commercial Steel Structure',
-      'category': 'Completed',
-      'image': 'https://media.graphassets.com/resize=width:800/output=format:webp/82AmyZlQBWZBxJaKpGxF',
-      'date': 'September 2023',
-      'location': 'Mutare, Zimbabwe',
-      'description': '15,000 sq ft steel warehouse with office complex',
-      'features': ['Quick assembly', 'Custom design', 'Energy efficient', '10-year warranty'],
-      'client': 'LogiStore Africa',
-      'testimonial': 'The most professional construction team we\'ve worked with.',
-    },
-    {
-      'title': 'Farm Automation System',
-      'category': 'Featured',
-      'image': 'https://imgproxy.divecdn.com/r1fQ9Ook6EvUz6BTCJ8YsZOfd_vXi5tUQHMOvHoQEos/g:ce/rs:fill:1200:675:1/Z3M6Ly9kaXZlc2l0ZS1zdG9yYWdlL2RpdmVpbWFnZS9HZXR0eUltYWdlcy0xNDY5NjM5NzkxLmpwZw==.webp',
-      'date': 'March 2024',
-      'location': 'Gweru, Zimbabwe',
-      'description': 'Complete IoT solution for 500-acre wheat farm',
-      'features': ['Soil sensors', 'Drone monitoring', 'Automated irrigation', 'Yield prediction'],
-      'client': 'GoldenFields Agribusiness',
-      'progress': 30,
-    },
-  ];
+  final List<Project> projects = []; // Changed from List<Map<String, dynamic>>
 
   // A. Real-Time Date Availability (mock):
   List<DateTime> _globalUnavailableDates = [];
@@ -95,7 +52,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
   double? _transportCost;
 
   // Add this to the state class:
-  Map<String, dynamic>? _selectedProject;
+  Project? _selectedProject;
 
   // Add this variable to the state class for admin check:
   bool _isAdmin = true; // Set to false for normal users
@@ -107,6 +64,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
   void initState() {
     super.initState();
     _tabController = TabController(length: categories.length, vsync: this);
+    _loadProjects();
   }
 
   @override
@@ -116,6 +74,13 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
     _phoneController.dispose();
     _tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadProjects() async {
+    final fetchedProjects = await FirebaseService.instance.getProjects();
+    setState(() {
+      projects.addAll(fetchedProjects);
+    });
   }
 
   @override
@@ -257,16 +222,16 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
   }
 
   Widget _buildProjectList(String category) {
-    List<Map<String, dynamic>> filteredProjects = _searchQuery.value.isNotEmpty
+    List<Project> filteredProjects = _searchQuery.value.isNotEmpty
         ? projects.where((project) => 
-            project['title'].toLowerCase().contains(_searchQuery.value.toLowerCase()) ||
-            project['description'].toLowerCase().contains(_searchQuery.value.toLowerCase()))
+            project.title.toLowerCase().contains(_searchQuery.value.toLowerCase()) ||
+            project.description.toLowerCase().contains(_searchQuery.value.toLowerCase()))
             .toList()
         : category == 'All Projects'
             ? projects 
             : projects.where((project) =>
-                project['title'].toString().toLowerCase().contains(category.toLowerCase()) ||
-                (project['category']?.toString().toLowerCase() == category.toLowerCase())
+                project.title.toString().toLowerCase().contains(category.toLowerCase()) ||
+                (project.category?.toLowerCase() == category.toLowerCase())
               ).toList();
 
     // Apply sorting
@@ -294,14 +259,14 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
           );
   }
 
-  List<Map<String, dynamic>> _sortProjects(List<Map<String, dynamic>> projects) {
+  List<Project> _sortProjects(List<Project> projects) {
     switch (_selectedSort.value) {
       case 'Newest':
-        return projects..sort((a, b) => b['date'].compareTo(a['date']));
+        return projects..sort((a, b) => b.date.compareTo(a.date));
       case 'Oldest':
-        return projects..sort((a, b) => a['date'].compareTo(b['date']));
+        return projects..sort((a, b) => a.date.compareTo(b.date));
       case 'Location':
-        return projects..sort((a, b) => a['location'].compareTo(b['location']));
+        return projects..sort((a, b) => a.location.compareTo(b.location));
       default:
         return projects;
     }
@@ -337,7 +302,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
     );
   }
 
-  Widget _projectCard(Map<String, dynamic> project) {
+  Widget _projectCard(Project project) {
     return HoverWidget(
       hoverChild: Transform.translate(
         offset: const Offset(0, -5),
@@ -356,7 +321,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
     );
   }
 
-  Widget _buildProjectCardContent(Map<String, dynamic> project, bool isHover) {
+  Widget _buildProjectCardContent(Project project, bool isHover) {
     // Use IntrinsicHeight to allow card to size to content, preventing overflow
     return GestureDetector(
       onTap: () {
@@ -401,7 +366,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                   child: FittedBox(
                     fit: BoxFit.cover,
                     child: Image.network(
-                      project['image'],
+                      project.mediaUrls.isNotEmpty ? project.mediaUrls.first : '',
                       errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
                     ),
                   ),
@@ -420,7 +385,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                           children: [
                             Expanded(
                               child: Text(
-                                project['title'],
+                                project.title,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 13,
@@ -429,34 +394,6 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                                 overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                if (project['category'] == 'Ongoing' || project['category'] == 'Featured')
-                              GestureDetector(
-                                onTap: () {
-                                  if (project['category'] == 'Ongoing') {
-                                    _tabController.animateTo(categories.indexOf('Ongoing'));
-                                  } else if (project['category'] == 'Featured') {
-                                    _tabController.animateTo(categories.indexOf('Featured'));
-                                  }
-                                },
-                    child: Container(
-                                  margin: const EdgeInsets.only(left: 4),
-                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: project['category'] == 'Featured' 
-                            ? Colors.amber 
-                            : AppTheme.primaryColor,
-                                    borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        project['category'],
-                        style: const TextStyle(
-                          color: Colors.white,
-                                      fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
               ],
             ),
                         const SizedBox(height: 3),
@@ -466,7 +403,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                             const SizedBox(width: 2),
                             Expanded(
                               child: Text(
-                                project['location'],
+                                project.location,
                     style: const TextStyle(
                                   fontSize: 10,
                                   color: Colors.grey,
@@ -479,7 +416,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                   ),
                         const SizedBox(height: 4),
                   Text(
-                    project['description'],
+                    project.description,
                     style: const TextStyle(
                             fontSize: 11,
                       color: Colors.grey,
@@ -487,10 +424,10 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                        if (project['progress'] != null) ...[
+                        if (project.progress != null) ...[
                           const SizedBox(height: 6),
                         LinearProgressIndicator(
-                          value: project['progress'] / 100,
+                          value: project.progress! / 100,
                             backgroundColor: AppTheme.surfaceLight,
                           valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
                             minHeight: 5,
@@ -498,14 +435,14 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                         ),
                           const SizedBox(height: 2),
                         Text(
-                          '${project['progress']}% Complete',
+                          '${project.progress}% Complete',
                           style: const TextStyle(
                               fontSize: 10,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
-                        if (project['testimonial'] != null) ...[
+                        if (project.testimonial != null) ...[
                           const SizedBox(height: 4),
                         Row(
                           children: [
@@ -540,7 +477,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
 
   List<DateTime> get _takenDates => MockProjectBookingData().bookedDates;
 
-  void _showProjectDetails(Map<String, dynamic> project) {
+  void _showProjectDetails(Project project) {
     Get.bottomSheet(
       StatefulBuilder(
         builder: (context, setModalState) {
@@ -570,7 +507,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                           topRight: Radius.circular(24),
                         ),
                         child: Image.network(
-                          project['image'],
+                          project.mediaUrls.isNotEmpty ? project.mediaUrls.first : '',
                           width: double.infinity,
                           height: 240,
                           fit: BoxFit.cover,
@@ -594,7 +531,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
-                    project['title'],
+                    project.title,
                     style: const TextStyle(
                                   color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -602,28 +539,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                                 ),
                               ),
                             ),
-                      if (project['category'] != null)
-                              Container(
-                                margin: const EdgeInsets.only(top: 8),
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                            color: project['category'] == 'Featured'
-                                      ? Colors.amber.withOpacity(0.85)
-                                      : AppTheme.primaryColor.withOpacity(0.85),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  project['category'],
-                                  style: TextStyle(
-                                    color: project['category'] == 'Featured'
-                                        ? Colors.brown[900]
-                                        : Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
-                                  ),
-                          ),
-                        ),
-                    ],
+                      ],
                   ),
                       ),
                     ],
@@ -647,17 +563,17 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                                  const SizedBox(width: 6),
                                  Expanded(
                                    child: Text(
-                                     project['location'],
+                                     project.location,
                                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
                                    ),
                                  ),
                                  const SizedBox(width: 10),
-                                 if (project['date'] != null)
+                                 if (project.date != null)
                                    Row(
                                      children: [
                                        const Icon(Iconsax.calendar, size: 16, color: Colors.grey),
                                        const SizedBox(width: 4),
-                                       Text(project['date'], style: const TextStyle(fontSize: 13, color: Colors.grey)),
+                                       Text(project.date!.toLocal().toString().split(' ')[0], style: const TextStyle(fontSize: 13, color: Colors.grey)),
                                      ],
                                    ),
                                ],
@@ -669,18 +585,16 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                              ),
                              const SizedBox(height: 6),
                              Text(
-                               project['description'],
+                               project.description,
                                style: const TextStyle(fontSize: 15, height: 1.5),
                              ),
                              const SizedBox(height: 14),
-                             if (project['client'] != null)
-                  _projectDetailItem('Client', project['client']),
-                  if (project['progress'] != null)
-                    _projectDetailItem('Progress', '${project['progress']}% Complete'),
-                             if (project['progress'] != null) ...[
+                             if (project.progress != null)
+                    _projectDetailItem('Progress', '${project.progress}% Complete'),
+                             if (project.progress != null) ...[
                                const SizedBox(height: 8),
                                LinearProgressIndicator(
-                                 value: project['progress'] / 100,
+                                 value: project.progress! / 100,
                                  backgroundColor: AppTheme.surfaceLight,
                                  valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
                                  minHeight: 6,
@@ -710,7 +624,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                              Wrap(
                                spacing: 8,
                                runSpacing: 8,
-                               children: project['features']
+                               children: project.features
                                    .map<Widget>((feature) => Chip(
                                          label: Text(feature),
                                          backgroundColor: AppTheme.primaryColor.withOpacity(0.08),
@@ -723,7 +637,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                        ),
                      ),
                    ),
-                   if (project['testimonial'] != null) ...[
+                   if (project.testimonial != null) ...[
                      const SizedBox(height: 18),
                      Padding(
                        padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -745,7 +659,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                                    const SizedBox(width: 10),
                                    Expanded(
                                      child: Text(
-                            project['testimonial'],
+                            project.testimonial!,
                                        style: const TextStyle(fontSize: 15, fontStyle: FontStyle.italic, height: 1.5),
                                      ),
                                    ),
@@ -755,7 +669,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                                Align(
                                  alignment: Alignment.centerRight,
                                  child: Text(
-                            '- ${project['client']}',
+                            '- ${project.client}',
                                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.brown),
                             ),
                           ),
@@ -780,17 +694,17 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                            children: [
                              const Text('Booked Dates', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   const SizedBox(height: 10),
-                  if (bookedDates.where((b) => b['project'] == project['title']).isEmpty)
+                  if (project.bookedDates.isEmpty)
                     const Text('No booked dates.'),
-                  if (bookedDates.where((b) => b['project'] == project['title']).isNotEmpty)
-                    ...bookedDates.where((b) => b['project'] == project['title']).map((booking) => Card(
+                  if (project.bookedDates.isNotEmpty)
+                    ...project.bookedDates.map((booking) => Card(
                                      color: Colors.white,
                                      elevation: 0,
                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       child: ListTile(
                                        leading: const Icon(Iconsax.calendar, color: AppTheme.primaryColor),
-                        title: Text('Date: ${booking['date'].toLocal().toString().split(' ')[0]}'),
-                        subtitle: Text('Client: ${booking['client']}\nLocation: ${booking['location']}'),
+                        title: Text('Date: ${booking.date.toLocal().toString().split(' ')[0]}'),
+                        subtitle: Text('Client: ${booking.clientId}\nLocation: ${project.location}'),
                       ),
                     )),
                            ],
@@ -848,7 +762,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                             firstDate: now,
                             lastDate: now.add(const Duration(days: 365)),
                             selectableDayPredicate: (date) {
-                              return !bookedDates.any((b) => b['project'] == project['title'] && b['date'].year == date.year && b['date'].month == date.month && b['date'].day == date.day);
+                              return !project.bookedDates.any((b) => b.date.year == date.year && b.date.month == date.month && b.date.day == date.day);
                             },
                           );
                           if (picked != null) {
@@ -875,7 +789,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                         ? () {
                             setModalState(() {
                               bookedDates.add({
-                                'project': project['title'],
+                                'project': project.title,
                                 'date': pickedDate!,
                                 'client': 'Client',
                                 'location': location,
@@ -1031,11 +945,12 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
   }
 
   // Show booking form bottom sheet for customer
-  void _showBookingFormBottomSheet(BuildContext context, Map<String, dynamic> project) {
+  void _showBookingFormBottomSheet(BuildContext context, Project project) {
     String location = '';
     String size = '';
     double? transportCost;
     DateTime? pickedDate;
+    bool isLoading = false;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -1043,16 +958,18 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-                left: 20,
-                right: 20,
-                top: 20,
-              ),
-              child: SingleChildScrollView(
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 20,
+            right: 20,
+            top: 20,
+          ),
+          child: StatefulBuilder(
+            builder: (context, setModalState) {
+              // Get all booked dates for this project
+              final takenDates = project.bookedDates.map((b) => DateTime(b.date.year, b.date.month, b.date.day)).toSet();
+              return SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1068,12 +985,9 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                       ),
                     ),
                     const SizedBox(height: 20),
-                    Text(
-                      'Request Similar Project',
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 10),
-                    TextFormField(
+                    Text('Book Project: ${project.title}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 16),
+                    TextField(
                       decoration: const InputDecoration(labelText: 'Project Location'),
                       onChanged: (v) {
                         setModalState(() {
@@ -1082,7 +996,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                         });
                       },
                     ),
-                    TextFormField(
+                    TextField(
                       decoration: const InputDecoration(labelText: 'Project Size (e.g. 1000 sqm)'),
                       onChanged: (v) {
                         setModalState(() {
@@ -1108,7 +1022,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                               firstDate: now,
                               lastDate: now.add(const Duration(days: 365)),
                               selectableDayPredicate: (date) {
-                                return !bookedDates.any((b) => b['project'] == project['title'] && b['date'].year == date.year && b['date'].month == date.month && b['date'].day == date.day);
+                                return !takenDates.contains(DateTime(date.year, date.month, date.day));
                               },
                             );
                             if (picked != null) {
@@ -1131,30 +1045,37 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                       ),
                     const SizedBox(height: 10),
                     ElevatedButton(
-                      onPressed: location.isNotEmpty && size.isNotEmpty && pickedDate != null
-                          ? () {
-                              setModalState(() {
-                                bookedDates.add({
-                                  'project': project['title'],
-                                  'date': pickedDate!,
-                                  'client': 'Client',
-                                  'location': location,
-                                  'size': size,
-                                  'transportCost': transportCost,
+                      onPressed: location.isNotEmpty && size.isNotEmpty && pickedDate != null && !isLoading
+                          ? () async {
+                              setModalState(() => isLoading = true);
+                              try {
+                                // Add new booked date to Firestore
+                                final newBooking = BookedDate(
+                                  date: pickedDate!,
+                                  clientId: userController.userId.value,
+                                  status: 'booked',
+                                );
+                                final updatedDates = List<BookedDate>.from(project.bookedDates)..add(newBooking);
+                                await FirebaseService.instance.updateProject(project.id, {
+                                  'bookedDates': updatedDates.map((e) => e.toMap()).toList(),
                                 });
-                              });
-                              Navigator.pop(context);
-                              Get.snackbar('Date Booked', 'Project date booked successfully!', backgroundColor: Colors.green, colorText: Colors.white);
+                                Navigator.pop(context);
+                                Get.snackbar('Booked', 'Project date booked successfully!', backgroundColor: Colors.green, colorText: Colors.white);
+                              } catch (e) {
+                                Get.snackbar('Error', 'Failed to book date: $e', backgroundColor: Colors.red, colorText: Colors.white);
+                              } finally {
+                                setModalState(() => isLoading = false);
+                              }
                             }
                           : null,
-                      child: const Text('Book Date'),
+                      child: isLoading ? const CircularProgressIndicator() : const Text('Book Date'),
                     ),
                     const SizedBox(height: 20),
                   ],
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         );
       },
     );
