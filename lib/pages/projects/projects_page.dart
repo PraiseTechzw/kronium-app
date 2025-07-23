@@ -449,16 +449,16 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ],
-                ],
-          ],
-        ),
-      ),
+                    ],
+                  ],
                 ),
               ),
-            ],
+            ),
+          
           ),
+              ],
         ),
+      ),
       ),
     );
   }

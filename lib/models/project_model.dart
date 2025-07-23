@@ -12,6 +12,7 @@ class Project {
   final List<String> features;
   final bool approved;
   final double progress;
+  final DateTime? date; // <-- Add this line
 
   Project({
     required this.id,
@@ -24,6 +25,7 @@ class Project {
     this.features = const [],
     this.approved = false,
     this.progress = 0.0,
+    this.date, // <-- Add this line
   });
 
   // Firestore serialization
@@ -44,6 +46,7 @@ class Project {
       progress: (data['progress'] is int)
         ? (data['progress'] as int).toDouble()
         : (data['progress'] ?? 0.0),
+      date: data['date'] != null ? (data['date'] as Timestamp).toDate() : null, // <-- Add this line
     );
   }
 
@@ -57,6 +60,7 @@ class Project {
     'features': features,
     'approved': approved,
     'progress': progress,
+    'date': date != null ? Timestamp.fromDate(date!) : null, // <-- Add this line
   };
 }
 
