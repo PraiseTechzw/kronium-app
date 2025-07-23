@@ -31,14 +31,11 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
   final RxString _searchQuery = ''.obs;
   final RxString _selectedSort = 'Newest'.obs;
 
-  final List<Project> projects = []; // Changed from List<Map<String, dynamic>>
-
-  // A. Real-Time Date Availability (mock):
-  List<DateTime> _globalUnavailableDates = [];
-
-  // --- E. User Experience Enhancements ---
-  // 1. Progress indicator (stepper) for booking flow
-  // 2. Save user info for next time (mock, local variable)
+  // 1. Remove all references to project.category, project.date, project.testimonial, and project.client.
+  // 2. Remove or fallback for any UI that depends on these fields.
+  // 3. Only use fields that exist on the Project model.
+  // 4. Ensure the project list uses StreamBuilder<List<Project>> for real-time updates.
+  // 5. Remove the _loadProjects method and any local projects list.
 
   // Add these variables at the top of your state class:
   String? _savedName, _savedEmail, _savedPhone;
@@ -64,7 +61,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
   void initState() {
     super.initState();
     _tabController = TabController(length: categories.length, vsync: this);
-    _loadProjects();
+    // 5. Remove the _loadProjects method and any local projects list.
   }
 
   @override
@@ -76,12 +73,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
     super.dispose();
   }
 
-  Future<void> _loadProjects() async {
-    final fetchedProjects = await FirebaseService.instance.getProjects();
-    setState(() {
-      projects.addAll(fetchedProjects);
-    });
-  }
+  // 5. Remove the _loadProjects method and any local projects list.
 
   @override
   Widget build(BuildContext context) {
@@ -147,7 +139,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                         dropdownColor: AppTheme.primaryColor,
                         icon: const Icon(Iconsax.arrow_down_1, color: Colors.white),
                         style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                        items: ['Newest', 'Oldest', 'Location'].map((option) {
+                        items: ['Newest', 'Oldest', 'Location', 'Title'].map((option) {
                           return DropdownMenuItem<String>(
                             value: option,
                             child: Text(option, style: const TextStyle(color: Colors.white)),
@@ -221,24 +213,40 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
     );
   }
 
+  // --- Project List Refactor ---
+  // Replace the _buildProjectList method with a version that only uses fields that exist on the Project model and does not use .value on a Stream.
+  // Use StreamBuilder<List<Project>> for real-time updates.
+  // Remove all code that references project.date, project.testimonial, and project.client.
+  // Remove any sorting/filtering logic that uses non-existent fields.
   Widget _buildProjectList(String category) {
-    List<Project> filteredProjects = _searchQuery.value.isNotEmpty
+    return StreamBuilder<List<Project>>(
+      stream: FirebaseService.instance.getProjects(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return _buildEmptyState();
+        }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        }
+
+        List<Project> projects = snapshot.data ?? [];
+
+        // Apply search filter
+        projects = _searchQuery.value.isNotEmpty
         ? projects.where((project) => 
-            project.title.toLowerCase().contains(_searchQuery.value.toLowerCase()) ||
-            project.description.toLowerCase().contains(_searchQuery.value.toLowerCase()))
+                project.title.toLowerCase().contains(_searchQuery.value.toLowerCase()) ||
+                project.description.toLowerCase().contains(_searchQuery.value.toLowerCase()))
             .toList()
         : category == 'All Projects'
             ? projects 
             : projects.where((project) =>
-                project.title.toString().toLowerCase().contains(category.toLowerCase()) ||
-                (project.category?.toLowerCase() == category.toLowerCase())
-              ).toList();
+                    project.title.toString().toLowerCase().contains(category.toLowerCase())).toList();
 
     // Apply sorting
-    filteredProjects = _sortProjects(filteredProjects);
+        projects = _sortProjects(projects);
 
     // If no projects, show empty state only (prevents RangeError)
-    if (filteredProjects.isEmpty) {
+        if (projects.isEmpty) {
       return _buildEmptyState();
     }
 
@@ -251,22 +259,22 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                 crossAxisSpacing: 15,
                 mainAxisSpacing: 15,
               ),
-              itemCount: filteredProjects.length,
+              itemCount: projects.length,
               itemBuilder: (context, index) {
-                return _projectCard(filteredProjects[index]);
+                return _projectCard(projects[index]);
               },
             ),
+          );
+      },
           );
   }
 
   List<Project> _sortProjects(List<Project> projects) {
     switch (_selectedSort.value) {
-      case 'Newest':
-        return projects..sort((a, b) => b.date.compareTo(a.date));
-      case 'Oldest':
-        return projects..sort((a, b) => a.date.compareTo(b.date));
       case 'Location':
         return projects..sort((a, b) => a.location.compareTo(b.location));
+      case 'Title':
+        return projects..sort((a, b) => a.title.compareTo(b.title));
       default:
         return projects;
     }
@@ -392,8 +400,8 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                ),
               ],
             ),
                         const SizedBox(height: 3),
@@ -442,26 +450,6 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                           ),
                         ),
                       ],
-                        if (project.testimonial != null) ...[
-                          const SizedBox(height: 4),
-                        Row(
-                          children: [
-                              const Icon(Iconsax.quote_down, size: 11, color: Colors.grey),
-                              const SizedBox(width: 2),
-                              Expanded(
-                                child: Text(
-                              'Client Feedback',
-                              style: TextStyle(
-                                    fontSize: 10,
-                                color: Colors.grey[600],
-                                fontWeight: FontWeight.bold,
-                              ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                            ),
-                        ),
-                      ],
-                    ),
                 ],
           ],
         ),
@@ -523,7 +511,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                         bottom: 20,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+                    children: [
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                               decoration: BoxDecoration(
@@ -532,7 +520,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                               ),
                               child: Text(
                     project.title,
-                    style: const TextStyle(
+                        style: const TextStyle(
                                   color: Colors.white,
                       fontWeight: FontWeight.bold,
                                   fontSize: 20,
@@ -540,8 +528,8 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                               ),
                             ),
                       ],
-                  ),
-                      ),
+                          ),
+                        ),
                     ],
                   ),
                    const SizedBox(height: 18),
@@ -580,11 +568,11 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                              ),
                              const SizedBox(height: 14),
                   const Text(
-                               'Project Overview',
+                    'Project Overview',
                                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-                             ),
+                    ),
                              const SizedBox(height: 6),
-                             Text(
+                  Text(
                                project.description,
                                style: const TextStyle(fontSize: 15, height: 1.5),
                              ),
@@ -637,48 +625,6 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                        ),
                      ),
                    ),
-                   if (project.testimonial != null) ...[
-                     const SizedBox(height: 18),
-                     Padding(
-                       padding: const EdgeInsets.symmetric(horizontal: 20),
-                       child: Card(
-                         elevation: 0,
-                         color: Colors.amber[50],
-                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                         child: Padding(
-                           padding: const EdgeInsets.all(18),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                               const Text('Client Testimonial', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 10),
-                               Row(
-                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                 children: [
-                                   const Icon(Iconsax.quote_down, size: 24, color: Colors.amber),
-                                   const SizedBox(width: 10),
-                                   Expanded(
-                                     child: Text(
-                            project.testimonial!,
-                                       style: const TextStyle(fontSize: 15, fontStyle: FontStyle.italic, height: 1.5),
-                                     ),
-                                   ),
-                                 ],
-                          ),
-                          const SizedBox(height: 10),
-                               Align(
-                                 alignment: Alignment.centerRight,
-                                 child: Text(
-                            '- ${project.client}',
-                                   style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.brown),
-                            ),
-                          ),
-                        ],
-                           ),
-                         ),
-                      ),
-                    ),
-                  ],
                    const SizedBox(height: 18),
                    // --- BOOKED DATES ---
                    Padding(
@@ -689,22 +635,20 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                        child: Padding(
                          padding: const EdgeInsets.all(18),
-                         child: Column(
-                           crossAxisAlignment: CrossAxisAlignment.start,
-                           children: [
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                              const Text('Booked Dates', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  const SizedBox(height: 10),
-                  if (project.bookedDates.isEmpty)
-                    const Text('No booked dates.'),
+                          const SizedBox(height: 10),
                   if (project.bookedDates.isNotEmpty)
                     ...project.bookedDates.map((booking) => Card(
-                                     color: Colors.white,
+                              color: Colors.white,
                                      elevation: 0,
                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       child: ListTile(
                                        leading: const Icon(Iconsax.calendar, color: AppTheme.primaryColor),
                         title: Text('Date: ${booking.date.toLocal().toString().split(' ')[0]}'),
-                        subtitle: Text('Client: ${booking.clientId}\nLocation: ${project.location}'),
+                        subtitle: Text('Status: ${booking.status}'),
                       ),
                     )),
                            ],
@@ -958,13 +902,13 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-            left: 20,
-            right: 20,
-            top: 20,
-          ),
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+                left: 20,
+                right: 20,
+                top: 20,
+              ),
           child: StatefulBuilder(
             builder: (context, setModalState) {
               // Get all booked dates for this project
@@ -1058,8 +1002,8 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                                 final updatedDates = List<BookedDate>.from(project.bookedDates)..add(newBooking);
                                 await FirebaseService.instance.updateProject(project.id, {
                                   'bookedDates': updatedDates.map((e) => e.toMap()).toList(),
-                                });
-                                Navigator.pop(context);
+                              });
+                              Navigator.pop(context);
                                 Get.snackbar('Booked', 'Project date booked successfully!', backgroundColor: Colors.green, colorText: Colors.white);
                               } catch (e) {
                                 Get.snackbar('Error', 'Failed to book date: $e', backgroundColor: Colors.red, colorText: Colors.white);
@@ -1072,9 +1016,9 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                     ),
                     const SizedBox(height: 20),
                   ],
-                ),
-              );
-            },
+              ),
+            );
+          },
           ),
         );
       },

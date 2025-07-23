@@ -33,7 +33,7 @@ class FirebaseService extends GetxController {
   
   // Projects Collection
   CollectionReference get projectsCollection => _firestore.collection('projects');
-
+  
   // Get all services
   Stream<List<Service>> getServices() {
     return servicesCollection
