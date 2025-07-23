@@ -493,7 +493,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                         borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(24),
                           topRight: Radius.circular(24),
-                        ),
+                      ),
                         child: Image.network(
                           project.mediaUrls.isNotEmpty ? project.mediaUrls.first : '',
                           width: double.infinity,
@@ -503,8 +503,8 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                             height: 240,
                             color: Colors.grey[200],
                             child: const Center(child: Icon(Icons.broken_image, size: 60, color: Colors.grey)),
-                          ),
-                        ),
+                    ),
+                  ),
                       ),
                       Positioned(
                         left: 20,
@@ -524,8 +524,8 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                                   color: Colors.white,
                       fontWeight: FontWeight.bold,
                                   fontSize: 20,
-                                ),
-                              ),
+                        ),
+                      ),
                             ),
                       ],
                           ),
@@ -565,7 +565,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                                      ],
                                    ),
                                ],
-                             ),
+                  ),
                              const SizedBox(height: 14),
                   const Text(
                     'Project Overview',
@@ -575,7 +575,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                   Text(
                                project.description,
                                style: const TextStyle(fontSize: 15, height: 1.5),
-                             ),
+                  ),
                              const SizedBox(height: 14),
                              if (project.progress != null)
                     _projectDetailItem('Progress', '${project.progress}% Complete'),
@@ -592,8 +592,8 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                            ],
                          ),
                        ),
-                     ),
-                   ),
+                    ),
+                  ),
                    const SizedBox(height: 18),
                    // --- KEY FEATURES ---
                    Padding(
@@ -623,8 +623,8 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                            ],
                          ),
                        ),
-                     ),
-                   ),
+                      ),
+                    ),
                    const SizedBox(height: 18),
                    // --- BOOKED DATES ---
                    Padding(
