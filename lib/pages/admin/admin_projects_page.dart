@@ -7,6 +7,8 @@ import 'package:kronium/core/user_auth_service.dart';
 import 'dart:math';
 import 'package:kronium/core/firebase_service.dart';
 import 'package:kronium/models/project_model.dart';
+import 'package:file_picker/file_picker.dart';
+import 'dart:io';
 
 class AdminProjectsPage extends StatefulWidget {
   const AdminProjectsPage({super.key});
@@ -24,10 +26,12 @@ class _AdminProjectsPageState extends State<AdminProjectsPage> {
     final locationController = TextEditingController(text: project?.location ?? '');
     final descController = TextEditingController(text: project?.description ?? '');
     final sizeController = TextEditingController(text: project?.size ?? '');
-    List<String> features = List<String>.from(project?.bookedDates.map((e) => e.status) ?? []); // Placeholder for features, adjust as needed
+    List<String> features = List<String>.from(project?.features ?? []);
     String featureInput = '';
     List<String> mediaUrls = List<String>.from(project?.mediaUrls ?? []);
     String mediaInput = '';
+    DateTime? selectedDate = project?.date;
+    bool isUploading = false;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -43,7 +47,7 @@ class _AdminProjectsPageState extends State<AdminProjectsPage> {
             top: 20,
           ),
           child: StatefulBuilder(
-          builder: (context, setModalState) {
+            builder: (context, setModalState) {
               return SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -86,6 +90,48 @@ class _AdminProjectsPageState extends State<AdminProjectsPage> {
                       maxLines: 3,
                     ),
                     const SizedBox(height: 16),
+                    // Date Picker
+                    Row(
+                      children: [
+                        const Icon(Iconsax.calendar, size: 18, color: Colors.grey),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () async {
+                              DateTime now = DateTime.now();
+                              DateTime? picked = await showDatePicker(
+                                context: context,
+                                initialDate: selectedDate ?? now,
+                                firstDate: DateTime(now.year - 2),
+                                lastDate: DateTime(now.year + 5),
+                              );
+                              if (picked != null) {
+                                setModalState(() {
+                                  selectedDate = picked;
+                                });
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey[300]!),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                selectedDate != null
+                                    ? 'Date: ${selectedDate!.toLocal().toString().split(' ')[0]}'
+                                    : 'Pick Project Date',
+                                style: TextStyle(
+                                  color: selectedDate != null ? Colors.black : Colors.grey,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
                     const Text('Features', style: TextStyle(fontWeight: FontWeight.bold)),
                     Row(
                       children: [
@@ -124,31 +170,48 @@ class _AdminProjectsPageState extends State<AdminProjectsPage> {
                         )).toList(),
                       ),
                     const SizedBox(height: 16),
-                    const Text('Media/Image URLs', style: TextStyle(fontWeight: FontWeight.bold)),
+                    // Media Picker
                     Row(
                       children: [
-                        Expanded(
-                          child: TextField(
-                            decoration: const InputDecoration(labelText: 'Add Media URL', prefixIcon: Icon(Iconsax.add)),
-                            onChanged: (v) => mediaInput = v,
-                            onSubmitted: (v) {
-                              if (v.trim().isNotEmpty) {
+                        ElevatedButton.icon(
+                          icon: const Icon(Iconsax.image),
+                          label: const Text('Add Image'),
+                          onPressed: isUploading ? null : () async {
+                            setModalState(() => isUploading = true);
+                            FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
+                            if (result != null && result.files.single.path != null) {
+                              File file = File(result.files.single.path!);
+                              try {
+                                String url = await FirebaseService.instance.uploadImage(file, file.path);
                                 setModalState(() {
-                                  mediaUrls.add(v.trim());
+                                  mediaUrls.add(url);
                                 });
+                              } catch (e) {
+                                Get.snackbar('Error', 'Failed to upload image: $e', backgroundColor: Colors.red, colorText: Colors.white);
                               }
-                            },
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Iconsax.add_circle, color: Colors.green),
-                          onPressed: () {
-                            if (mediaInput.trim().isNotEmpty) {
-                              setModalState(() {
-                                mediaUrls.add(mediaInput.trim());
-                                mediaInput = '';
-                              });
                             }
+                            setModalState(() => isUploading = false);
+                          },
+                        ),
+                        const SizedBox(width: 10),
+                        ElevatedButton.icon(
+                          icon: const Icon(Iconsax.video),
+                          label: const Text('Add Video'),
+                          onPressed: isUploading ? null : () async {
+                            setModalState(() => isUploading = true);
+                            FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.video);
+                            if (result != null && result.files.single.path != null) {
+                              File file = File(result.files.single.path!);
+                              try {
+                                String url = await FirebaseService.instance.uploadVideo(file, file.path);
+                                setModalState(() {
+                                  mediaUrls.add(url);
+                                });
+                              } catch (e) {
+                                Get.snackbar('Error', 'Failed to upload video: $e', backgroundColor: Colors.red, colorText: Colors.white);
+                              }
+                            }
+                            setModalState(() => isUploading = false);
                           },
                         ),
                       ],
@@ -156,19 +219,30 @@ class _AdminProjectsPageState extends State<AdminProjectsPage> {
                     if (mediaUrls.isNotEmpty)
                       Wrap(
                         spacing: 8,
-                        children: mediaUrls.map((f) => Chip(
-                          label: Text(f),
-                          onDeleted: () => setModalState(() => mediaUrls.remove(f)),
+                        children: mediaUrls.map((url) => Stack(
+                          alignment: Alignment.topRight,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8, right: 8),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: url.endsWith('.mp4')
+                                    ? Container(
+                                        color: Colors.black12,
+                                        width: 80,
+                                        height: 80,
+                                        child: const Icon(Iconsax.video, size: 40),
+                                      )
+                                    : Image.network(url, height: 80, width: 80, fit: BoxFit.cover, errorBuilder: (c, e, s) => const Icon(Icons.broken_image)),
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Iconsax.close_circle, color: Colors.red, size: 20),
+                              onPressed: () => setModalState(() => mediaUrls.remove(url)),
+                            ),
+                          ],
                         )).toList(),
-                        ),
-                    if (mediaUrls.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 10, bottom: 10),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.network(mediaUrls.first, height: 80, width: 120, fit: BoxFit.cover, errorBuilder: (c, e, s) => const Icon(Icons.broken_image)),
-                        ),
-                    ),
+                      ),
                     const SizedBox(height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -176,8 +250,8 @@ class _AdminProjectsPageState extends State<AdminProjectsPage> {
                         ElevatedButton(
                           onPressed: () async {
                             // Validation
-                            if (titleController.text.trim().isEmpty || locationController.text.trim().isEmpty || descController.text.trim().isEmpty) {
-                              Get.snackbar('Error', 'Title, Location, and Description are required', backgroundColor: Colors.red, colorText: Colors.white);
+                            if (titleController.text.trim().isEmpty || locationController.text.trim().isEmpty || descController.text.trim().isEmpty || selectedDate == null || mediaUrls.isEmpty) {
+                              Get.snackbar('Error', 'Title, Location, Description, Date, and at least one image/video are required', backgroundColor: Colors.red, colorText: Colors.white);
                               return;
                             }
                             final newProject = Project(
@@ -187,6 +261,10 @@ class _AdminProjectsPageState extends State<AdminProjectsPage> {
                               location: locationController.text.trim(),
                               size: sizeController.text.trim(),
                               mediaUrls: mediaUrls,
+                              features: features,
+                              approved: project?.approved ?? false,
+                              progress: project?.progress ?? 0.0,
+                              date: selectedDate,
                               bookedDates: project?.bookedDates ?? [],
                             );
                             try {
@@ -219,14 +297,14 @@ class _AdminProjectsPageState extends State<AdminProjectsPage> {
                             },
                             style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
                             child: const Text('Delete'),
-                ),
-              ],
+                          ),
+                      ],
                     ),
                     const SizedBox(height: 10),
                   ],
                 ),
-            );
-          },
+              );
+            },
           ),
         );
       },
