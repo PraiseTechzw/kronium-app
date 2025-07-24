@@ -1055,202 +1055,211 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-            left: 20,
-            right: 20,
-            top: 20,
-          ),
-          child: StatefulBuilder(
-            builder: (context, setModalState) {
-              return StreamBuilder<List<Project>>(
-                stream: FirebaseService.instance.getProjects(),
-                builder: (context, snapshot) {
-                  final allProjects = snapshot.data ?? [];
-                  double? matchedTransportCost;
-                  for (final project in allProjects) {
-                    if (project.category == selectedCategory &&
-                        project.location.trim().toLowerCase() == location.trim().toLowerCase()) {
-                      matchedTransportCost = project.transportCost;
-                      break;
+        // Dispose controllers after the bottom sheet is closed
+        return WillPopScope(
+          onWillPop: () async {
+            nameController.dispose();
+            emailController.dispose();
+            phoneController.dispose();
+            return true;
+          },
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+              left: 20,
+              right: 20,
+              top: 20,
+            ),
+            child: StatefulBuilder(
+              builder: (context, setModalState) {
+                return StreamBuilder<List<Project>>(
+                  stream: FirebaseService.instance.getProjects(),
+                  builder: (context, snapshot) {
+                    final allProjects = snapshot.data ?? [];
+                    double? matchedTransportCost;
+                    for (final project in allProjects) {
+                      if (project.category == selectedCategory &&
+                          project.location.trim().toLowerCase() == location.trim().toLowerCase()) {
+                        matchedTransportCost = project.transportCost;
+                        break;
+                      }
                     }
-                  }
-                  return SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Center(
-                          child: Container(
-                            width: 60,
-                            height: 5,
-                            decoration: BoxDecoration(
-                              color: Colors.grey[300],
-                              borderRadius: BorderRadius.circular(5),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        const Text('Request a Project', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 18),
-                        const Text('Contact Information', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                        const Divider(height: 24),
-                        TextField(
-                          controller: nameController,
-                          readOnly: true,
-                          decoration: InputDecoration(
-                            labelText: 'Your Name',
-                            prefixIcon: const Icon(Iconsax.user),
-                            filled: true,
-                            fillColor: Colors.white,
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        TextField(
-                          controller: emailController,
-                          readOnly: true,
-                          decoration: InputDecoration(
-                            labelText: 'Your Email',
-                            prefixIcon: const Icon(Iconsax.sms),
-                            filled: true,
-                            fillColor: Colors.white,
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        TextField(
-                          controller: phoneController,
-                          decoration: InputDecoration(
-                            labelText: 'Phone Number',
-                            prefixIcon: const Icon(Iconsax.call),
-                            filled: true,
-                            fillColor: Colors.white,
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                          keyboardType: TextInputType.phone,
-                        ),
-                        const SizedBox(height: 24),
-                        const Text('Project Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                        const Divider(height: 24),
-                        DropdownButtonFormField<String>(
-                          value: selectedCategory,
-                          items: categories.map((cat) => DropdownMenuItem(value: cat, child: Text(cat))).toList(),
-                          onChanged: (v) => setModalState(() => selectedCategory = v),
-                          decoration: InputDecoration(
-                            labelText: 'Category',
-                            prefixIcon: const Icon(Iconsax.category),
-                            filled: true,
-                            fillColor: Colors.white,
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        TextField(
-                          decoration: InputDecoration(
-                            labelText: 'Desired Project Location',
-                            prefixIcon: const Icon(Iconsax.location),
-                            filled: true,
-                            fillColor: Colors.white,
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                          onChanged: (v) {
-                            setModalState(() {
-                              location = v;
-                            });
-                          },
-                        ),
-                        const SizedBox(height: 12),
-                        TextField(
-                          decoration: InputDecoration(
-                            labelText: 'Desired Project Size (e.g. 1000 sqm)',
-                            prefixIcon: const Icon(Iconsax.size),
-                            filled: true,
-                            fillColor: Colors.white,
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                          onChanged: (v) => size = v,
-                        ),
-                        const SizedBox(height: 16),
-                        if (location.isNotEmpty && selectedCategory != null)
-                          matchedTransportCost != null
-                            ? Padding(
-                                padding: const EdgeInsets.only(top: 8),
-                                child: Text('Estimated Transport Cost: $matchedTransportCost', style: const TextStyle(fontWeight: FontWeight.bold)),
-                              )
-                            : Padding(
-                                padding: const EdgeInsets.only(top: 8),
-                                child: Text('Transport cost will be provided by admin after review.', style: const TextStyle(color: Colors.grey)),
+                    return SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Center(
+                            child: Container(
+                              width: 60,
+                              height: 5,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                borderRadius: BorderRadius.circular(5),
                               ),
-                        const SizedBox(height: 24),
-                        const Text('Summary', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                        const Divider(height: 24),
-                        Card(
-                          color: Colors.white,
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Name: ${nameController.text}'),
-                                Text('Email: ${emailController.text}'),
-                                if (phoneController.text.isNotEmpty) Text('Phone: ${phoneController.text}'),
-                                Text('Category: $selectedCategory'),
-                                Text('Location: $location'),
-                                Text('Size: $size'),
-                                if (matchedTransportCost != null)
-                                  Text('Estimated Transport Cost: $matchedTransportCost'),
-                              ],
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 28),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.primaryColor,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          const SizedBox(height: 20),
+                          const Text('Request a Project', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 18),
+                          const Text('Contact Information', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          const Divider(height: 24),
+                          TextField(
+                            controller: nameController,
+                            readOnly: true,
+                            decoration: InputDecoration(
+                              labelText: 'Your Name',
+                              prefixIcon: const Icon(Iconsax.user),
+                              filled: true,
+                              fillColor: Colors.white,
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                             ),
-                            onPressed: isLoading || nameController.text.isEmpty || emailController.text.isEmpty || location.isEmpty || size.isEmpty || selectedCategory == null
-                                ? null
-                                : () async {
-                                    setModalState(() => isLoading = true);
-                                    try {
-                                      await FirebaseFirestore.instance.collection('projectRequests').add({
-                                        'name': nameController.text,
-                                        'email': emailController.text,
-                                        'phone': phoneController.text,
-                                        'location': location,
-                                        'size': size,
-                                        'category': selectedCategory,
-                                        'createdAt': DateTime.now(),
-                                        'estimatedTransportCost': matchedTransportCost,
-                                      });
-                                      Navigator.pop(context);
-                                      Get.snackbar('Request Sent', 'Your project request has been submitted!', backgroundColor: Colors.green, colorText: Colors.white);
-                                    } catch (e) {
-                                      Get.snackbar('Error', 'Failed to submit request: $e', backgroundColor: Colors.red, colorText: Colors.white);
-                                    } finally {
-                                      setModalState(() => isLoading = false);
-                                    }
-                                  },
-                            child: isLoading ? const CircularProgressIndicator() : const Text('Submit Request'),
                           ),
-                        ),
-                        const SizedBox(height: 20),
-                      ],
-                    ),
-                  );
-                },
-              );
-            },
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: emailController,
+                            readOnly: true,
+                            decoration: InputDecoration(
+                              labelText: 'Your Email',
+                              prefixIcon: const Icon(Iconsax.sms),
+                              filled: true,
+                              fillColor: Colors.white,
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: phoneController,
+                            decoration: InputDecoration(
+                              labelText: 'Phone Number',
+                              prefixIcon: const Icon(Iconsax.call),
+                              filled: true,
+                              fillColor: Colors.white,
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                            keyboardType: TextInputType.phone,
+                          ),
+                          const SizedBox(height: 24),
+                          const Text('Project Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          const Divider(height: 24),
+                          DropdownButtonFormField<String>(
+                            value: selectedCategory,
+                            items: categories.map((cat) => DropdownMenuItem(value: cat, child: Text(cat))).toList(),
+                            onChanged: (v) => setModalState(() => selectedCategory = v),
+                            decoration: InputDecoration(
+                              labelText: 'Category',
+                              prefixIcon: const Icon(Iconsax.category),
+                              filled: true,
+                              fillColor: Colors.white,
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            decoration: InputDecoration(
+                              labelText: 'Desired Project Location',
+                              prefixIcon: const Icon(Iconsax.location),
+                              filled: true,
+                              fillColor: Colors.white,
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                            onChanged: (v) {
+                              setModalState(() {
+                                location = v;
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            decoration: InputDecoration(
+                              labelText: 'Desired Project Size (e.g. 1000 sqm)',
+                              prefixIcon: const Icon(Iconsax.size),
+                              filled: true,
+                              fillColor: Colors.white,
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                            onChanged: (v) => size = v,
+                          ),
+                          const SizedBox(height: 16),
+                          if (location.isNotEmpty && selectedCategory != null)
+                            matchedTransportCost != null
+                              ? Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: Text('Estimated Transport Cost: $matchedTransportCost', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                )
+                              : Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: Text('Transport cost will be provided by admin after review.', style: const TextStyle(color: Colors.grey)),
+                                ),
+                          const SizedBox(height: 24),
+                          const Text('Summary', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          const Divider(height: 24),
+                          Card(
+                            color: Colors.white,
+                            elevation: 2,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Name: ${nameController.text}'),
+                                  Text('Email: ${emailController.text}'),
+                                  if (phoneController.text.isNotEmpty) Text('Phone: ${phoneController.text}'),
+                                  Text('Category: $selectedCategory'),
+                                  Text('Location: $location'),
+                                  Text('Size: $size'),
+                                  if (matchedTransportCost != null)
+                                    Text('Estimated Transport Cost: $matchedTransportCost'),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 28),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.primaryColor,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                              onPressed: isLoading || nameController.text.isEmpty || emailController.text.isEmpty || location.isEmpty || size.isEmpty || selectedCategory == null
+                                  ? null
+                                  : () async {
+                                      setModalState(() => isLoading = true);
+                                      try {
+                                        await FirebaseFirestore.instance.collection('projectRequests').add({
+                                          'name': nameController.text,
+                                          'email': emailController.text,
+                                          'phone': phoneController.text,
+                                          'location': location,
+                                          'size': size,
+                                          'category': selectedCategory,
+                                          'createdAt': DateTime.now(),
+                                          'estimatedTransportCost': matchedTransportCost,
+                                        });
+                                        Navigator.pop(context);
+                                        Get.snackbar('Request Sent', 'Your project request has been submitted!', backgroundColor: Colors.green, colorText: Colors.white);
+                                      } catch (e) {
+                                        Get.snackbar('Error', 'Failed to submit request: $e', backgroundColor: Colors.red, colorText: Colors.white);
+                                      } finally {
+                                        setModalState(() => isLoading = false);
+                                      }
+                                    },
+                              child: isLoading ? const CircularProgressIndicator() : const Text('Submit Request'),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
           ),
         );
       },
