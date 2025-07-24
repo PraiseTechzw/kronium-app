@@ -1043,9 +1043,9 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
     String location = '';
     String size = '';
     final userProfile = userController.userProfile.value;
-    String name = userProfile?.name ?? '';
-    String email = userProfile?.email ?? '';
-    String phone = '';
+    final nameController = TextEditingController(text: userProfile?.name ?? '');
+    final emailController = TextEditingController(text: userProfile?.email ?? '');
+    final phoneController = TextEditingController();
     bool isLoading = false;
     showModalBottomSheet(
       context: context,
@@ -1097,7 +1097,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                         const Text('Contact Information', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                         const Divider(height: 24),
                         TextField(
-                          controller: TextEditingController(text: name),
+                          controller: nameController,
                           readOnly: true,
                           decoration: InputDecoration(
                             labelText: 'Your Name',
@@ -1109,7 +1109,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                         ),
                         const SizedBox(height: 12),
                         TextField(
-                          controller: TextEditingController(text: email),
+                          controller: emailController,
                           readOnly: true,
                           decoration: InputDecoration(
                             labelText: 'Your Email',
@@ -1121,6 +1121,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                         ),
                         const SizedBox(height: 12),
                         TextField(
+                          controller: phoneController,
                           decoration: InputDecoration(
                             labelText: 'Phone Number',
                             prefixIcon: const Icon(Iconsax.call),
@@ -1129,7 +1130,6 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                           ),
                           keyboardType: TextInputType.phone,
-                          onChanged: (v) => phone = v,
                         ),
                         const SizedBox(height: 24),
                         const Text('Project Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
@@ -1195,9 +1195,9 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Name: $name'),
-                                Text('Email: $email'),
-                                if (phone.isNotEmpty) Text('Phone: $phone'),
+                                Text('Name: ${nameController.text}'),
+                                Text('Email: ${emailController.text}'),
+                                if (phoneController.text.isNotEmpty) Text('Phone: ${phoneController.text}'),
                                 Text('Category: $selectedCategory'),
                                 Text('Location: $location'),
                                 Text('Size: $size'),
@@ -1218,15 +1218,15 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                               textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
-                            onPressed: isLoading || name.isEmpty || email.isEmpty || location.isEmpty || size.isEmpty || selectedCategory == null
+                            onPressed: isLoading || nameController.text.isEmpty || emailController.text.isEmpty || location.isEmpty || size.isEmpty || selectedCategory == null
                                 ? null
                                 : () async {
                                     setModalState(() => isLoading = true);
                                     try {
                                       await FirebaseFirestore.instance.collection('projectRequests').add({
-                                        'name': name,
-                                        'email': email,
-                                        'phone': phone,
+                                        'name': nameController.text,
+                                        'email': emailController.text,
+                                        'phone': phoneController.text,
                                         'location': location,
                                         'size': size,
                                         'category': selectedCategory,
