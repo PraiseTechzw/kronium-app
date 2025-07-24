@@ -1050,8 +1050,9 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.grey[100],
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
         return Padding(
@@ -1091,51 +1092,87 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                           ),
                         ),
                         const SizedBox(height: 20),
-                        const Text('Request a Project', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 16),
-                        const Text('Contact Information', style: TextStyle(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8),
+                        const Text('Request a Project', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 18),
+                        const Text('Contact Information', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        const Divider(height: 24),
                         TextField(
                           controller: TextEditingController(text: name),
                           readOnly: true,
-                          decoration: const InputDecoration(labelText: 'Your Name'),
+                          decoration: InputDecoration(
+                            labelText: 'Your Name',
+                            prefixIcon: const Icon(Iconsax.user),
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 12),
                         TextField(
                           controller: TextEditingController(text: email),
                           readOnly: true,
-                          decoration: const InputDecoration(labelText: 'Your Email'),
+                          decoration: InputDecoration(
+                            labelText: 'Your Email',
+                            prefixIcon: const Icon(Iconsax.sms),
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 12),
                         TextField(
-                          decoration: const InputDecoration(labelText: 'Phone Number'),
+                          decoration: InputDecoration(
+                            labelText: 'Phone Number',
+                            prefixIcon: const Icon(Iconsax.call),
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
                           keyboardType: TextInputType.phone,
                           onChanged: (v) => phone = v,
                         ),
-                        const SizedBox(height: 20),
-                        const Text('Project Details', style: TextStyle(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 24),
+                        const Text('Project Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        const Divider(height: 24),
                         DropdownButtonFormField<String>(
                           value: selectedCategory,
                           items: categories.map((cat) => DropdownMenuItem(value: cat, child: Text(cat))).toList(),
                           onChanged: (v) => setModalState(() => selectedCategory = v),
-                          decoration: const InputDecoration(labelText: 'Category', prefixIcon: Icon(Iconsax.category)),
+                          decoration: InputDecoration(
+                            labelText: 'Category',
+                            prefixIcon: const Icon(Iconsax.category),
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 12),
                         TextField(
-                          decoration: const InputDecoration(labelText: 'Desired Project Location'),
+                          decoration: InputDecoration(
+                            labelText: 'Desired Project Location',
+                            prefixIcon: const Icon(Iconsax.location),
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
                           onChanged: (v) {
-                              setModalState(() {
+                            setModalState(() {
                               location = v;
                             });
                           },
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 12),
                         TextField(
-                          decoration: const InputDecoration(labelText: 'Desired Project Size (e.g. 1000 sqm)'),
+                          decoration: InputDecoration(
+                            labelText: 'Desired Project Size (e.g. 1000 sqm)',
+                            prefixIcon: const Icon(Iconsax.size),
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
                           onChanged: (v) => size = v,
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 16),
                         if (location.isNotEmpty && selectedCategory != null)
                           matchedTransportCost != null
                             ? Padding(
@@ -1146,13 +1183,15 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                                 padding: const EdgeInsets.only(top: 8),
                                 child: Text('Transport cost will be provided by admin after review.', style: const TextStyle(color: Colors.grey)),
                               ),
-                        const SizedBox(height: 20),
-                        const Text('Summary', style: TextStyle(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 24),
+                        const Text('Summary', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        const Divider(height: 24),
                         Card(
-                          color: Colors.grey[50],
+                          color: Colors.white,
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                           child: Padding(
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.all(16),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -1168,38 +1207,48 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                             ),
                           ),
                         ),
+                        const SizedBox(height: 28),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primaryColor,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                            onPressed: isLoading || name.isEmpty || email.isEmpty || location.isEmpty || size.isEmpty || selectedCategory == null
+                                ? null
+                                : () async {
+                                    setModalState(() => isLoading = true);
+                                    try {
+                                      await FirebaseFirestore.instance.collection('projectRequests').add({
+                                        'name': name,
+                                        'email': email,
+                                        'phone': phone,
+                                        'location': location,
+                                        'size': size,
+                                        'category': selectedCategory,
+                                        'createdAt': DateTime.now(),
+                                        'estimatedTransportCost': matchedTransportCost,
+                                      });
+                                      Navigator.pop(context);
+                                      Get.snackbar('Request Sent', 'Your project request has been submitted!', backgroundColor: Colors.green, colorText: Colors.white);
+                                    } catch (e) {
+                                      Get.snackbar('Error', 'Failed to submit request: $e', backgroundColor: Colors.red, colorText: Colors.white);
+                                    } finally {
+                                      setModalState(() => isLoading = false);
+                                    }
+                                  },
+                            child: isLoading ? const CircularProgressIndicator() : const Text('Submit Request'),
+                          ),
+                        ),
                         const SizedBox(height: 20),
-                        ElevatedButton(
-                          onPressed: isLoading || name.isEmpty || email.isEmpty || location.isEmpty || size.isEmpty || selectedCategory == null
-                              ? null
-                              : () async {
-                                  setModalState(() => isLoading = true);
-                                  try {
-                                    await FirebaseFirestore.instance.collection('projectRequests').add({
-                                      'name': name,
-                                      'email': email,
-                                      'phone': phone,
-                                  'location': location,
-                                  'size': size,
-                                      'category': selectedCategory,
-                                      'createdAt': DateTime.now(),
-                                      'estimatedTransportCost': matchedTransportCost,
-                              });
-                              Navigator.pop(context);
-                                    Get.snackbar('Request Sent', 'Your project request has been submitted!', backgroundColor: Colors.green, colorText: Colors.white);
-                                  } catch (e) {
-                                    Get.snackbar('Error', 'Failed to submit request: $e', backgroundColor: Colors.red, colorText: Colors.white);
-                                  } finally {
-                                    setModalState(() => isLoading = false);
-                                  }
-                                },
-                          child: isLoading ? const CircularProgressIndicator() : const Text('Submit Request'),
+                      ],
                     ),
-                    const SizedBox(height: 20),
-                  ],
-              ),
-            );
-          },
+                  );
+                },
               );
             },
           ),
