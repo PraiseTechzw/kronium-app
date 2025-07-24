@@ -30,25 +30,28 @@ class _AdminChatPageState extends State<AdminChatPage> {
   }
 
   Future<void> _sendMessage() async {
-    if (_messageController.text.trim().isEmpty || _selectedChatRoom == null) return;
-
+    if (_messageController.text.trim().isEmpty) return;
+    if (_selectedChatRoom == null) {
+      Get.snackbar('No Chat Selected', 'Please select a chat room before sending a message.', backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
     final adminAuthService = Get.find<AdminAuthService>();
     final firebaseService = Get.find<FirebaseService>();
-    
     final admin = adminAuthService.currentAdmin;
-    if (admin == null) return;
-
+    if (admin == null) {
+      Get.snackbar('Not Logged In', 'Admin session expired. Please log in again.', backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
     final message = ChatMessage(
       senderId: admin.uid,
       senderName: 'Admin',
       senderType: 'admin',
       message: _messageController.text.trim(),
       timestamp: DateTime.now(),
+      chatRoomId: _selectedChatRoom!.id,
     );
-
     await firebaseService.sendMessage(_selectedChatRoom!.id!, message);
     _messageController.clear();
-    
     // Scroll to bottom
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
