@@ -1106,7 +1106,6 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                           const Divider(height: 24),
                           TextField(
                             controller: nameController,
-                            readOnly: true,
                             decoration: InputDecoration(
                               labelText: 'Your Name',
                               prefixIcon: const Icon(Iconsax.user),
@@ -1118,7 +1117,6 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                           const SizedBox(height: 12),
                           TextField(
                             controller: emailController,
-                            readOnly: true,
                             decoration: InputDecoration(
                               labelText: 'Your Email',
                               prefixIcon: const Icon(Iconsax.sms),

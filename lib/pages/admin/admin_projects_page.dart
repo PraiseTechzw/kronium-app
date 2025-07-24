@@ -11,6 +11,7 @@ import 'package:file_picker/file_picker.dart';
 import 'dart:io';
 import 'package:video_player/video_player.dart';
 import 'package:kronium/pages/admin/admin_project_requests_page.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AdminProjectsPage extends StatefulWidget {
   const AdminProjectsPage({super.key});
@@ -30,20 +31,37 @@ class _AdminProjectsPageState extends State<AdminProjectsPage> {
     'Logistics',
     'IoT & Automation',
   ];
+  bool _hasHandledRequestArgs = false;
 
-  void _addOrEditProject({Project? project}) {
-    final titleController = TextEditingController(text: project?.title ?? '');
-    final locationController = TextEditingController(text: project?.location ?? '');
-    final descController = TextEditingController(text: project?.description ?? '');
-    final sizeController = TextEditingController(text: project?.size ?? '');
-    List<String> features = List<String>.from(project?.features ?? []);
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // If navigated with requestData, open the add project modal pre-filled
+    final args = Get.arguments;
+    if (!_hasHandledRequestArgs && args != null && args['requestData'] != null) {
+      _hasHandledRequestArgs = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _addOrEditProject(
+          initialData: args['requestData'],
+          requestId: args['requestId'],
+        );
+      });
+    }
+  }
+
+  void _addOrEditProject({Project? project, Map<String, dynamic>? initialData, String? requestId}) {
+    final titleController = TextEditingController(text: project?.title ?? initialData?['title'] ?? '');
+    final locationController = TextEditingController(text: project?.location ?? initialData?['location'] ?? '');
+    final descController = TextEditingController(text: project?.description ?? initialData?['description'] ?? '');
+    final sizeController = TextEditingController(text: project?.size ?? initialData?['size'] ?? '');
+    List<String> features = List<String>.from(project?.features ?? initialData?['features'] ?? []);
     String featureInput = '';
-    List<String> mediaUrls = List<String>.from(project?.mediaUrls ?? []);
+    List<String> mediaUrls = List<String>.from(project?.mediaUrls ?? initialData?['mediaUrls'] ?? []);
     String mediaInput = '';
     DateTime? selectedDate = project?.date;
     bool isUploading = false;
-    String? selectedCategory = project?.category ?? categories.first;
-    TextEditingController transportCostController = TextEditingController(text: project?.transportCost?.toString() ?? '');
+    String? selectedCategory = project?.category ?? initialData?['category'] ?? categories.first;
+    TextEditingController transportCostController = TextEditingController(text: project?.transportCost?.toString() ?? initialData?['transportCost']?.toString() ?? '');
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -323,6 +341,10 @@ class _AdminProjectsPageState extends State<AdminProjectsPage> {
                             try {
                               if (project == null) {
                                 await FirebaseService.instance.addProject(newProject);
+                                if (requestId != null) {
+                                  // Mark the request as reviewed after project creation
+                                  await FirebaseFirestore.instance.collection('projectRequests').doc(requestId).update({'reviewed': true});
+                                }
                                 Get.back();
                                 Get.snackbar('Success', 'Project added!', backgroundColor: Colors.green, colorText: Colors.white);
                               } else {
