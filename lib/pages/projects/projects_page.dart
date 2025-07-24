@@ -198,9 +198,9 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showRequestProjectForm(context),
-        icon: const Icon(Iconsax.message_question),
+            icon: const Icon(Iconsax.message_question),
         label: const Text('Request a Project'),
-        backgroundColor: AppTheme.primaryColor,
+            backgroundColor: AppTheme.primaryColor,
       ),
     );
   }
@@ -453,16 +453,16 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                    ],
+                      ],
                   ],
                 ),
               ),
             ),
           
+              ),
+            ],
           ),
-              ],
         ),
-      ),
       ),
     );
   }
@@ -1031,11 +1031,6 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
 
   // Add the _showRequestProjectForm method:
   void _showRequestProjectForm(BuildContext context) {
-    String location = '';
-    String size = '';
-    String name = '';
-    String email = '';
-    bool isLoading = false;
     final List<String> categories = [
       'Greenhouses',
       'Steel Structures',
@@ -1045,6 +1040,13 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
       'IoT & Automation',
     ];
     String? selectedCategory = categories.first;
+    String location = '';
+    String size = '';
+    final userProfile = userController.userProfile.value;
+    String name = userProfile?.name ?? '';
+    String email = userProfile?.email ?? '';
+    String phone = '';
+    bool isLoading = false;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -1061,78 +1063,143 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
           ),
           child: StatefulBuilder(
             builder: (context, setModalState) {
-              return SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Center(
-                      child: Container(
-                        width: 60,
-                        height: 5,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(5),
+              return StreamBuilder<List<Project>>(
+                stream: FirebaseService.instance.getProjects(),
+                builder: (context, snapshot) {
+                  final allProjects = snapshot.data ?? [];
+                  double? matchedTransportCost;
+                  for (final project in allProjects) {
+                    if (project.category == selectedCategory &&
+                        project.location.trim().toLowerCase() == location.trim().toLowerCase()) {
+                      matchedTransportCost = project.transportCost;
+                      break;
+                    }
+                  }
+                  return SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Center(
+                          child: Container(
+                            width: 60,
+                            height: 5,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[300],
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    const Text('Request a Project', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 16),
-                    TextField(
-                      decoration: const InputDecoration(labelText: 'Your Name'),
-                      onChanged: (v) => name = v,
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      decoration: const InputDecoration(labelText: 'Your Email'),
-                      onChanged: (v) => email = v,
-                    ),
-                    const SizedBox(height: 10),
-                    DropdownButtonFormField<String>(
-                      value: selectedCategory,
-                      items: categories.map((cat) => DropdownMenuItem(value: cat, child: Text(cat))).toList(),
-                      onChanged: (v) => setModalState(() => selectedCategory = v),
-                      decoration: const InputDecoration(labelText: 'Category', prefixIcon: Icon(Iconsax.category)),
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      decoration: const InputDecoration(labelText: 'Desired Project Location'),
-                      onChanged: (v) => location = v,
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      decoration: const InputDecoration(labelText: 'Desired Project Size (e.g. 1000 sqm)'),
-                      onChanged: (v) => size = v,
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: isLoading || name.isEmpty || email.isEmpty || location.isEmpty || size.isEmpty
-                          ? null
-                          : () async {
-                              setModalState(() => isLoading = true);
-                              try {
-                                await FirebaseFirestore.instance.collection('projectRequests').add({
-                                  'name': name,
-                                  'email': email,
+                        const SizedBox(height: 20),
+                        const Text('Request a Project', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 16),
+                        const Text('Contact Information', style: TextStyle(fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: TextEditingController(text: name),
+                          readOnly: true,
+                          decoration: const InputDecoration(labelText: 'Your Name'),
+                        ),
+                        const SizedBox(height: 10),
+                        TextField(
+                          controller: TextEditingController(text: email),
+                          readOnly: true,
+                          decoration: const InputDecoration(labelText: 'Your Email'),
+                        ),
+                        const SizedBox(height: 10),
+                        TextField(
+                          decoration: const InputDecoration(labelText: 'Phone Number'),
+                          keyboardType: TextInputType.phone,
+                          onChanged: (v) => phone = v,
+                        ),
+                        const SizedBox(height: 20),
+                        const Text('Project Details', style: TextStyle(fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 8),
+                        DropdownButtonFormField<String>(
+                          value: selectedCategory,
+                          items: categories.map((cat) => DropdownMenuItem(value: cat, child: Text(cat))).toList(),
+                          onChanged: (v) => setModalState(() => selectedCategory = v),
+                          decoration: const InputDecoration(labelText: 'Category', prefixIcon: Icon(Iconsax.category)),
+                        ),
+                        const SizedBox(height: 10),
+                        TextField(
+                          decoration: const InputDecoration(labelText: 'Desired Project Location'),
+                          onChanged: (v) {
+                              setModalState(() {
+                              location = v;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        TextField(
+                          decoration: const InputDecoration(labelText: 'Desired Project Size (e.g. 1000 sqm)'),
+                          onChanged: (v) => size = v,
+                        ),
+                        const SizedBox(height: 10),
+                        if (location.isNotEmpty && selectedCategory != null)
+                          matchedTransportCost != null
+                            ? Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: Text('Estimated Transport Cost: $matchedTransportCost', style: const TextStyle(fontWeight: FontWeight.bold)),
+                              )
+                            : Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: Text('Transport cost will be provided by admin after review.', style: const TextStyle(color: Colors.grey)),
+                              ),
+                        const SizedBox(height: 20),
+                        const Text('Summary', style: TextStyle(fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 8),
+                        Card(
+                          color: Colors.grey[50],
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Name: $name'),
+                                Text('Email: $email'),
+                                if (phone.isNotEmpty) Text('Phone: $phone'),
+                                Text('Category: $selectedCategory'),
+                                Text('Location: $location'),
+                                Text('Size: $size'),
+                                if (matchedTransportCost != null)
+                                  Text('Estimated Transport Cost: $matchedTransportCost'),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: isLoading || name.isEmpty || email.isEmpty || location.isEmpty || size.isEmpty || selectedCategory == null
+                              ? null
+                              : () async {
+                                  setModalState(() => isLoading = true);
+                                  try {
+                                    await FirebaseFirestore.instance.collection('projectRequests').add({
+                                      'name': name,
+                                      'email': email,
+                                      'phone': phone,
                                   'location': location,
                                   'size': size,
-                                  'category': selectedCategory,
-                                  'createdAt': DateTime.now(),
-                                });
-                                Navigator.pop(context);
-                                Get.snackbar('Request Sent', 'Your project request has been submitted!', backgroundColor: Colors.green, colorText: Colors.white);
-                              } catch (e) {
-                                Get.snackbar('Error', 'Failed to submit request: $e', backgroundColor: Colors.red, colorText: Colors.white);
-                              } finally {
-                                setModalState(() => isLoading = false);
-                              }
-                            },
-                      child: isLoading ? const CircularProgressIndicator() : const Text('Submit Request'),
+                                      'category': selectedCategory,
+                                      'createdAt': DateTime.now(),
+                                      'estimatedTransportCost': matchedTransportCost,
+                              });
+                              Navigator.pop(context);
+                                    Get.snackbar('Request Sent', 'Your project request has been submitted!', backgroundColor: Colors.green, colorText: Colors.white);
+                                  } catch (e) {
+                                    Get.snackbar('Error', 'Failed to submit request: $e', backgroundColor: Colors.red, colorText: Colors.white);
+                                  } finally {
+                                    setModalState(() => isLoading = false);
+                                  }
+                                },
+                          child: isLoading ? const CircularProgressIndicator() : const Text('Submit Request'),
                     ),
                     const SizedBox(height: 20),
                   ],
-                ),
+              ),
+            );
+          },
               );
             },
           ),

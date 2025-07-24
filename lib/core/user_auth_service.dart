@@ -80,6 +80,7 @@ class UserAuthService extends GetxController {
       isUserLoggedIn.value = true;
       // Set role in userController
       userController.role.value = 'customer';
+      userController.setUserProfile(user.copyWith(id: userCredential.user!.uid));
       
       // Save user session
       final prefs = await SharedPreferences.getInstance();
@@ -133,6 +134,7 @@ class UserAuthService extends GetxController {
         // Set role in userController from Firestore, default to 'customer'
         final role = userDoc.data()?['role'] ?? 'customer';
         userController.role.value = role;
+        userController.setUserProfile(User.fromFirestore(userDoc));
         
         // Save user session
         final prefs = await SharedPreferences.getInstance();
@@ -283,6 +285,7 @@ class UserController extends GetxController {
   RxString userId = ''.obs;
   RxString userName = ''.obs;
   // Add more user info as needed
+  Rx<User?> userProfile = Rx<User?>(null);
 
   void setRole(String newRole) {
     role.value = newRole;
@@ -298,6 +301,11 @@ class UserController extends GetxController {
     userId.value = '';
     userName.value = '';
     role.value = 'guest';
+    userProfile.value = null;
+  }
+  // Optionally, add a method to update userProfile
+  void setUserProfile(User? profile) {
+    userProfile.value = profile;
   }
 }
 
