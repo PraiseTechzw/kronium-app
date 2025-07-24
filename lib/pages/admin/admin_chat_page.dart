@@ -191,21 +191,12 @@ class _AdminChatPageState extends State<AdminChatPage> {
             
             return FadeInUp(
               delay: Duration(milliseconds: index * 100),
-              child: Container(
+              child: Card(
                 margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
-                      spreadRadius: 1,
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 3,
                 child: ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                   leading: CircleAvatar(
                     backgroundColor: AppTheme.primaryColor,
                     child: Text(
@@ -220,21 +211,16 @@ class _AdminChatPageState extends State<AdminChatPage> {
                   ),
                   title: Text(
                     chatRoom.customerName,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                   ),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(chatRoom.customerEmail),
+                      Text(chatRoom.customerEmail, style: const TextStyle(fontSize: 13)),
                       if (chatRoom.lastMessageAt != null)
                         Text(
                           'Last message: ${_formatDate(chatRoom.lastMessageAt!)}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                          ),
+                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                         ),
                     ],
                   ),
@@ -368,8 +354,8 @@ class _AdminChatPageState extends State<AdminChatPage> {
                         Flexible(
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
+                              horizontal: 18,
+                              vertical: 14,
                             ),
                             decoration: BoxDecoration(
                               color: isAdmin
@@ -378,9 +364,9 @@ class _AdminChatPageState extends State<AdminChatPage> {
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.grey.withOpacity(0.1),
+                                  color: Colors.grey.withOpacity(0.08),
                                   spreadRadius: 1,
-                                  blurRadius: 4,
+                                  blurRadius: 6,
                                   offset: const Offset(0, 2),
                                 ),
                               ],
@@ -404,7 +390,7 @@ class _AdminChatPageState extends State<AdminChatPage> {
                                     color: isAdmin
                                         ? Colors.white
                                         : Colors.black87,
-                                    fontSize: 14,
+                                    fontSize: 15,
                                   ),
                                 ),
                                 const SizedBox(height: 4),

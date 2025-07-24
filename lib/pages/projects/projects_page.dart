@@ -1047,6 +1047,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
     final emailController = TextEditingController(text: userProfile?.email ?? '');
     final phoneController = TextEditingController();
     bool isLoading = false;
+    DateTime? expectedStartDate;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -1178,17 +1179,48 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                             ),
                             onChanged: (v) => size = v,
                           ),
-                          const SizedBox(height: 16),
-                          if (location.isNotEmpty && selectedCategory != null)
-                            matchedTransportCost != null
-                              ? Padding(
-                                  padding: const EdgeInsets.only(top: 8),
-                                  child: Text('Estimated Transport Cost: $matchedTransportCost', style: const TextStyle(fontWeight: FontWeight.bold)),
-                                )
-                              : Padding(
-                                  padding: const EdgeInsets.only(top: 8),
-                                  child: Text('Transport cost will be provided by admin after review.', style: const TextStyle(color: Colors.grey)),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              const Icon(Iconsax.calendar, size: 18, color: Colors.grey),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () async {
+                                    DateTime now = DateTime.now();
+                                    DateTime? picked = await showDatePicker(
+                                      context: context,
+                                      initialDate: expectedStartDate ?? now,
+                                      firstDate: now,
+                                      lastDate: DateTime(now.year + 5),
+                                    );
+                                    if (picked != null) {
+                                      setModalState(() {
+                                        expectedStartDate = picked;
+                                      });
+                                    }
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: Colors.grey[300]!),
+                                      borderRadius: BorderRadius.circular(10),
+                                      color: Colors.white,
+                                    ),
+                                    child: Text(
+                                      expectedStartDate != null
+                                          ? 'Expected Start Date: 24{expectedStartDate!.toLocal().toString().split(' ')[0]}'
+                                          : 'Pick Expected Start Date',
+                                      style: TextStyle(
+                                        color: expectedStartDate != null ? Colors.black : Colors.grey,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
                                 ),
+                              ),
+                            ],
+                          ),
                           const SizedBox(height: 24),
                           const Text('Summary', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                           const Divider(height: 24),
@@ -1230,17 +1262,18 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                                       setModalState(() => isLoading = true);
                                       try {
                                         await FirebaseFirestore.instance.collection('projectRequests').add({
-                                          'name': nameController.text,
-                                          'email': emailController.text,
-                                          'phone': phoneController.text,
-                                          'location': location,
-                                          'size': size,
+                                          'name': nameController.text.trim(),
+                                          'email': emailController.text.trim(),
+                                          'phone': phoneController.text.trim(),
+                                          'location': location.trim(),
+                                          'size': size.trim(),
                                           'category': selectedCategory,
-                                          'createdAt': DateTime.now(),
-                                          'estimatedTransportCost': matchedTransportCost,
+                                          'expectedStartDate': expectedStartDate != null ? Timestamp.fromDate(expectedStartDate!) : null,
+                                          'createdAt': FieldValue.serverTimestamp(),
+                                          'reviewed': false,
                                         });
                                         Navigator.pop(context);
-                                        Get.snackbar('Request Sent', 'Your project request has been submitted!', backgroundColor: Colors.green, colorText: Colors.white);
+                                        Get.snackbar('Requested', 'Project request submitted!', backgroundColor: Colors.green, colorText: Colors.white);
                                       } catch (e) {
                                         Get.snackbar('Error', 'Failed to submit request: $e', backgroundColor: Colors.red, colorText: Colors.white);
                                       } finally {

@@ -164,9 +164,9 @@ class _CustomerChatPageState extends State<CustomerChatPage> {
                                       alignment: isCustomer ? Alignment.centerRight : Alignment.centerLeft,
                                       child: Container(
                                         margin: const EdgeInsets.symmetric(vertical: 6),
-                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
                                         decoration: BoxDecoration(
-                                          color: isCustomer ? AppTheme.primaryColor : Colors.grey[300],
+                                          color: isCustomer ? AppTheme.primaryColor : Colors.white,
                                           borderRadius: BorderRadius.only(
                                             topLeft: const Radius.circular(16),
                                             topRight: const Radius.circular(16),
@@ -176,7 +176,7 @@ class _CustomerChatPageState extends State<CustomerChatPage> {
                                           boxShadow: [
                                             BoxShadow(
                                               color: Colors.black.withOpacity(0.04),
-                                              blurRadius: 4,
+                                              blurRadius: 6,
                                               offset: const Offset(0, 2),
                                             ),
                                           ],
@@ -216,20 +216,30 @@ class _CustomerChatPageState extends State<CustomerChatPage> {
                           Expanded(
                             child: TextField(
                               controller: _messageController,
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 hintText: 'Type your message...',
-                                border: OutlineInputBorder(),
-                                isDense: true,
-                                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(25),
+                                  borderSide: BorderSide.none,
+                                ),
+                                filled: true,
+                                fillColor: Colors.grey[100],
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                               ),
                               minLines: 1,
                               maxLines: 4,
                             ),
                           ),
                           const SizedBox(width: 8),
-                          IconButton(
-                            icon: const Icon(Iconsax.send_2, color: AppTheme.primaryColor),
-                            onPressed: _sendMessage,
+                          Container(
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryColor,
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Iconsax.send_2, color: Colors.white),
+                              onPressed: _sendMessage,
+                            ),
                           ),
                         ],
                       ),

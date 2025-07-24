@@ -66,7 +66,7 @@ class _AdminProjectsPageState extends State<AdminProjectsPage> {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
         return Padding(
@@ -77,306 +77,381 @@ class _AdminProjectsPageState extends State<AdminProjectsPage> {
             top: 20,
           ),
           child: StatefulBuilder(
-          builder: (context, setModalState) {
+            builder: (context, setModalState) {
               return SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Center(
-                      child: Container(
-                        width: 60,
-                        height: 5,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      project == null ? 'Add Project' : 'Edit Project',
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: titleController,
-                      decoration: const InputDecoration(labelText: 'Title', prefixIcon: Icon(Iconsax.document_text)),
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: locationController,
-                      decoration: const InputDecoration(labelText: 'Location', prefixIcon: Icon(Iconsax.location)),
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: sizeController,
-                      decoration: const InputDecoration(labelText: 'Size (e.g. 1000 sqm)', prefixIcon: Icon(Iconsax.size)),
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: descController,
-                      decoration: const InputDecoration(labelText: 'Description', prefixIcon: Icon(Iconsax.info_circle)),
-                      maxLines: 3,
-                    ),
-                    const SizedBox(height: 16),
-                    // Date Picker
-                    Row(
+                child: Card(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  elevation: 4,
+                  color: Colors.white,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Iconsax.calendar, size: 18, color: Colors.grey),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () async {
-                              DateTime now = DateTime.now();
-                              DateTime? picked = await showDatePicker(
-                                context: context,
-                                initialDate: selectedDate ?? now,
-                                firstDate: DateTime(now.year - 2),
-                                lastDate: DateTime(now.year + 5),
-                              );
-                              if (picked != null) {
-                                setModalState(() {
-                                  selectedDate = picked;
-                                });
-                              }
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey[300]!),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                selectedDate != null
-                                    ? 'Date: ${selectedDate!.toLocal().toString().split(' ')[0]}'
-                                    : 'Pick Project Date',
-                                style: TextStyle(
-                                  color: selectedDate != null ? Colors.black : Colors.grey,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
+                        Center(
+                          child: Container(
+                            width: 60,
+                            height: 5,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[300],
+                              borderRadius: BorderRadius.circular(5),
                             ),
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    const Text('Features', style: TextStyle(fontWeight: FontWeight.bold)),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            decoration: const InputDecoration(labelText: 'Add Feature', prefixIcon: Icon(Iconsax.add)),
-                            onChanged: (v) => featureInput = v,
-                            onSubmitted: (v) {
-                              if (v.trim().isNotEmpty) {
-                                setModalState(() {
-                                  features.add(v.trim());
-                                });
-                              }
-                            },
+                        const SizedBox(height: 20),
+                        Text(
+                          project == null ? 'Add Project' : 'Edit Project',
+                          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 18),
+                        const Text('Project Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        const Divider(height: 24),
+                        TextField(
+                          controller: titleController,
+                          decoration: InputDecoration(
+                            labelText: 'Title',
+                            prefixIcon: const Icon(Iconsax.document_text),
+                            filled: true,
+                            fillColor: Colors.grey[50],
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                           ),
                         ),
-                        IconButton(
-                          icon: const Icon(Iconsax.add_circle, color: Colors.green),
-                          onPressed: () {
-                            if (featureInput.trim().isNotEmpty) {
-                              setModalState(() {
-                                features.add(featureInput.trim());
-                                featureInput = '';
-                              });
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                    if (features.isNotEmpty)
-                      Wrap(
-                        spacing: 8,
-                        children: features.map((f) => Chip(
-                          label: Text(f),
-                          onDeleted: () => setModalState(() => features.remove(f)),
-                        )).toList(),
-                      ),
-                    const SizedBox(height: 16),
-                    // Media Picker
-                    Row(
-                      children: [
-                        ElevatedButton.icon(
-                          icon: const Icon(Iconsax.image, color: Colors.white),
-                          label: const Text('Add Image', style: TextStyle(color: Colors.white)),
-                          onPressed: isUploading ? null : () async {
-                            setModalState(() => isUploading = true);
-                            FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
-                            if (result != null && result.files.single.path != null) {
-                              File file = File(result.files.single.path!);
-                              try {
-                                String url = await FirebaseService.instance.uploadImage(file, file.path);
-                                setModalState(() {
-                                  mediaUrls.add(url);
-                                });
-                              } catch (e) {
-                                Get.snackbar('Error', 'Failed to upload image: $e', backgroundColor: Colors.red, colorText: Colors.white);
-                              }
-                            }
-                            setModalState(() => isUploading = false);
-                          },
-                        ),
-                        const SizedBox(width: 10),
-                        ElevatedButton.icon(
-                          icon: const Icon(Iconsax.video, color: Colors.white),
-                          label: const Text('Add Video', style: TextStyle(color: Colors.white)),
-                          onPressed: isUploading ? null : () async {
-                            setModalState(() => isUploading = true);
-                            FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.video);
-                            if (result != null && result.files.single.path != null) {
-                              File file = File(result.files.single.path!);
-                              try {
-                                String url = await FirebaseService.instance.uploadVideo(file, file.path);
-                                setModalState(() {
-                                  mediaUrls.add(url);
-                                });
-                              } catch (e) {
-                                Get.snackbar('Error', 'Failed to upload video: $e', backgroundColor: Colors.red, colorText: Colors.white);
-                              }
-                            }
-                            setModalState(() => isUploading = false);
-                          },
-                        ),
-                      ],
-                    ),
-                    if (mediaUrls.isNotEmpty)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Padding(
-                            padding: EdgeInsets.only(bottom: 8),
-                            child: Text('Media Preview', style: TextStyle(fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: locationController,
+                          decoration: InputDecoration(
+                            labelText: 'Location',
+                            prefixIcon: const Icon(Iconsax.location),
+                            filled: true,
+                            fillColor: Colors.grey[50],
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                           ),
-                          Wrap(
-                            spacing: 12,
-                            runSpacing: 12,
-                            children: mediaUrls.map((url) {
-                              final isVideo = url.endsWith('.mp4') || url.contains('video');
-                              return Stack(
-                                alignment: Alignment.topRight,
-                                children: [
-                                  Container(
-                                    width: 100,
-                                    height: 100,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(10),
-                                      border: Border.all(color: Colors.grey[300]!),
-                                      color: Colors.black12,
+                        ),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: sizeController,
+                          decoration: InputDecoration(
+                            labelText: 'Size (e.g. 1000 sqm)',
+                            prefixIcon: const Icon(Iconsax.size),
+                            filled: true,
+                            fillColor: Colors.grey[50],
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: descController,
+                          decoration: InputDecoration(
+                            labelText: 'Description',
+                            prefixIcon: const Icon(Iconsax.info_circle),
+                            filled: true,
+                            fillColor: Colors.grey[50],
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                          maxLines: 3,
+                        ),
+                        const SizedBox(height: 18),
+                        Row(
+                          children: [
+                            const Icon(Iconsax.calendar, size: 18, color: Colors.grey),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () async {
+                                  DateTime now = DateTime.now();
+                                  DateTime? picked = await showDatePicker(
+                                    context: context,
+                                    initialDate: selectedDate ?? now,
+                                    firstDate: DateTime(now.year - 2),
+                                    lastDate: DateTime(now.year + 5),
+                                  );
+                                  if (picked != null) {
+                                    setModalState(() {
+                                      selectedDate = picked;
+                                    });
+                                  }
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: Colors.grey[300]!),
+                                    borderRadius: BorderRadius.circular(10),
+                                    color: Colors.grey[50],
+                                  ),
+                                  child: Text(
+                                    selectedDate != null
+                                        ? 'Date: ${selectedDate!.toLocal().toString().split(' ')[0]}'
+                                        : 'Pick Project Date',
+                                    style: TextStyle(
+                                      color: selectedDate != null ? Colors.black : Colors.grey,
+                                      fontWeight: FontWeight.w500,
                                     ),
-                                    child: isVideo
-                                        ? _VideoPreviewWidget(url: url)
-                                        : ClipRRect(
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 18),
+                        const Text('Features', style: TextStyle(fontWeight: FontWeight.bold)),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                decoration: InputDecoration(
+                                  labelText: 'Add Feature',
+                                  prefixIcon: const Icon(Iconsax.add),
+                                  filled: true,
+                                  fillColor: Colors.grey[50],
+                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                                onChanged: (v) => featureInput = v,
+                                onSubmitted: (v) {
+                                  if (v.trim().isNotEmpty) {
+                                    setModalState(() {
+                                      features.add(v.trim());
+                                    });
+                                  }
+                                },
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Iconsax.add_circle, color: Colors.green),
+                              onPressed: () {
+                                if (featureInput.trim().isNotEmpty) {
+                                  setModalState(() {
+                                    features.add(featureInput.trim());
+                                    featureInput = '';
+                                  });
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                        if (features.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Wrap(
+                              spacing: 8,
+                              children: features.map((f) => Chip(
+                                label: Text(f),
+                                onDeleted: () => setModalState(() => features.remove(f)),
+                              )).toList(),
+                            ),
+                          ),
+                        const SizedBox(height: 18),
+                        const Text('Media', style: TextStyle(fontWeight: FontWeight.bold)),
+                        Row(
+                          children: [
+                            ElevatedButton.icon(
+                              icon: const Icon(Iconsax.image, color: Colors.white),
+                              label: const Text('Add Image', style: TextStyle(color: Colors.white)),
+                              onPressed: isUploading ? null : () async {
+                                setModalState(() => isUploading = true);
+                                FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
+                                if (result != null && result.files.single.path != null) {
+                                  File file = File(result.files.single.path!);
+                                  try {
+                                    String url = await FirebaseService.instance.uploadImage(file, file.path);
+                                    setModalState(() {
+                                      mediaUrls.add(url);
+                                    });
+                                  } catch (e) {
+                                    Get.snackbar('Error', 'Failed to upload image: $e', backgroundColor: Colors.red, colorText: Colors.white);
+                                  }
+                                }
+                                setModalState(() => isUploading = false);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            ElevatedButton.icon(
+                              icon: const Icon(Iconsax.video, color: Colors.white),
+                              label: const Text('Add Video', style: TextStyle(color: Colors.white)),
+                              onPressed: isUploading ? null : () async {
+                                setModalState(() => isUploading = true);
+                                FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.video);
+                                if (result != null && result.files.single.path != null) {
+                                  File file = File(result.files.single.path!);
+                                  try {
+                                    String url = await FirebaseService.instance.uploadVideo(file, file.path);
+                                    setModalState(() {
+                                      mediaUrls.add(url);
+                                    });
+                                  } catch (e) {
+                                    Get.snackbar('Error', 'Failed to upload video: $e', backgroundColor: Colors.red, colorText: Colors.white);
+                                  }
+                                }
+                                setModalState(() => isUploading = false);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.deepPurple,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (mediaUrls.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Media Preview', style: TextStyle(fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 8),
+                                Wrap(
+                                  spacing: 12,
+                                  runSpacing: 12,
+                                  children: mediaUrls.map((url) {
+                                    final isVideo = url.endsWith('.mp4') || url.contains('video');
+                                    return Stack(
+                                      alignment: Alignment.topRight,
+                                      children: [
+                                        Container(
+                                          width: 100,
+                                          height: 100,
+                                          decoration: BoxDecoration(
                                             borderRadius: BorderRadius.circular(10),
-                                            child: Image.network(
-                                              url,
-                                              fit: BoxFit.cover,
-                                              width: 100,
-                                              height: 100,
-                                              errorBuilder: (c, e, s) => const Icon(Icons.broken_image, size: 40),
+                                            border: Border.all(color: Colors.grey[300]!),
+                                            color: Colors.black12,
+                                          ),
+                                          child: isVideo
+                                              ? _VideoPreviewWidget(url: url)
+                                              : ClipRRect(
+                                                  borderRadius: BorderRadius.circular(10),
+                                                  child: Image.network(
+                                                    url,
+                                                    fit: BoxFit.cover,
+                                                    width: 100,
+                                                    height: 100,
+                                                    errorBuilder: (c, e, s) => const Icon(Icons.broken_image, size: 40),
+                                                  ),
+                                                ),
+                                        ),
+                                        Positioned(
+                                          top: 2,
+                                          right: 2,
+                                          child: Material(
+                                            color: Colors.transparent,
+                                            child: InkWell(
+                                              borderRadius: BorderRadius.circular(20),
+                                              onTap: () => setModalState(() => mediaUrls.remove(url)),
+                                              child: const Padding(
+                                                padding: EdgeInsets.all(2),
+                                                child: Icon(Iconsax.close_circle, color: Colors.red, size: 24),
+                                              ),
                                             ),
                                           ),
-                                  ),
-                                  Positioned(
-                                    top: 2,
-                                    right: 2,
-                                    child: Material(
-                                      color: Colors.transparent,
-                                      child: InkWell(
-                                        borderRadius: BorderRadius.circular(20),
-                                        onTap: () => setModalState(() => mediaUrls.remove(url)),
-                                        child: const Padding(
-                                          padding: EdgeInsets.all(2),
-                                          child: Icon(Iconsax.close_circle, color: Colors.red, size: 24),
                                         ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              );
-                            }).toList(),
+                                      ],
+                                    );
+                                  }).toList(),
+                                ),
+                              ],
+                            ),
                           ),
-                          const SizedBox(height: 16),
-                        ],
-                      ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      value: selectedCategory,
-                      items: categories.map((cat) => DropdownMenuItem(value: cat, child: Text(cat))).toList(),
-                      onChanged: (v) => setModalState(() => selectedCategory = v),
-                      decoration: const InputDecoration(labelText: 'Category', prefixIcon: Icon(Iconsax.category)),
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        ElevatedButton(
-                          onPressed: () async {
-                            // Validation
-                            if (titleController.text.trim().isEmpty || locationController.text.trim().isEmpty || descController.text.trim().isEmpty || selectedDate == null || mediaUrls.isEmpty) {
-                              Get.snackbar('Error', 'Title, Location, Description, Date, and at least one image/video are required', backgroundColor: Colors.red, colorText: Colors.white);
-                              return;
-                            }
-                            final newProject = Project(
-                              id: project?.id ?? '',
-                              title: titleController.text.trim(),
-                              description: descController.text.trim(),
-                              location: locationController.text.trim(),
-                              size: sizeController.text.trim(),
-                              mediaUrls: mediaUrls,
-                              features: features,
-                              approved: project?.approved ?? false,
-                              progress: project?.progress ?? 0.0,
-                              date: selectedDate,
-                              bookedDates: project?.bookedDates ?? [],
-                              category: selectedCategory,
-                              transportCost: double.tryParse(transportCostController.text) ?? 0.0,
-                            );
-                            try {
-                              if (project == null) {
-                                await FirebaseService.instance.addProject(newProject);
-                                if (requestId != null) {
-                                  // Mark the request as reviewed after project creation
-                                  await FirebaseFirestore.instance.collection('projectRequests').doc(requestId).update({'reviewed': true});
-                                }
-                                Get.back();
-                                Get.snackbar('Success', 'Project added!', backgroundColor: Colors.green, colorText: Colors.white);
-                              } else {
-                                await FirebaseService.instance.updateProject(project.id, newProject.toMap());
-                                Get.back();
-                                Get.snackbar('Success', 'Project updated!', backgroundColor: Colors.green, colorText: Colors.white);
-                              }
-                            } catch (e) {
-                              Get.snackbar('Error', 'Failed to save project: $e', backgroundColor: Colors.red, colorText: Colors.white);
-                            }
-                          },
-                          child: Text(project == null ? 'Add Project' : 'Update Project'),
+                        const SizedBox(height: 18),
+                        DropdownButtonFormField<String>(
+                          value: selectedCategory,
+                          items: categories.map((cat) => DropdownMenuItem(value: cat, child: Text(cat))).toList(),
+                          onChanged: (v) => setModalState(() => selectedCategory = v),
+                          decoration: InputDecoration(
+                            labelText: 'Category',
+                            prefixIcon: const Icon(Iconsax.category),
+                            filled: true,
+                            fillColor: Colors.grey[50],
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
                         ),
-                        const SizedBox(width: 10),
-                        if (project != null)
-                          OutlinedButton(
-                            onPressed: () async {
-                              try {
-                                await FirebaseService.instance.deleteProject(project.id);
-                                Get.back();
-                                Get.snackbar('Deleted', 'Project deleted!', backgroundColor: Colors.red, colorText: Colors.white);
-                              } catch (e) {
-                                Get.snackbar('Error', 'Failed to delete project: $e', backgroundColor: Colors.red, colorText: Colors.white);
-                              }
-                            },
-                            style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
-                            child: const Text('Delete'),
+                        const SizedBox(height: 18),
+                        TextField(
+                          controller: transportCostController,
+                          decoration: InputDecoration(
+                            labelText: 'Transport Cost',
+                            prefixIcon: const Icon(Iconsax.money),
+                            filled: true,
+                            fillColor: Colors.grey[50],
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                           ),
+                          keyboardType: TextInputType.number,
+                        ),
+                        const SizedBox(height: 24),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            ElevatedButton(
+                              onPressed: () async {
+                                // Validation
+                                if (titleController.text.trim().isEmpty || locationController.text.trim().isEmpty || descController.text.trim().isEmpty || selectedDate == null || mediaUrls.isEmpty) {
+                                  Get.snackbar('Error', 'Title, Location, Description, Date, and at least one image/video are required', backgroundColor: Colors.red, colorText: Colors.white);
+                                  return;
+                                }
+                                final newProject = Project(
+                                  id: project?.id ?? '',
+                                  title: titleController.text.trim(),
+                                  description: descController.text.trim(),
+                                  location: locationController.text.trim(),
+                                  size: sizeController.text.trim(),
+                                  mediaUrls: mediaUrls,
+                                  features: features,
+                                  approved: project?.approved ?? false,
+                                  progress: project?.progress ?? 0.0,
+                                  date: selectedDate,
+                                  bookedDates: project?.bookedDates ?? [],
+                                  category: selectedCategory,
+                                  transportCost: double.tryParse(transportCostController.text) ?? 0.0,
+                                );
+                                try {
+                                  if (project == null) {
+                                    await FirebaseService.instance.addProject(newProject);
+                                    if (requestId != null) {
+                                      // Mark the request as reviewed after project creation
+                                      await FirebaseFirestore.instance.collection('projectRequests').doc(requestId).update({'reviewed': true});
+                                    }
+                                    Get.back();
+                                    Get.snackbar('Success', 'Project added!', backgroundColor: Colors.green, colorText: Colors.white);
+                                  } else {
+                                    await FirebaseService.instance.updateProject(project.id, newProject.toMap());
+                                    Get.back();
+                                    Get.snackbar('Success', 'Project updated!', backgroundColor: Colors.green, colorText: Colors.white);
+                                  }
+                                } catch (e) {
+                                  Get.snackbar('Error', 'Failed to save project: $e', backgroundColor: Colors.red, colorText: Colors.white);
+                                }
+                              },
+                              child: Text(project == null ? 'Add Project' : 'Update Project'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            if (project != null)
+                              OutlinedButton(
+                                onPressed: () async {
+                                  try {
+                                    await FirebaseService.instance.deleteProject(project.id);
+                                    Get.back();
+                                    Get.snackbar('Deleted', 'Project deleted!', backgroundColor: Colors.red, colorText: Colors.white);
+                                  } catch (e) {
+                                    Get.snackbar('Error', 'Failed to delete project: $e', backgroundColor: Colors.red, colorText: Colors.white);
+                                  }
+                                },
+                                style: OutlinedButton.styleFrom(foregroundColor: Colors.red, side: const BorderSide(color: Colors.red)),
+                                child: const Text('Delete'),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
                       ],
                     ),
-                    const SizedBox(height: 10),
-                  ],
+                  ),
                 ),
               );
             },
