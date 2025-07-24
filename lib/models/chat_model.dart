@@ -8,6 +8,7 @@ class ChatMessage {
   final String message;
   final DateTime timestamp;
   final bool isRead;
+  final String? chatRoomId;
 
   ChatMessage({
     this.id,
@@ -17,6 +18,7 @@ class ChatMessage {
     required this.message,
     required this.timestamp,
     this.isRead = false,
+    this.chatRoomId,
   });
 
   // Create from Firestore document
@@ -31,6 +33,7 @@ class ChatMessage {
       message: data['message'] ?? '',
       timestamp: data['timestamp']?.toDate() ?? DateTime.now(),
       isRead: data['isRead'] ?? false,
+      chatRoomId: data['chatRoomId'],
     );
   }
 
@@ -43,6 +46,7 @@ class ChatMessage {
       'message': message,
       'timestamp': Timestamp.fromDate(timestamp),
       'isRead': isRead,
+      if (chatRoomId != null) 'chatRoomId': chatRoomId,
     };
   }
 
@@ -55,6 +59,7 @@ class ChatMessage {
     String? message,
     DateTime? timestamp,
     bool? isRead,
+    String? chatRoomId,
   }) {
     return ChatMessage(
       id: id ?? this.id,
@@ -64,6 +69,7 @@ class ChatMessage {
       message: message ?? this.message,
       timestamp: timestamp ?? this.timestamp,
       isRead: isRead ?? this.isRead,
+      chatRoomId: chatRoomId ?? this.chatRoomId,
     );
   }
 }

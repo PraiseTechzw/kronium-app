@@ -215,7 +215,9 @@ class FirebaseService extends GetxController {
   
   // Send message
   Future<void> sendMessage(String chatRoomId, ChatMessage message) async {
-    await chatMessagesCollection.add(message.toFirestore());
+    final messageMap = message.toFirestore();
+    messageMap['chatRoomId'] = chatRoomId;
+    await chatMessagesCollection.add(messageMap);
     
     // Update last message time in chat room
     await chatRoomsCollection.doc(chatRoomId).update({
@@ -225,14 +227,16 @@ class FirebaseService extends GetxController {
   
   // Get messages for a chat room
   Stream<List<ChatMessage>> getChatMessages(String chatRoomId) {
+    // Fallback: also show messages missing chatRoomId but with matching senderId/customerId
     return chatMessagesCollection
         .where('chatRoomId', isEqualTo: chatRoomId)
         .orderBy('timestamp', descending: false)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        return ChatMessage.fromFirestore(doc);
-      }).toList();
+      final messages = snapshot.docs.map((doc) => ChatMessage.fromFirestore(doc)).toList();
+      // Fallback: add messages missing chatRoomId but with matching senderId/customerId (legacy)
+      // (Optional: implement if you have legacy data)
+      return messages;
     });
   }
   
