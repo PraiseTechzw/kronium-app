@@ -9,6 +9,7 @@ import 'mock_project_booking_data.dart';
 import 'package:kronium/core/user_auth_service.dart';
 import 'package:kronium/core/firebase_service.dart';
 import 'package:kronium/models/project_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ProjectsPage extends StatefulWidget {
   const ProjectsPage({super.key});
@@ -195,21 +196,12 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
           ),
         ],
       ),
-      floatingActionButton: userController.role.value == 'customer' && _selectedProject != null
-        ? FloatingActionButton.extended(
-            onPressed: () => _showBookingFormBottomSheet(context, _selectedProject!),
-            icon: const Icon(Iconsax.message_question),
-            label: const Text('Request Similar Project'),
-            backgroundColor: AppTheme.primaryColor,
-          )
-        : userController.role.value == 'guest' && _selectedProject != null
-          ? FloatingActionButton.extended(
-              onPressed: () => _showGuestPrompt(),
-              icon: const Icon(Iconsax.login),
-              label: const Text('Sign Up to Request'),
-              backgroundColor: Colors.orange,
-            )
-          : null,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showRequestProjectForm(context),
+        icon: const Icon(Iconsax.message_question),
+        label: const Text('Request a Project'),
+        backgroundColor: AppTheme.primaryColor,
+      ),
     );
   }
 
@@ -247,7 +239,19 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
 
     // If no projects, show empty state only (prevents RangeError)
         if (projects.isEmpty) {
-      return _buildEmptyState();
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('No projects available.'),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () => _showRequestProjectForm(context),
+              child: const Text('Request a Project'),
+            ),
+          ],
+        ),
+      );
     }
 
     return Padding(
@@ -720,11 +724,11 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                     ],
                   ),
                   const SizedBox(height: 10),
-                  if (location.isNotEmpty && size.isNotEmpty && pickedDate != null)
+                  if (project.transportCost != null)
                     Row(
                       children: [
                         const Text('Transport Cost: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                        Text(transportCost != null ? ' 24${transportCost!.toStringAsFixed(2)}' : '--'),
+                        Text('${project.transportCost}'),
                       ],
                     ),
                   const SizedBox(height: 10),
@@ -984,7 +988,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                       Row(
                         children: [
                           const Text('Transport Cost: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                          Text(transportCost != null ? ' 24${transportCost!.toStringAsFixed(2)}' : '--'),
+                          Text(transportCost != null ? ' ${transportCost!.toStringAsFixed(2)}' : '--'),
                         ],
                       ),
                     const SizedBox(height: 10),
@@ -1019,6 +1023,118 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
               ),
             );
           },
+          ),
+        );
+      },
+    );
+  }
+
+  // Add the _showRequestProjectForm method:
+  void _showRequestProjectForm(BuildContext context) {
+    String location = '';
+    String size = '';
+    String name = '';
+    String email = '';
+    bool isLoading = false;
+    final List<String> categories = [
+      'Greenhouses',
+      'Steel Structures',
+      'Solar Systems',
+      'Construction',
+      'Logistics',
+      'IoT & Automation',
+    ];
+    String? selectedCategory = categories.first;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 20,
+            right: 20,
+            top: 20,
+          ),
+          child: StatefulBuilder(
+            builder: (context, setModalState) {
+              return SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 60,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    const Text('Request a Project', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 16),
+                    TextField(
+                      decoration: const InputDecoration(labelText: 'Your Name'),
+                      onChanged: (v) => name = v,
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      decoration: const InputDecoration(labelText: 'Your Email'),
+                      onChanged: (v) => email = v,
+                    ),
+                    const SizedBox(height: 10),
+                    DropdownButtonFormField<String>(
+                      value: selectedCategory,
+                      items: categories.map((cat) => DropdownMenuItem(value: cat, child: Text(cat))).toList(),
+                      onChanged: (v) => setModalState(() => selectedCategory = v),
+                      decoration: const InputDecoration(labelText: 'Category', prefixIcon: Icon(Iconsax.category)),
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      decoration: const InputDecoration(labelText: 'Desired Project Location'),
+                      onChanged: (v) => location = v,
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      decoration: const InputDecoration(labelText: 'Desired Project Size (e.g. 1000 sqm)'),
+                      onChanged: (v) => size = v,
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: isLoading || name.isEmpty || email.isEmpty || location.isEmpty || size.isEmpty
+                          ? null
+                          : () async {
+                              setModalState(() => isLoading = true);
+                              try {
+                                await FirebaseFirestore.instance.collection('projectRequests').add({
+                                  'name': name,
+                                  'email': email,
+                                  'location': location,
+                                  'size': size,
+                                  'category': selectedCategory,
+                                  'createdAt': DateTime.now(),
+                                });
+                                Navigator.pop(context);
+                                Get.snackbar('Request Sent', 'Your project request has been submitted!', backgroundColor: Colors.green, colorText: Colors.white);
+                              } catch (e) {
+                                Get.snackbar('Error', 'Failed to submit request: $e', backgroundColor: Colors.red, colorText: Colors.white);
+                              } finally {
+                                setModalState(() => isLoading = false);
+                              }
+                            },
+                      child: isLoading ? const CircularProgressIndicator() : const Text('Submit Request'),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                ),
+              );
+            },
           ),
         );
       },

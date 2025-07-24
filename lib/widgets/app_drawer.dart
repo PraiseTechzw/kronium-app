@@ -19,7 +19,7 @@ class AppDrawer extends StatelessWidget {
   final List<Widget>? extraItems;
 
   const AppDrawer({
-    Key? key,
+    super.key,
     required this.isDarkMode,
     required this.userAuthService,
     required this.adminAuthService,
@@ -27,7 +27,7 @@ class AppDrawer extends StatelessWidget {
     required this.onShowAbout,
     required this.onShowContact,
     this.extraItems,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

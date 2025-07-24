@@ -22,7 +22,7 @@ class AppwriteService {
   // Storage Helper Methods
   /// Uploads a file to Appwrite Storage. Returns the file ID on success.
   static Future<String?> uploadFile({
-    String bucketId = '687a6819003de32d8af1',
+    required String bucketId,
     required String path,
     required List<int> bytes,
     required String fileName,

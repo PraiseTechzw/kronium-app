@@ -41,11 +41,11 @@ class AdminServicesPage extends StatelessWidget {
         if (role == 'admin') {
           return FloatingActionButton(
             backgroundColor: AppTheme.primaryColor,
-            child: const Icon(Iconsax.add, color: Colors.white),
             onPressed: () {
               Get.toNamed(AppRoutes.adminAddService);
             },
             tooltip: 'Add Service',
+            child: const Icon(Iconsax.add, color: Colors.white),
           );
         }
         return const SizedBox.shrink();

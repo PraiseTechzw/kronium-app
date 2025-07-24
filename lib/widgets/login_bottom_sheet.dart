@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:kronium/core/app_theme.dart';
-import 'package:kronium/core/routes.dart';
 import 'package:kronium/core/user_auth_service.dart';
 
 Future<void> showLoginBottomSheet(BuildContext context) async {

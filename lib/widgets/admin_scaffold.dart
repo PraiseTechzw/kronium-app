@@ -16,7 +16,7 @@ class AdminScaffold extends StatefulWidget {
   final Widget? bottomNavigationBar;
 
   const AdminScaffold({
-    Key? key,
+    super.key,
     required this.title,
     required this.body,
     this.actions,
@@ -25,7 +25,7 @@ class AdminScaffold extends StatefulWidget {
     this.isDarkMode,
     this.onDarkModeChanged,
     this.bottomNavigationBar,
-  }) : super(key: key);
+  });
 
   @override
   State<AdminScaffold> createState() => _AdminScaffoldState();

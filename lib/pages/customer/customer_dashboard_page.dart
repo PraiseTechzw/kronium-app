@@ -235,13 +235,13 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
       'Irrigation Systems',
       'Logistics',
     ];
-    int _currentStep = 0;
-    String? _selectedType = projectTypes.first;
-    DateTime? _selectedDate;
-    String _location = '';
-    String _size = '';
-    double? _liveTransportCost;
-    final _formKey = GlobalKey<FormState>();
+    int currentStep = 0;
+    String? selectedType = projectTypes.first;
+    DateTime? selectedDate;
+    String location = '';
+    String size = '';
+    double? liveTransportCost;
+    final formKey = GlobalKey<FormState>();
 
     // Prefill user info if available (prefer userProfile, fallback to saved)
     final user = UserAuthService.instance.userProfile.value;
@@ -249,21 +249,21 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
     _emailController.text = user?.email ?? _savedEmail ?? '';
     _phoneController.text = user?.phone ?? _savedPhone ?? '';
 
-    void _updateTransportCost() {
-      _liveTransportCost = _calculateSmartTransportCost(_location, _size);
+    void updateTransportCost() {
+      liveTransportCost = _calculateSmartTransportCost(location, size);
     }
 
     Get.bottomSheet(
       StatefulBuilder(
         builder: (context, setModalState) {
           void nextStep() {
-            if (_currentStep < 2) {
-              setModalState(() => _currentStep++);
+            if (currentStep < 2) {
+              setModalState(() => currentStep++);
             }
           }
           void prevStep() {
-            if (_currentStep > 0) {
-              setModalState(() => _currentStep--);
+            if (currentStep > 0) {
+              setModalState(() => currentStep--);
             }
           }
           return Container(
@@ -279,15 +279,15 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.looks_one, color: _currentStep == 0 ? AppTheme.primaryColor : Colors.grey),
-                    Container(width: 30, height: 2, color: _currentStep > 0 ? AppTheme.primaryColor : Colors.grey[300]),
-                    Icon(Icons.looks_two, color: _currentStep == 1 ? AppTheme.primaryColor : Colors.grey),
-                    Container(width: 30, height: 2, color: _currentStep > 1 ? AppTheme.primaryColor : Colors.grey[300]),
-                    Icon(Icons.looks_3, color: _currentStep == 2 ? AppTheme.primaryColor : Colors.grey),
+                    Icon(Icons.looks_one, color: currentStep == 0 ? AppTheme.primaryColor : Colors.grey),
+                    Container(width: 30, height: 2, color: currentStep > 0 ? AppTheme.primaryColor : Colors.grey[300]),
+                    Icon(Icons.looks_two, color: currentStep == 1 ? AppTheme.primaryColor : Colors.grey),
+                    Container(width: 30, height: 2, color: currentStep > 1 ? AppTheme.primaryColor : Colors.grey[300]),
+                    Icon(Icons.looks_3, color: currentStep == 2 ? AppTheme.primaryColor : Colors.grey),
                   ],
                 ),
                 const SizedBox(height: 20),
-                if (_currentStep == 0) ...[
+                if (currentStep == 0) ...[
                   // --- Step 1: Select Project Type ---
                   const Text('Select Project Type', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                   const SizedBox(height: 10),
@@ -295,12 +295,12 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                     spacing: 10,
                     children: projectTypes.map((type) => ChoiceChip(
                       label: Text(type),
-                      selected: _selectedType == type,
+                      selected: selectedType == type,
                       onSelected: (selected) {
-                        setModalState(() => _selectedType = type);
+                        setModalState(() => selectedType = type);
                       },
                       selectedColor: AppTheme.primaryColor,
-                      labelStyle: TextStyle(color: _selectedType == type ? Colors.white : AppTheme.primaryColor),
+                      labelStyle: TextStyle(color: selectedType == type ? Colors.white : AppTheme.primaryColor),
                     )).toList(),
                   ),
                   const SizedBox(height: 30),
@@ -313,12 +313,12 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                       ),
                     ],
                   ),
-                ] else if (_currentStep == 1) ...[
+                ] else if (currentStep == 1) ...[
                   // --- Step 2: User Details & Date ---
                   const Text('Your Details & Date', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                   const SizedBox(height: 10),
                   Form(
-                    key: _formKey,
+                    key: formKey,
                     child: Column(
                       children: [
                         TextFormField(
@@ -340,9 +340,9 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                         Row(
                           children: [
                             Expanded(
-                              child: Text(_selectedDate == null
+                              child: Text(selectedDate == null
                                 ? 'No date selected'
-                                : 'Date: ${_selectedDate!.toLocal().toString().split(' ')[0]}'),
+                                : 'Date: ${selectedDate!.toLocal().toString().split(' ')[0]}'),
                             ),
                             ElevatedButton(
                               onPressed: () async {
@@ -357,14 +357,14 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                                   },
                                 );
                                 if (picked != null) {
-                                  setModalState(() => _selectedDate = picked);
+                                  setModalState(() => selectedDate = picked);
                                 }
                               },
                               child: const Text('Pick Date'),
                             ),
                           ],
                         ),
-                        if (_selectedDate != null && _takenDates.any((d) => d.year == _selectedDate!.year && d.month == _selectedDate!.month && d.day == _selectedDate!.day))
+                        if (selectedDate != null && _takenDates.any((d) => d.year == selectedDate!.year && d.month == selectedDate!.month && d.day == selectedDate!.day))
                           const Text('Selected date is unavailable. Please pick another.', style: TextStyle(color: Colors.red)),
                       ],
                     ),
@@ -376,7 +376,7 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                       OutlinedButton(onPressed: prevStep, child: const Text('Back')),
                       ElevatedButton(
                         onPressed: () {
-                          if (_formKey.currentState!.validate() && _selectedDate != null && !_takenDates.any((d) => d.year == _selectedDate!.year && d.month == _selectedDate!.month && d.day == _selectedDate!.day)) {
+                          if (formKey.currentState!.validate() && selectedDate != null && !_takenDates.any((d) => d.year == selectedDate!.year && d.month == selectedDate!.month && d.day == selectedDate!.day)) {
                             nextStep();
                           }
                         },
@@ -384,7 +384,7 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                       ),
                     ],
                   ),
-                ] else if (_currentStep == 2) ...[
+                ] else if (currentStep == 2) ...[
                   // --- Step 3: Location, Size, Transport Cost ---
                   const Text('Project Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                   const SizedBox(height: 10),
@@ -392,8 +392,8 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                     decoration: const InputDecoration(labelText: 'Project Location'),
                     onChanged: (v) {
                       setModalState(() {
-                        _location = v;
-                        _updateTransportCost();
+                        location = v;
+                        updateTransportCost();
                       });
                     },
                   ),
@@ -401,17 +401,17 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                     decoration: const InputDecoration(labelText: 'Project Size (e.g. 1000 sqm)'),
                     onChanged: (v) {
                       setModalState(() {
-                        _size = v;
-                        _updateTransportCost();
+                        size = v;
+                        updateTransportCost();
                       });
                     },
                   ),
                   const SizedBox(height: 10),
-                  if (_location.isNotEmpty && _size.isNotEmpty)
+                  if (location.isNotEmpty && size.isNotEmpty)
                     Row(
                       children: [
                         const Text('Estimated Transport Cost: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                        Text(_liveTransportCost != null ? '${_liveTransportCost!.toStringAsFixed(2)} USD' : '--'),
+                        Text(liveTransportCost != null ? '${liveTransportCost!.toStringAsFixed(2)} USD' : '--'),
                       ],
                     ),
                   const SizedBox(height: 20),
@@ -420,7 +420,7 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                     children: [
                       OutlinedButton(onPressed: prevStep, child: const Text('Back')),
                       ElevatedButton(
-                        onPressed: _location.isNotEmpty && _size.isNotEmpty
+                        onPressed: location.isNotEmpty && size.isNotEmpty
                           ? () {
                               // Save user info for next time (mock)
                               _savedName = _nameController.text;
@@ -442,7 +442,7 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                                       const SizedBox(height: 20),
                                       const Text('Request Submitted!', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22)),
                                       const SizedBox(height: 10),
-                                      Text('We have received your request for a $_selectedType project on ${_selectedDate!.toLocal().toString().split(' ')[0]}. Our team will contact you soon.'),
+                                      Text('We have received your request for a $selectedType project on ${selectedDate!.toLocal().toString().split(' ')[0]}. Our team will contact you soon.'),
                                       const SizedBox(height: 20),
                                       ElevatedButton(
                                         onPressed: () => Get.back(),

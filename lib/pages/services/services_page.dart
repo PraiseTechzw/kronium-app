@@ -3,8 +3,6 @@ import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:kronium/core/app_theme.dart';
 
-import 'package:video_player/video_player.dart';
-import 'package:kronium/core/services_data.dart';
 import 'package:kronium/core/user_auth_service.dart' show userController, UserAuthService;
 import 'package:kronium/models/service_model.dart';
 import 'package:kronium/core/firebase_service.dart' show FirebaseService;

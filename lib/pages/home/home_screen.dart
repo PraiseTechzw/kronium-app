@@ -20,11 +20,11 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, dynamic>> _companySlides = AppConstants.companySlidesData;
-    int _currentSlide = 0;
-    final CarouselSliderController _carouselController = CarouselSliderController();
+    final List<Map<String, dynamic>> companySlides = AppConstants.companySlidesData;
+    int currentSlide = 0;
+    final CarouselSliderController carouselController = CarouselSliderController();
    
-    final List<Map<String, dynamic>> _services = [
+    final List<Map<String, dynamic>> services = [
       {
         'title': 'Greenhouse Construction',
         'image': 'assets/images/services/Greenhouse.jpg',
@@ -63,7 +63,7 @@ class HomeScreen extends StatelessWidget {
                   builder: (context, setState) => Column(
                     children: [
                       CarouselSlider(
-                        carouselController: _carouselController,
+                        carouselController: carouselController,
                         options: CarouselOptions(
                           height: 240,
                           autoPlay: true,
@@ -71,9 +71,9 @@ class HomeScreen extends StatelessWidget {
                           viewportFraction: 0.95,
                           aspectRatio: 16/7,
                           autoPlayInterval: const Duration(seconds: 6),
-                          onPageChanged: (index, reason) => setState(() => _currentSlide = index),
+                          onPageChanged: (index, reason) => setState(() => currentSlide = index),
                         ),
-                        items: _companySlides.map((slide) {
+                        items: companySlides.map((slide) {
                           return Builder(
                             builder: (context) => Container(
                               width: MediaQuery.of(context).size.width,
@@ -278,13 +278,13 @@ class HomeScreen extends StatelessWidget {
                       const SizedBox(height: 10),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(_companySlides.length, (index) => AnimatedContainer(
+                        children: List.generate(companySlides.length, (index) => AnimatedContainer(
                           duration: const Duration(milliseconds: 300),
                           margin: const EdgeInsets.symmetric(horizontal: 3),
-                          width: _currentSlide == index ? 18 : 8,
+                          width: currentSlide == index ? 18 : 8,
                           height: 8,
                           decoration: BoxDecoration(
-                            color: _currentSlide == index ? Colors.white : Colors.white38,
+                            color: currentSlide == index ? Colors.white : Colors.white38,
                             borderRadius: BorderRadius.circular(6),
                           ),
                         )),
@@ -306,9 +306,9 @@ class HomeScreen extends StatelessWidget {
                     mainAxisSpacing: 16,
                   childAspectRatio: 0.85,
                   ),
-                  itemCount: _services.length,
+                  itemCount: services.length,
                   itemBuilder: (context, index) {
-                    final service = _services[index];
+                    final service = services[index];
                     return GestureDetector(
                       onTap: () => _onServiceTap(context, service),
                     child: AnimatedContainer(
@@ -374,8 +374,8 @@ class HomeScreen extends StatelessWidget {
                   },
                 ),
                 ContactCard(
-                  contacts: _companySlides.firstWhere((s) => s['title'] == 'CONTACT & OFFICES')['body'],
-                  socials: _companySlides.firstWhere((s) => s['title'] == 'CONTACT & OFFICES')['socials'],
+                  contacts: companySlides.firstWhere((s) => s['title'] == 'CONTACT & OFFICES')['body'],
+                  socials: companySlides.firstWhere((s) => s['title'] == 'CONTACT & OFFICES')['socials'],
                 ),
               ],
             ),
@@ -687,7 +687,7 @@ class _ServiceDetailSheet extends StatelessWidget {
 
 class ServiceBookingForm extends StatefulWidget {
   final Service service;
-  const ServiceBookingForm({required this.service});
+  const ServiceBookingForm({super.key, required this.service});
   @override
   State<ServiceBookingForm> createState() => _ServiceBookingFormState();
 }
@@ -907,7 +907,7 @@ class ContactCard extends StatelessWidget {
                 );
               }
               return const SizedBox.shrink();
-            }).toList(),
+            }),
             if (socials != null && socials!.isNotEmpty) ...[
               const SizedBox(height: 14),
               Row(

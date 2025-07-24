@@ -6,10 +6,10 @@ class BackgroundSwitcher extends StatefulWidget {
   final Duration switchDuration;
 
   const BackgroundSwitcher({
-    Key? key,
+    super.key,
     required this.child,
     this.switchDuration = const Duration(seconds: 8),
-  }) : super(key: key);
+  });
 
   @override
   State<BackgroundSwitcher> createState() => _BackgroundSwitcherState();

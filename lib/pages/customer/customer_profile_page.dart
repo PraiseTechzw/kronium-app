@@ -411,10 +411,10 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                                 borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                               ),
                               builder: (context) {
-                                final _passwordController = TextEditingController();
-                                final _confirmController = TextEditingController();
-                                final _formKey = GlobalKey<FormState>();
-                                bool _isLoading = false;
+                                final passwordController = TextEditingController();
+                                final confirmController = TextEditingController();
+                                final formKey = GlobalKey<FormState>();
+                                bool isLoading = false;
                                 return StatefulBuilder(
                                   builder: (context, setState) {
                                     return Padding(
@@ -425,7 +425,7 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                                         bottom: MediaQuery.of(context).viewInsets.bottom + 24,
                                       ),
                                       child: Form(
-                                        key: _formKey,
+                                        key: formKey,
                                         child: Column(
                                           mainAxisSize: MainAxisSize.min,
                                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -436,7 +436,7 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                                             ),
                                             const SizedBox(height: 16),
                                             TextFormField(
-                                              controller: _passwordController,
+                                              controller: passwordController,
                                               obscureText: true,
                                               decoration: const InputDecoration(
                                                 labelText: 'New Password',
@@ -454,14 +454,14 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                                             ),
                                             const SizedBox(height: 12),
                                             TextFormField(
-                                              controller: _confirmController,
+                                              controller: confirmController,
                                               obscureText: true,
                                               decoration: const InputDecoration(
                                                 labelText: 'Confirm Password',
                                                 prefixIcon: Icon(Iconsax.lock),
                                               ),
                                               validator: (value) {
-                                                if (value != _passwordController.text) {
+                                                if (value != passwordController.text) {
                                                   return 'Passwords do not match';
                                                 }
                                                 return null;
@@ -472,20 +472,20 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                                               width: double.infinity,
                                               height: 48,
                                               child: ElevatedButton(
-                                                onPressed: _isLoading
+                                                onPressed: isLoading
                                                     ? null
                                                     : () async {
-                                                        if (_formKey.currentState!.validate()) {
-                                                          setState(() => _isLoading = true);
+                                                        if (formKey.currentState!.validate()) {
+                                                          setState(() => isLoading = true);
                                                           final userAuthService = Get.find<UserAuthService>();
-                                                          final success = await userAuthService.changePassword(_passwordController.text);
-                                                          setState(() => _isLoading = false);
+                                                          final success = await userAuthService.changePassword(passwordController.text);
+                                                          setState(() => isLoading = false);
                                                           if (success) {
                                                             Navigator.pop(context);
                                                           }
                                                         }
                                                       },
-                                                child: _isLoading
+                                                child: isLoading
                                                     ? const SizedBox(
                                                         width: 24,
                                                         height: 24,

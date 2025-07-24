@@ -130,13 +130,14 @@ class FirebaseService extends GetxController {
     try {
       // Use AppwriteService helper for upload
       final fileId = await AppwriteService.uploadFile(
-        bucketId: 'images',
+        bucketId: '687a6819003de32d8af1', // Correct bucket ID
         path: file.path,
         bytes: await file.readAsBytes(),
         fileName: file.path.split('/').last,
       );
       if (fileId == null) throw Exception('Upload failed');
-      return 'https://cloud.appwrite.io/v1/storage/buckets/images/files/$fileId/view?project=6867ce2e001b592626ae';
+      // Return the correct Appwrite public view URL
+      return 'https://cloud.appwrite.io/v1/storage/buckets/687a6819003de32d8af1/files/$fileId/view?project=6867ce2e001b592626ae';
     } catch (e) {
       throw Exception('Failed to upload image: $e');
     }
@@ -147,13 +148,14 @@ class FirebaseService extends GetxController {
     try {
       // Use AppwriteService helper for upload
       final fileId = await AppwriteService.uploadFile(
-        bucketId: 'videos',
+        bucketId: '687a6819003de32d8af1', // Correct bucket ID
         path: file.path,
         bytes: await file.readAsBytes(),
         fileName: file.path.split('/').last,
       );
       if (fileId == null) throw Exception('Upload failed');
-      return 'https://cloud.appwrite.io/v1/storage/buckets/videos/files/$fileId/view?project=6867ce2e001b592626ae';
+      // Return the correct Appwrite public view URL
+      return 'https://cloud.appwrite.io/v1/storage/buckets/687a6819003de32d8af1/files/$fileId/view?project=6867ce2e001b592626ae';
     } catch (e) {
       throw Exception('Failed to upload video: $e');
     }

@@ -9,6 +9,8 @@ import 'package:kronium/core/firebase_service.dart';
 import 'package:kronium/models/project_model.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
+import 'package:video_player/video_player.dart';
+import 'package:kronium/pages/admin/admin_project_requests_page.dart';
 
 class AdminProjectsPage extends StatefulWidget {
   const AdminProjectsPage({super.key});
@@ -20,6 +22,14 @@ class AdminProjectsPage extends StatefulWidget {
 class _AdminProjectsPageState extends State<AdminProjectsPage> {
   final List<Map<String, dynamic>> bookedDates = [];
   Project? _selectedProject;
+  final List<String> categories = [
+    'Greenhouses',
+    'Steel Structures',
+    'Solar Systems',
+    'Construction',
+    'Logistics',
+    'IoT & Automation',
+  ];
 
   void _addOrEditProject({Project? project}) {
     final titleController = TextEditingController(text: project?.title ?? '');
@@ -32,6 +42,8 @@ class _AdminProjectsPageState extends State<AdminProjectsPage> {
     String mediaInput = '';
     DateTime? selectedDate = project?.date;
     bool isUploading = false;
+    String? selectedCategory = project?.category ?? categories.first;
+    TextEditingController transportCostController = TextEditingController(text: project?.transportCost?.toString() ?? '');
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -47,7 +59,7 @@ class _AdminProjectsPageState extends State<AdminProjectsPage> {
             top: 20,
           ),
           child: StatefulBuilder(
-            builder: (context, setModalState) {
+          builder: (context, setModalState) {
               return SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -174,8 +186,8 @@ class _AdminProjectsPageState extends State<AdminProjectsPage> {
                     Row(
                       children: [
                         ElevatedButton.icon(
-                          icon: const Icon(Iconsax.image),
-                          label: const Text('Add Image'),
+                          icon: const Icon(Iconsax.image, color: Colors.white),
+                          label: const Text('Add Image', style: TextStyle(color: Colors.white)),
                           onPressed: isUploading ? null : () async {
                             setModalState(() => isUploading = true);
                             FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
@@ -195,8 +207,8 @@ class _AdminProjectsPageState extends State<AdminProjectsPage> {
                         ),
                         const SizedBox(width: 10),
                         ElevatedButton.icon(
-                          icon: const Icon(Iconsax.video),
-                          label: const Text('Add Video'),
+                          icon: const Icon(Iconsax.video, color: Colors.white),
+                          label: const Text('Add Video', style: TextStyle(color: Colors.white)),
                           onPressed: isUploading ? null : () async {
                             setModalState(() => isUploading = true);
                             FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.video);
@@ -217,32 +229,71 @@ class _AdminProjectsPageState extends State<AdminProjectsPage> {
                       ],
                     ),
                     if (mediaUrls.isNotEmpty)
-                      Wrap(
-                        spacing: 8,
-                        children: mediaUrls.map((url) => Stack(
-                          alignment: Alignment.topRight,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8, right: 8),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: url.endsWith('.mp4')
-                                    ? Container(
-                                        color: Colors.black12,
-                                        width: 80,
-                                        height: 80,
-                                        child: const Icon(Iconsax.video, size: 40),
-                                      )
-                                    : Image.network(url, height: 80, width: 80, fit: BoxFit.cover, errorBuilder: (c, e, s) => const Icon(Icons.broken_image)),
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(Iconsax.close_circle, color: Colors.red, size: 20),
-                              onPressed: () => setModalState(() => mediaUrls.remove(url)),
-                            ),
-                          ],
-                        )).toList(),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.only(bottom: 8),
+                            child: Text('Media Preview', style: TextStyle(fontWeight: FontWeight.bold)),
+                          ),
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 12,
+                            children: mediaUrls.map((url) {
+                              final isVideo = url.endsWith('.mp4') || url.contains('video');
+                              return Stack(
+                                alignment: Alignment.topRight,
+                                children: [
+                                  Container(
+                                    width: 100,
+                                    height: 100,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(color: Colors.grey[300]!),
+                                      color: Colors.black12,
+                                    ),
+                                    child: isVideo
+                                        ? _VideoPreviewWidget(url: url)
+                                        : ClipRRect(
+                                            borderRadius: BorderRadius.circular(10),
+                                            child: Image.network(
+                                              url,
+                                              fit: BoxFit.cover,
+                                              width: 100,
+                                              height: 100,
+                                              errorBuilder: (c, e, s) => const Icon(Icons.broken_image, size: 40),
+                                            ),
+                                          ),
+                                  ),
+                                  Positioned(
+                                    top: 2,
+                                    right: 2,
+                                    child: Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        borderRadius: BorderRadius.circular(20),
+                                        onTap: () => setModalState(() => mediaUrls.remove(url)),
+                                        child: const Padding(
+                                          padding: EdgeInsets.all(2),
+                                          child: Icon(Iconsax.close_circle, color: Colors.red, size: 24),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }).toList(),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
                       ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      value: selectedCategory,
+                      items: categories.map((cat) => DropdownMenuItem(value: cat, child: Text(cat))).toList(),
+                      onChanged: (v) => setModalState(() => selectedCategory = v),
+                      decoration: const InputDecoration(labelText: 'Category', prefixIcon: Icon(Iconsax.category)),
+                    ),
                     const SizedBox(height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -266,6 +317,8 @@ class _AdminProjectsPageState extends State<AdminProjectsPage> {
                               progress: project?.progress ?? 0.0,
                               date: selectedDate,
                               bookedDates: project?.bookedDates ?? [],
+                              category: selectedCategory,
+                              transportCost: double.tryParse(transportCostController.text) ?? 0.0,
                             );
                             try {
                               if (project == null) {
@@ -315,53 +368,19 @@ class _AdminProjectsPageState extends State<AdminProjectsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppTheme.primaryColor,
-        title: const Text('Admin Projects', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        actions: [
-          IconButton(
-            icon: const Icon(Iconsax.add),
-            tooltip: 'Add Project',
-            onPressed: () => _addOrEditProject(),
-          ),
-        ],
+        title: const Text('Admin Projects'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: StreamBuilder<List<Project>>(
-          stream: FirebaseService.instance.getProjects(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            }
-            final projects = snapshot.data ?? [];
-            if (projects.isEmpty) {
-              return const Center(child: Text('No projects found.'));
-            }
-            return GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 0.9,
-            crossAxisSpacing: 15,
-            mainAxisSpacing: 15,
+      body: Center(
+        child: ElevatedButton.icon(
+          icon: const Icon(Iconsax.message_question),
+          label: const Text('View Project Requests'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.orange,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
-          itemCount: projects.length,
-          itemBuilder: (context, index) {
-            final project = projects[index];
-            return GestureDetector(
-              onTap: () {
-                setState(() {
-                  _selectedProject = project;
-                });
-                    _showProjectDetails(project);
-                  },
-                  child: _buildProjectCardContent(project),
-                );
-              },
-            );
-          },
+          onPressed: () => Get.to(() => const AdminProjectRequestsPage()),
         ),
       ),
     );
@@ -383,6 +402,7 @@ class _AdminProjectsPageState extends State<AdminProjectsPage> {
                 fit: BoxFit.cover,
                 child: Image.network(
                   project.mediaUrls.isNotEmpty ? project.mediaUrls.first : '',
+                  fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
                 ),
               ),
@@ -420,6 +440,20 @@ class _AdminProjectsPageState extends State<AdminProjectsPage> {
                   style: const TextStyle(fontSize: 11, color: Colors.grey),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
+                  ),
+                if (project.category != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Chip(
+                      label: Text(project.category!),
+                      backgroundColor: Colors.green[50],
+                      labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                if (project.transportCost != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text('Transport Cost: ${project.transportCost}', style: const TextStyle(fontWeight: FontWeight.bold)),
                   ),
               ],
             ),
@@ -507,7 +541,7 @@ class _AdminProjectsPageState extends State<AdminProjectsPage> {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: Image.network(
-                          project.mediaUrls.first,
+                          project.mediaUrls.isNotEmpty ? project.mediaUrls.first : '',
                           width: double.infinity,
                           height: 180,
                           fit: BoxFit.cover,
@@ -615,5 +649,59 @@ class _AdminProjectsPageState extends State<AdminProjectsPage> {
     );
       },
     );
+  }
+}
+
+class _VideoPreviewWidget extends StatefulWidget {
+  final String url;
+  const _VideoPreviewWidget({required this.url});
+  @override
+  State<_VideoPreviewWidget> createState() => _VideoPreviewWidgetState();
+}
+
+class _VideoPreviewWidgetState extends State<_VideoPreviewWidget> {
+  late VideoPlayerController _controller;
+  bool _initialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.network(widget.url)
+      ..initialize().then((_) {
+        setState(() => _initialized = true);
+      });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _initialized
+        ? GestureDetector(
+            onTap: () {
+              if (_controller.value.isPlaying) {
+                _controller.pause();
+              } else {
+                _controller.play();
+              }
+              setState(() {});
+            },
+            child: Stack(
+              alignment: Alignment.center,
+      children: [
+                AspectRatio(
+                  aspectRatio: _controller.value.aspectRatio,
+                  child: VideoPlayer(_controller),
+                ),
+                if (!_controller.value.isPlaying)
+                  const Icon(Iconsax.play, size: 40, color: Colors.white),
+              ],
+            ),
+          )
+        : const Center(child: CircularProgressIndicator());
   }
 } 

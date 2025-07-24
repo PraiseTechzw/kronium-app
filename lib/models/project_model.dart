@@ -13,6 +13,8 @@ class Project {
   final bool approved;
   final double progress;
   final DateTime? date; // <-- Add this line
+  final String? category;
+  final double? transportCost;
 
   Project({
     required this.id,
@@ -26,6 +28,8 @@ class Project {
     this.approved = false,
     this.progress = 0.0,
     this.date, // <-- Add this line
+    this.category,
+    this.transportCost,
   });
 
   // Firestore serialization
@@ -47,6 +51,10 @@ class Project {
         ? (data['progress'] as int).toDouble()
         : (data['progress'] ?? 0.0),
       date: data['date'] != null ? (data['date'] as Timestamp).toDate() : null, // <-- Add this line
+      category: data['category'],
+      transportCost: (data['transportCost'] is int)
+        ? (data['transportCost'] as int).toDouble()
+        : (data['transportCost'] ?? 0.0),
     );
   }
 
@@ -61,6 +69,8 @@ class Project {
     'approved': approved,
     'progress': progress,
     'date': date != null ? Timestamp.fromDate(date!) : null, // <-- Add this line
+    'category': category,
+    'transportCost': transportCost,
   };
 }
 

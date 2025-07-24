@@ -8,6 +8,8 @@ import 'dart:io';
 import 'package:kronium/core/appwrite_client.dart';
 
 class AdminAddServicePage extends StatefulWidget {
+  const AdminAddServicePage({super.key});
+
   @override
   State<AdminAddServicePage> createState() => _AdminAddServicePageState();
 }

@@ -9,6 +9,8 @@ import 'package:kronium/core/routes.dart';
 import 'package:kronium/core/user_auth_service.dart';
 import 'package:kronium/widgets/admin_scaffold.dart';
 import 'package:kronium/models/booking_model.dart';
+import 'package:kronium/pages/admin/admin_project_requests_page.dart';
+
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
 
@@ -34,6 +36,17 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             await adminAuthService.logout();
             Get.offAllNamed(AppRoutes.home);
           },
+        ),
+        ElevatedButton.icon(
+          icon: const Icon(Iconsax.message_question),
+          label: const Text('View Project Requests'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.orange,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+          onPressed: () => Get.to(() => const AdminProjectRequestsPage()),
         ),
       ],
       isDarkMode: _isDarkMode,
