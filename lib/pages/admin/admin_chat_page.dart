@@ -35,16 +35,15 @@ class _AdminChatPageState extends State<AdminChatPage> {
       Get.snackbar('No Chat Selected', 'Please select a chat room before sending a message.', backgroundColor: Colors.red, colorText: Colors.white);
       return;
     }
-    final adminAuthService = Get.find<AdminAuthService>();
-    final firebaseService = Get.find<FirebaseService>();
-    final admin = adminAuthService.currentAdmin;
-    if (admin == null) {
-      Get.snackbar('Not Logged In', 'Admin session expired. Please log in again.', backgroundColor: Colors.red, colorText: Colors.white);
+    final user = userController.userProfile.value;
+    if (user == null || userController.role.value != 'admin') {
+      Get.snackbar('Not Logged In', 'Admin session expired or not an admin. Please log in again.', backgroundColor: Colors.red, colorText: Colors.white);
       return;
     }
+    final firebaseService = Get.find<FirebaseService>();
     final message = ChatMessage(
-      senderId: admin.uid,
-      senderName: 'Admin',
+      senderId: user.id!,
+      senderName: user.name,
       senderType: 'admin',
       message: _messageController.text.trim(),
       timestamp: DateTime.now(),

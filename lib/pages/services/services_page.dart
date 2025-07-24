@@ -6,6 +6,7 @@ import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/user_auth_service.dart' show userController, UserAuthService;
 import 'package:kronium/models/service_model.dart';
 import 'package:kronium/core/firebase_service.dart' show FirebaseService;
+import 'package:kronium/models/booking_model.dart';
 
 class ServicesPage extends StatefulWidget {
   const ServicesPage({super.key});
@@ -260,18 +261,18 @@ class _ServiceDetailSheet extends StatelessWidget {
       if (service.price == null) missing.add('Price');
     }
     return Container(
-        decoration: const BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(24),
           topRight: Radius.circular(24),
-            ),
-          ),
+        ),
+      ),
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             if (isAdmin && missing.isNotEmpty)
               Container(
                 width: double.infinity,
@@ -374,7 +375,184 @@ class _ServiceDetailSheet extends StatelessWidget {
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green),
         ),
             const SizedBox(height: 30),
-            // Optionally, add booking or edit buttons here
+            if (!isAdmin)
+              Center(
+                child: ElevatedButton.icon(
+                  icon: const Icon(Iconsax.calendar),
+                  label: const Text('Book Service'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                      ),
+                      builder: (context) => _ServiceBookingForm(service: service),
+                    );
+                  },
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ServiceBookingForm extends StatefulWidget {
+  final Service service;
+  const _ServiceBookingForm({required this.service});
+  @override
+  State<_ServiceBookingForm> createState() => _ServiceBookingFormState();
+}
+
+class _ServiceBookingFormState extends State<_ServiceBookingForm> {
+  DateTime? _selectedDate;
+  final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _notesController = TextEditingController();
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _locationController.dispose();
+    _notesController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final user = UserAuthService.instance.userProfile.value;
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+        left: 20,
+        right: 20,
+        top: 20,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 60,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(5),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text('Book This Service', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 18),
+            TextField(
+              controller: _locationController,
+              decoration: InputDecoration(
+                labelText: 'Service Location',
+                prefixIcon: const Icon(Iconsax.location),
+                filled: true,
+                fillColor: Colors.grey[50],
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                const Icon(Iconsax.calendar, size: 18, color: Colors.grey),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () async {
+                      DateTime now = DateTime.now();
+                      DateTime? picked = await showDatePicker(
+                        context: context,
+                        initialDate: _selectedDate ?? now,
+                        firstDate: now,
+                        lastDate: DateTime(now.year + 2),
+                      );
+                      if (picked != null) {
+                        setState(() {
+                          _selectedDate = picked;
+                        });
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey[300]!),
+                        borderRadius: BorderRadius.circular(10),
+                        color: Colors.grey[50],
+                      ),
+                      child: Text(
+                        _selectedDate != null
+                            ? 'Date:  ${_selectedDate!.toLocal().toString().split(' ')[0]}'
+                            : 'Pick Service Date',
+                        style: TextStyle(
+                          color: _selectedDate != null ? Colors.black : Colors.grey,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: _notesController,
+              decoration: InputDecoration(
+                labelText: 'Additional Notes (optional)',
+                prefixIcon: const Icon(Iconsax.note),
+                filled: true,
+                fillColor: Colors.grey[50],
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              maxLines: 2,
+            ),
+            const SizedBox(height: 24),
+            Center(
+              child: ElevatedButton(
+                onPressed: _isLoading || user == null || _selectedDate == null || _locationController.text.trim().isEmpty
+                    ? null
+                    : () async {
+                        setState(() => _isLoading = true);
+                        try {
+                          final booking = Booking(
+                            serviceName: widget.service.title,
+                            clientName: user.name,
+                            clientEmail: user.email,
+                            clientPhone: user.phone,
+                            date: _selectedDate!,
+                            status: BookingStatus.pending,
+                            price: widget.service.price ?? 0.0,
+                            location: _locationController.text.trim(),
+                            notes: _notesController.text.trim(),
+                          );
+                          await FirebaseService.instance.addBooking(booking);
+                          Navigator.pop(context);
+                          Get.snackbar('Booked', 'Service booking submitted!', backgroundColor: Colors.green, colorText: Colors.white);
+                        } catch (e) {
+                          Get.snackbar('Error', 'Failed to book service: $e', backgroundColor: Colors.red, colorText: Colors.white);
+                        } finally {
+                          setState(() => _isLoading = false);
+                        }
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: _isLoading ? const CircularProgressIndicator() : const Text('Submit Booking'),
+              ),
+            ),
+            const SizedBox(height: 10),
           ],
         ),
       ),
