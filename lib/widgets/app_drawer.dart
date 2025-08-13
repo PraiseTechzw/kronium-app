@@ -5,7 +5,6 @@ import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/routes.dart';
 import 'package:kronium/core/user_auth_service.dart';
 import 'package:kronium/core/admin_auth_service.dart';
-import 'package:kronium/core/user_auth_service.dart' show userController;
 
 /// AppDrawer is a beautiful, modular drawer for Kronium.
 /// Place all drawer logic and UI here for clean code.

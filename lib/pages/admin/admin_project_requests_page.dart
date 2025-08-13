@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 
 class AdminProjectRequestsPage extends StatelessWidget {
-  const AdminProjectRequestsPage({Key? key}) : super(key: key);
+  const AdminProjectRequestsPage({super.key});
 
   @override
   Widget build(BuildContext context) {

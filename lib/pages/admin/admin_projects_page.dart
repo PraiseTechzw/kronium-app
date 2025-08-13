@@ -423,13 +423,13 @@ class _AdminProjectsPageState extends State<AdminProjectsPage> {
                                   Get.snackbar('Error', 'Failed to save project: $e', backgroundColor: Colors.red, colorText: Colors.white);
                                 }
                               },
-                              child: Text(project == null ? 'Add Project' : 'Update Project'),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.green,
                                 foregroundColor: Colors.white,
                                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               ),
+                              child: Text(project == null ? 'Add Project' : 'Update Project'),
                             ),
                             const SizedBox(width: 10),
                             if (project != null)

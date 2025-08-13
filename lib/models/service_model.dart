@@ -35,7 +35,7 @@ class Service {
   // Create from Firestore document
   factory Service.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    
+
     return Service(
       id: doc.id,
       title: data['title'] ?? '',
@@ -82,6 +82,10 @@ class Service {
         return Icons.construction;
       case 'engineering':
         return Icons.engineering;
+      case 'water_drop':
+        return Icons.water_drop;
+      case 'local_shipping':
+        return Icons.local_shipping;
       case 'home_repair_service':
         return Icons.home_repair_service;
       case 'electrical_services':
@@ -146,35 +150,112 @@ class Service {
         category: 'Agriculture',
         icon: Icons.warehouse,
         color: const Color(0xFF2ECC71),
-        description: 'Professional greenhouse design and construction for optimal plant growth',
+        description:
+            'Professional greenhouse design and construction for optimal plant growth',
         features: [
-          'Custom sizing options',
-          'Climate control systems',
-          'Durable polycarbonate materials',
-          '5-year warranty'
+          'Customised sizing options',
+          'Wooden / Metal structure frame',
+          'Drip irrigation system',
+          'Fertigation system',
+          'Ventilation curtain design',
+          '40% shadenet',
+          'Bolt and nut linkages',
+          '200micron greenhouse plastic / 40% shadenet',
+          'Curiosite treated gumpoles / painted steel round tubes',
+          'Greenhouse Types: Wooden, Hybrid (Wooden/Metal), Metal, Netshade',
         ],
-        imageUrl: 'assets/images/greenhouse.jpg',
+        imageUrl: 'assets/images/services/Greenhouse.jpg',
         price: 3500,
-        videoUrl: 'https://example.com/greenhouse-video.mp4', // Example video
+        videoUrl: 'https://example.com/greenhouse-video.mp4',
       ),
       Service(
         id: '2',
-        title: 'Solar Panel Installation',
+        title: 'Irrigation Systems',
+        category: 'Agriculture',
+        icon: Icons.water_drop,
+        color: const Color(0xFF3498DB),
+        description:
+            'Professional irrigation design and installation for optimal plant health and growth',
+        features: [
+          'Customised design',
+          'Pipe network',
+          'Valves',
+          'All necessary accessories',
+          'Irrigation Types: Drip, Rainpipe, Centre pivots',
+        ],
+        imageUrl: 'assets/images/services/irrigation.jpg',
+        price: 2500,
+      ),
+      Service(
+        id: '3',
+        title: 'Construction',
+        category: 'Building',
+        icon: Icons.construction,
+        color: const Color(0xFFE67E22),
+        description:
+            'Professional building and construction service with inclusion of structure plans, 3D models and rendering',
+        features: [
+          'Structure plans',
+          '3D models',
+          'Rendering',
+          'Structure Types: Modern Houses, Animal Shelter, Farm Structures',
+        ],
+        imageUrl: 'assets/images/services/construction.jpg',
+        price: 5000,
+      ),
+      Service(
+        id: '4',
+        title: 'Steel Structures',
+        category: 'Building',
+        icon: Icons.engineering,
+        color: const Color(0xFF95A5A6),
+        description:
+            'Professional customised steel fabrication services including design and installation of structures',
+        features: [
+          'Steel sheds',
+          'Spray races',
+          'Neck clamps',
+          'Steel reservoir tanks',
+          'Solar dryers',
+        ],
+        imageUrl: 'assets/images/services/construction.jpg',
+        price: 4000,
+      ),
+      Service(
+        id: '5',
+        title: 'Solar Systems',
         category: 'Renewable Energy',
         icon: Icons.solar_power,
         color: const Color(0xFFF39C12),
-        description: 'Complete solar energy solutions for homes and businesses',
+        description:
+            'Domestic, industrial and commercial solar systems design and installation to ensure all your farm, home or business process run smoothly without any power outages',
         features: [
-          'Residential & commercial systems',
-          'Battery storage options',
-          'Government rebate assistance',
-          '25-year performance guarantee'
+          'Domestic systems',
+          'Industrial systems',
+          'Commercial systems',
+          'Design and installation',
+          'Power outage prevention',
         ],
-        imageUrl: 'assets/images/solar.jpg',
+        imageUrl: 'assets/images/services/solar.png',
         price: 8500,
-        // This service doesn't have a video (videoUrl is null)
       ),
-      // Add more services as needed
+      Service(
+        id: '6',
+        title: 'Logistics',
+        category: 'Transport',
+        icon: Icons.local_shipping,
+        color: const Color(0xFF9B59B6),
+        description:
+            'Professional transport and logistics provision for carrying your farm produce to the market from your farm',
+        features: [
+          'Farm to market transport',
+          'Professional logistics',
+          'Produce transportation',
+          'Reliable delivery service',
+        ],
+        imageUrl: 'assets/images/services/logistics.png',
+        price: 1500,
+      ),
     ];
   }
 }

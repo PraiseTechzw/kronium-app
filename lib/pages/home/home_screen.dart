@@ -8,7 +8,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:kronium/core/constants.dart';
 import 'package:kronium/widgets/background_switcher.dart';
 import 'package:intl/intl.dart';
-import 'package:kronium/core/user_auth_service.dart' show userController, UserAuthService;
+import 'package:kronium/core/user_auth_service.dart'
+    show userController, UserAuthService;
 import 'package:kronium/core/firebase_service.dart';
 import 'package:kronium/models/booking_model.dart';
 
@@ -20,10 +21,12 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, dynamic>> companySlides = AppConstants.companySlidesData;
+    final List<Map<String, dynamic>> companySlides =
+        AppConstants.companySlidesData;
     int currentSlide = 0;
-    final CarouselSliderController carouselController = CarouselSliderController();
-   
+    final CarouselSliderController carouselController =
+        CarouselSliderController();
+
     final List<Map<String, dynamic>> services = [
       {
         'title': 'Greenhouse Construction',
@@ -34,17 +37,15 @@ class HomeScreen extends StatelessWidget {
         'image': 'assets/images/services/construction.jpg',
       },
       {
-        'title': 'Solar Systems',
-        'image': 'assets/images/services/solar.png',
+        'title': 'Steel Structures',
+        'image': 'assets/images/services/construction.jpg',
       },
+      {'title': 'Solar Systems', 'image': 'assets/images/services/solar.png'},
       {
         'title': 'Irrigation Systems',
         'image': 'assets/images/services/irrigation.jpg',
       },
-      {
-        'title': 'Logistics',
-        'image': 'assets/images/services/logistics.png',
-      },
+      {'title': 'Logistics', 'image': 'assets/images/services/logistics.png'},
       {
         'title': 'IoT & Automation Projects',
         'image': 'assets/images/services/Iot.png',
@@ -54,285 +55,443 @@ class HomeScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Company Info Carousel (Enhanced)
-                StatefulBuilder(
-                  builder: (context, setState) => Column(
-                    children: [
-                      CarouselSlider(
-                        carouselController: carouselController,
-                        options: CarouselOptions(
-                          height: 240,
-                          autoPlay: true,
-                          enlargeCenterPage: true,
-                          viewportFraction: 0.95,
-                          aspectRatio: 16/7,
-                          autoPlayInterval: const Duration(seconds: 6),
-                          onPageChanged: (index, reason) => setState(() => currentSlide = index),
-                        ),
-                        items: companySlides.map((slide) {
-                          return Builder(
-                            builder: (context) => Container(
-                              width: MediaQuery.of(context).size.width,
-                              margin: const EdgeInsets.symmetric(horizontal: 4),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(18),
-                                gradient: LinearGradient(
-                                  colors: [AppTheme.primaryColor, AppTheme.secondaryColor.withOpacity(0.85)],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppTheme.primaryColor.withOpacity(0.13),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 5),
-                                  ),
-                                ],
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        if (slide['logo'] != null)
-                                          Padding(
-                                            padding: const EdgeInsets.only(right: 12),
-                                            child: ClipRRect(
-                                              borderRadius: BorderRadius.circular(8),
-                                              child: Image.asset(
-                                                slide['logo'],
-                                                width: 40,
-                                                height: 40,
-                                                fit: BoxFit.cover,
-                                              ),
-                                            ),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Company Info Carousel (Enhanced)
+              StatefulBuilder(
+                builder:
+                    (context, setState) => Column(
+                      children: [
+                        CarouselSlider(
+                          carouselController: carouselController,
+                          options: CarouselOptions(
+                            height: 240,
+                            autoPlay: true,
+                            enlargeCenterPage: true,
+                            viewportFraction: 0.95,
+                            aspectRatio: 16 / 7,
+                            autoPlayInterval: const Duration(seconds: 6),
+                            onPageChanged:
+                                (index, reason) =>
+                                    setState(() => currentSlide = index),
+                          ),
+                          items:
+                              companySlides.map((slide) {
+                                return Builder(
+                                  builder:
+                                      (context) => Container(
+                                        width:
+                                            MediaQuery.of(context).size.width,
+                                        margin: const EdgeInsets.symmetric(
+                                          horizontal: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(
+                                            18,
                                           ),
-                                        if (slide['icon'] != null)
-                                          Icon(slide['icon'], color: Colors.white, size: 32),
-                                        if (slide['icon'] != null) const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              if (slide['title'] != null)
-                                                Text(
-                                                  slide['title'],
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 20,
-                                                    letterSpacing: 0.5,
-                                                    shadows: [Shadow(blurRadius: 8, color: Colors.black26)],
-                                                  ),
-                                                ),
-                                              if (slide['subtitle'] != null)
-                                                Padding(
-                                                  padding: const EdgeInsets.only(top: 2.0),
-                                                  child: Text(
-                                                    slide['subtitle'],
-                                                    style: const TextStyle(
-                                                      color: Colors.white70,
-                                                      fontSize: 15,
-                                                      fontWeight: FontWeight.w400,
-                                                    ),
-                                                  ),
-                                                ),
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              AppTheme.primaryColor,
+                                              AppTheme.secondaryColor
+                                                  .withOpacity(0.85),
                                             ],
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 10),
-                                    if (slide['body'] != null && slide['body'] is String)
-                                      Expanded(
-                                        child: SingleChildScrollView(
-                                          child: Text(
-                                            slide['body'],
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.w400,
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: AppTheme.primaryColor
+                                                  .withOpacity(0.13),
+                                              blurRadius: 10,
+                                              offset: const Offset(0, 5),
                                             ),
-                                          ),
-                                        ),
-                                      ),
-                                    if (slide['body'] != null && slide['body'] is List)
-                                      Expanded(
-                                        child: SingleChildScrollView(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              for (var item in slide['body'])
-                                                if (item is String)
-                                                  Padding(
-                                                    padding: const EdgeInsets.symmetric(vertical: 2.5),
-                                                    child: Row(
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                                      children: [
-                                                        const Icon(Icons.circle, size: 8, color: Colors.white70),
-                                                        const SizedBox(width: 8),
-                                                        Expanded(
-                                                          child: Text(
-                                                            item,
-                                                            style: const TextStyle(
-                                                              color: Colors.white,
-                                                              fontSize: 15,
-                                                              fontWeight: FontWeight.w400,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  )
-                                                else if (item is Map && item['type'] == 'phone')
-                                                  Padding(
-                                                    padding: const EdgeInsets.symmetric(vertical: 2.5),
-                                                    child: GestureDetector(
-                                                      onTap: () => launchUrl(Uri.parse('tel:${item['value']}')),
-                                                      child: Row(
-                                                        children: [
-                                                          const Icon(Icons.phone, size: 16, color: Colors.white),
-                                                          const SizedBox(width: 8),
-                                                          Text(
-                                                            item['value'],
-                                                            style: const TextStyle(
-                                                              color: Colors.white,
-                                                              fontSize: 15,
-                                                              decoration: TextDecoration.underline,
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  )
-                                                else if (item is Map && item['type'] == 'email')
-                                                  Padding(
-                                                    padding: const EdgeInsets.symmetric(vertical: 2.5),
-                                                    child: GestureDetector(
-                                                      onTap: () => launchUrl(Uri.parse('mailto:${item['value']}')),
-                                                      child: Row(
-                                                        children: [
-                                                          const Icon(Icons.email, size: 16, color: Colors.white),
-                                                          const SizedBox(width: 8),
-                                                          Text(
-                                                            item['value'],
-                                                            style: const TextStyle(
-                                                              color: Colors.white,
-                                                              fontSize: 15,
-                                                              decoration: TextDecoration.underline,
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  )
-                                                else if (item is Map && item['type'] == 'address')
-                                                  Padding(
-                                                    padding: const EdgeInsets.symmetric(vertical: 2.5),
-                                                    child: Row(
-                                                      children: [
-                                                        const Icon(Icons.location_on, size: 16, color: Colors.white),
-                                                        const SizedBox(width: 8),
-                                                        Expanded(
-                                                          child: Text(
-                                                            item['value'],
-                                                            style: const TextStyle(
-                                                              color: Colors.white,
-                                                              fontSize: 15,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    if (slide['socials'] != null)
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 10),
-                                        child: Row(
-                                          children: [
-                                            for (var social in slide['socials'])
-                                              IconButton(
-                                                icon: Icon(social['icon'], color: Colors.white, size: 22),
-                                                onPressed: () => launchUrl(Uri.parse(social['url'])),
-                                              ),
                                           ],
                                         ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 24,
+                                            vertical: 18,
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  if (slide['logo'] != null)
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                            right: 12,
+                                                          ),
+                                                      child: ClipRRect(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              8,
+                                                            ),
+                                                        child: Image.asset(
+                                                          slide['logo'],
+                                                          width: 40,
+                                                          height: 40,
+                                                          fit: BoxFit.cover,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  if (slide['icon'] != null)
+                                                    Icon(
+                                                      slide['icon'],
+                                                      color: Colors.white,
+                                                      size: 32,
+                                                    ),
+                                                  if (slide['icon'] != null)
+                                                    const SizedBox(width: 12),
+                                                  Expanded(
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        if (slide['title'] !=
+                                                            null)
+                                                          Text(
+                                                            slide['title'],
+                                                            style: const TextStyle(
+                                                              color:
+                                                                  Colors.white,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontSize: 20,
+                                                              letterSpacing:
+                                                                  0.5,
+                                                              shadows: [
+                                                                Shadow(
+                                                                  blurRadius: 8,
+                                                                  color:
+                                                                      Colors
+                                                                          .black26,
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        if (slide['subtitle'] !=
+                                                            null)
+                                                          Padding(
+                                                            padding:
+                                                                const EdgeInsets.only(
+                                                                  top: 2.0,
+                                                                ),
+                                                            child: Text(
+                                                              slide['subtitle'],
+                                                              style: const TextStyle(
+                                                                color:
+                                                                    Colors
+                                                                        .white70,
+                                                                fontSize: 15,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w400,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 10),
+                                              if (slide['body'] != null &&
+                                                  slide['body'] is String)
+                                                Expanded(
+                                                  child: SingleChildScrollView(
+                                                    child: Text(
+                                                      slide['body'],
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 15,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              if (slide['body'] != null &&
+                                                  slide['body'] is List)
+                                                Expanded(
+                                                  child: SingleChildScrollView(
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        for (var item
+                                                            in slide['body'])
+                                                          if (item is String)
+                                                            Padding(
+                                                              padding:
+                                                                  const EdgeInsets.symmetric(
+                                                                    vertical:
+                                                                        2.5,
+                                                                  ),
+                                                              child: Row(
+                                                                crossAxisAlignment:
+                                                                    CrossAxisAlignment
+                                                                        .start,
+                                                                children: [
+                                                                  const Icon(
+                                                                    Icons
+                                                                        .circle,
+                                                                    size: 8,
+                                                                    color:
+                                                                        Colors
+                                                                            .white70,
+                                                                  ),
+                                                                  const SizedBox(
+                                                                    width: 8,
+                                                                  ),
+                                                                  Expanded(
+                                                                    child: Text(
+                                                                      item,
+                                                                      style: const TextStyle(
+                                                                        color:
+                                                                            Colors.white,
+                                                                        fontSize:
+                                                                            15,
+                                                                        fontWeight:
+                                                                            FontWeight.w400,
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            )
+                                                          else if (item
+                                                                  is Map &&
+                                                              item['type'] ==
+                                                                  'phone')
+                                                            Padding(
+                                                              padding:
+                                                                  const EdgeInsets.symmetric(
+                                                                    vertical:
+                                                                        2.5,
+                                                                  ),
+                                                              child: GestureDetector(
+                                                                onTap:
+                                                                    () => launchUrl(
+                                                                      Uri.parse(
+                                                                        'tel:${item['value']}',
+                                                                      ),
+                                                                    ),
+                                                                child: Row(
+                                                                  children: [
+                                                                    const Icon(
+                                                                      Icons
+                                                                          .phone,
+                                                                      size: 16,
+                                                                      color:
+                                                                          Colors
+                                                                              .white,
+                                                                    ),
+                                                                    const SizedBox(
+                                                                      width: 8,
+                                                                    ),
+                                                                    Text(
+                                                                      item['value'],
+                                                                      style: const TextStyle(
+                                                                        color:
+                                                                            Colors.white,
+                                                                        fontSize:
+                                                                            15,
+                                                                        decoration:
+                                                                            TextDecoration.underline,
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                            )
+                                                          else if (item
+                                                                  is Map &&
+                                                              item['type'] ==
+                                                                  'email')
+                                                            Padding(
+                                                              padding:
+                                                                  const EdgeInsets.symmetric(
+                                                                    vertical:
+                                                                        2.5,
+                                                                  ),
+                                                              child: GestureDetector(
+                                                                onTap:
+                                                                    () => launchUrl(
+                                                                      Uri.parse(
+                                                                        'mailto:${item['value']}',
+                                                                      ),
+                                                                    ),
+                                                                child: Row(
+                                                                  children: [
+                                                                    const Icon(
+                                                                      Icons
+                                                                          .email,
+                                                                      size: 16,
+                                                                      color:
+                                                                          Colors
+                                                                              .white,
+                                                                    ),
+                                                                    const SizedBox(
+                                                                      width: 8,
+                                                                    ),
+                                                                    Text(
+                                                                      item['value'],
+                                                                      style: const TextStyle(
+                                                                        color:
+                                                                            Colors.white,
+                                                                        fontSize:
+                                                                            15,
+                                                                        decoration:
+                                                                            TextDecoration.underline,
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                            )
+                                                          else if (item
+                                                                  is Map &&
+                                                              item['type'] ==
+                                                                  'address')
+                                                            Padding(
+                                                              padding:
+                                                                  const EdgeInsets.symmetric(
+                                                                    vertical:
+                                                                        2.5,
+                                                                  ),
+                                                              child: Row(
+                                                                children: [
+                                                                  const Icon(
+                                                                    Icons
+                                                                        .location_on,
+                                                                    size: 16,
+                                                                    color:
+                                                                        Colors
+                                                                            .white,
+                                                                  ),
+                                                                  const SizedBox(
+                                                                    width: 8,
+                                                                  ),
+                                                                  Expanded(
+                                                                    child: Text(
+                                                                      item['value'],
+                                                                      style: const TextStyle(
+                                                                        color:
+                                                                            Colors.white,
+                                                                        fontSize:
+                                                                            15,
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              if (slide['socials'] != null)
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                        top: 10,
+                                                      ),
+                                                  child: Row(
+                                                    children: [
+                                                      for (var social
+                                                          in slide['socials'])
+                                                        IconButton(
+                                                          icon: Icon(
+                                                            social['icon'],
+                                                            color: Colors.white,
+                                                            size: 22,
+                                                          ),
+                                                          onPressed:
+                                                              () => launchUrl(
+                                                                Uri.parse(
+                                                                  social['url'],
+                                                                ),
+                                                              ),
+                                                        ),
+                                                    ],
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                        ),
                                       ),
-                                  ],
-                                ),
+                                );
+                              }).toList(),
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(
+                            companySlides.length,
+                            (index) => AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              margin: const EdgeInsets.symmetric(horizontal: 3),
+                              width: currentSlide == index ? 18 : 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color:
+                                    currentSlide == index
+                                        ? Colors.white
+                                        : Colors.white38,
+                                borderRadius: BorderRadius.circular(6),
                               ),
                             ),
-                          );
-                        }).toList(),
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(companySlides.length, (index) => AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          margin: const EdgeInsets.symmetric(horizontal: 3),
-                          width: currentSlide == index ? 18 : 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: currentSlide == index ? Colors.white : Colors.white38,
-                            borderRadius: BorderRadius.circular(6),
                           ),
-                        )),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-                // Rotating Banner (Carousel)
-                
-                const SizedBox(height: 24),
-                // Services/Projects List (Grid)
-                GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
+                        ),
+                      ],
+                    ),
+              ),
+              const SizedBox(height: 24),
+
+              // Rotating Banner (Carousel)
+              const SizedBox(height: 24),
+              // Services/Projects List (Grid)
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
                   childAspectRatio: 0.85,
-                  ),
-                  itemCount: services.length,
-                  itemBuilder: (context, index) {
-                    final service = services[index];
-                    return GestureDetector(
-                      onTap: () => _onServiceTap(context, service),
+                ),
+                itemCount: services.length,
+                itemBuilder: (context, index) {
+                  final service = services[index];
+                  return GestureDetector(
+                    onTap: () => _onServiceTap(context, service),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       curve: Curves.easeInOut,
-                        decoration: BoxDecoration(
+                      decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
+                        boxShadow: [
+                          BoxShadow(
                             color: Colors.black.withOpacity(0.08),
                             blurRadius: 12,
                             offset: const Offset(0, 6),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
+                      ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(20),
                         child: Stack(
                           fit: StackFit.expand,
                           children: [
-                            Image.asset(
-                              service['image'],
-                              fit: BoxFit.cover,
-                            ),
+                            Image.asset(service['image'], fit: BoxFit.cover),
                             Container(
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(20),
@@ -351,7 +510,7 @@ class HomeScreen extends StatelessWidget {
                               child: Padding(
                                 padding: const EdgeInsets.all(16),
                                 child: Text(
-                              service['title'],
+                                  service['title'],
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
@@ -368,19 +527,25 @@ class HomeScreen extends StatelessWidget {
                             ),
                           ],
                         ),
-                        ),
                       ),
-                    );
-                  },
-                ),
-                ContactCard(
-                  contacts: companySlides.firstWhere((s) => s['title'] == 'CONTACT & OFFICES')['body'],
-                  socials: companySlides.firstWhere((s) => s['title'] == 'CONTACT & OFFICES')['socials'],
-                ),
-              ],
-            ),
+                    ),
+                  );
+                },
+              ),
+              ContactCard(
+                contacts:
+                    companySlides.firstWhere(
+                      (s) => s['title'] == 'CONTACT & OFFICES',
+                    )['body'],
+                socials:
+                    companySlides.firstWhere(
+                      (s) => s['title'] == 'CONTACT & OFFICES',
+                    )['socials'],
+              ),
+            ],
           ),
         ),
+      ),
     );
   }
 
@@ -392,25 +557,37 @@ class HomeScreen extends StatelessWidget {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
-        builder: (context) => FractionallySizedBox(
-          heightFactor: 0.75, // 75% of screen height
-          child: Container(
-            padding: const EdgeInsets.all(32),
-            child: const Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Iconsax.cpu, size: 48, color: Colors.grey),
-                SizedBox(height: 16),
-                Text('IoT & Automation Projects', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                SizedBox(height: 10),
-                Text('Coming Soon!', style: TextStyle(fontSize: 16, color: Colors.grey)),
-              ],
+        builder:
+            (context) => FractionallySizedBox(
+              heightFactor: 0.75, // 75% of screen height
+              child: Container(
+                padding: const EdgeInsets.all(32),
+                child: const Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Iconsax.cpu, size: 48, color: Colors.grey),
+                    SizedBox(height: 16),
+                    Text(
+                      'IoT & Automation Projects',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      'Coming Soon!',
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ),
-        ),
       );
     } else {
-      final Service? detail = Service.getAllServices().firstWhereOrNull((s) => s.title == service['title']);
+      final Service? detail = Service.getAllServices().firstWhereOrNull(
+        (s) => s.title == service['title'],
+      );
       if (detail == null) {
         showModalBottomSheet(
           context: context,
@@ -418,13 +595,14 @@ class HomeScreen extends StatelessWidget {
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
-          builder: (context) => FractionallySizedBox(
-            heightFactor: 0.75,
-            child: Container(
-              padding: const EdgeInsets.all(32),
-              child: Text('Service details not found.'),
-            ),
-          ),
+          builder:
+              (context) => FractionallySizedBox(
+                heightFactor: 0.75,
+                child: Container(
+                  padding: const EdgeInsets.all(32),
+                  child: Text('Service details not found.'),
+                ),
+              ),
         );
         return;
       }
@@ -434,10 +612,11 @@ class HomeScreen extends StatelessWidget {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
-        builder: (context) => FractionallySizedBox(
-          heightFactor: 0.75,
-          child: _ServiceDetailSheet(service: detail),
-        ),
+        builder:
+            (context) => FractionallySizedBox(
+              heightFactor: 0.75,
+              child: _ServiceDetailSheet(service: detail),
+            ),
       );
     }
   }
@@ -459,23 +638,23 @@ class _ServiceDetailSheet extends StatelessWidget {
     return Stack(
       children: [
         Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
-        ),
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 if (isAdmin && missing.isNotEmpty)
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     margin: const EdgeInsets.only(bottom: 8),
-                decoration: BoxDecoration(
+                    decoration: BoxDecoration(
                       color: Colors.orange[100],
                       borderRadius: const BorderRadius.only(
                         topLeft: Radius.circular(20),
@@ -484,12 +663,19 @@ class _ServiceDetailSheet extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.warning, color: Colors.orange, size: 22),
+                        const Icon(
+                          Icons.warning,
+                          color: Colors.orange,
+                          size: 22,
+                        ),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             'Missing info: ${missing.join(', ')}',
-                            style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                              color: Colors.orange,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ],
@@ -501,19 +687,24 @@ class _ServiceDetailSheet extends StatelessWidget {
                     topLeft: Radius.circular(20),
                     topRight: Radius.circular(20),
                   ),
-                  child: service.imageUrl != null
-                      ? Image.asset(
-                          service.imageUrl!,
-                          width: double.infinity,
-                          height: 200,
-                          fit: BoxFit.cover,
-                        )
-                      : Container(
-                          width: double.infinity,
-                          height: 200,
-                          color: Colors.grey[200],
-                          child: const Icon(Icons.broken_image, size: 48, color: Colors.grey),
-                        ),
+                  child:
+                      service.imageUrl != null
+                          ? Image.asset(
+                            service.imageUrl!,
+                            width: double.infinity,
+                            height: 200,
+                            fit: BoxFit.cover,
+                          )
+                          : Container(
+                            width: double.infinity,
+                            height: 200,
+                            color: Colors.grey[200],
+                            child: const Icon(
+                              Icons.broken_image,
+                              size: 48,
+                              color: Colors.grey,
+                            ),
+                          ),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(24),
@@ -521,39 +712,42 @@ class _ServiceDetailSheet extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Title and category
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        service.title,
-                        style: const TextStyle(
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  service.title,
+                                  style: const TextStyle(
                                     fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
                                 if (service.category.isNotEmpty)
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 4,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: Colors.green.withOpacity(0.1),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Text(
-                        service.category,
+                                      service.category,
                                       style: const TextStyle(
                                         color: Colors.green,
-                          fontWeight: FontWeight.bold,
+                                        fontWeight: FontWeight.bold,
                                         fontSize: 13,
-                        ),
-                  ),
-                ),
-              ],
-            ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
                           // Modern close button
                           IconButton(
@@ -564,88 +758,206 @@ class _ServiceDetailSheet extends StatelessWidget {
                       ),
                       const SizedBox(height: 18),
                       // Overview
-            const Text(
-              'Service Overview',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+                      const Text(
+                        'Service Overview',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       const SizedBox(height: 8),
-            Text(
-              service.description,
-              style: const TextStyle(
-                fontSize: 16,
-                height: 1.5,
-              ),
-            ),
+                      Text(
+                        service.description,
+                        style: const TextStyle(fontSize: 16, height: 1.5),
+                      ),
                       const SizedBox(height: 18),
                       // Features
                       if (service.features.isNotEmpty) ...[
-            const Text(
-              'Key Features',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+                        const Text(
+                          'Key Features',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                         const SizedBox(height: 8),
-            Column(
-              children: service.features.map((feature) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(Icons.check_circle, color: Colors.green, size: 18),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        feature,
-                        style: const TextStyle(fontSize: 15),
-                      ),
-                    ),
-                  ],
-                ),
-              )).toList(),
-            ),
+                        Column(
+                          children:
+                              service.features
+                                  .map(
+                                    (feature) => Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 6,
+                                      ),
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          const Icon(
+                                            Icons.check_circle,
+                                            color: Colors.green,
+                                            size: 18,
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Expanded(
+                                            child: Text(
+                                              feature,
+                                              style: const TextStyle(
+                                                fontSize: 15,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                        ),
                         const SizedBox(height: 18),
                       ],
                       // Pricing & Booking
-            const Text(
-              'Pricing & Booking',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+                      const Text(
+                        'Pricing & Booking',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       const SizedBox(height: 8),
-            _detailItem(Icons.attach_money, 'Starting Price',
-                        service.price != null ? '\$${service.price}' : 'Contact for quote'),
-            _detailItem(Icons.schedule, 'Duration', '2-6 weeks'),
-            _detailItem(Icons.event_available, 'Availability', 'Next 2 weeks'),
-            const SizedBox(height: 30),
+                      _detailItem(
+                        Icons.attach_money,
+                        'Starting Price',
+                        service.price != null
+                            ? '\$${service.price}'
+                            : 'Contact for quote',
+                      ),
+                      _detailItem(Icons.schedule, 'Duration', '2-6 weeks'),
+                      _detailItem(
+                        Icons.event_available,
+                        'Availability',
+                        'Next 2 weeks',
+                      ),
+                      const SizedBox(height: 30),
+
+                      // Contact Information Section
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[50],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey[200]!),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Contact Us',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            const Text(
+                              'Our technical team is readily available to assist you.',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.phone,
+                                  color: Colors.green,
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap:
+                                        () => launchUrl(
+                                          Uri.parse('tel:+263784148718'),
+                                        ),
+                                    child: Text(
+                                      '+263 78 414 8718',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.green,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.email,
+                                  color: Colors.green,
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap:
+                                        () => launchUrl(
+                                          Uri.parse(
+                                            'mailto:enquiries@kronium.co.zw',
+                                          ),
+                                        ),
+                                    child: Text(
+                                      'enquiries@kronium.co.zw',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.green,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
                       // Action button
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
-                          icon: const Icon(Iconsax.calendar, color: Colors.white),
-                          label: const Text('Book Service', style: TextStyle(fontWeight: FontWeight.bold)),
+                          icon: const Icon(
+                            Iconsax.calendar,
+                            color: Colors.white,
+                          ),
+                          label: const Text(
+                            'Book Service',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.green,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    onPressed: () {
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: () {
                             showModalBottomSheet(
                               context: Get.context!,
                               isScrollControlled: true,
                               shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                                borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(24),
+                                ),
                               ),
-                              builder: (context) => ServiceBookingForm(service: service),
+                              builder:
+                                  (context) =>
+                                      ServiceBookingForm(service: service),
                             );
                           },
                         ),
@@ -656,8 +968,8 @@ class _ServiceDetailSheet extends StatelessWidget {
                 ),
               ],
             ),
+          ),
         ),
-      ),
       ],
     );
   }
@@ -709,15 +1021,18 @@ class _ServiceBookingFormState extends State<ServiceBookingForm> {
   Future<void> _fetchBookedDates() async {
     final bookings = await FirebaseService.instance.getBookings().first;
     setState(() {
-      _bookedDates = bookings
-        .where((b) => b.serviceName == widget.service.title)
-        .map((b) => DateTime(b.date.year, b.date.month, b.date.day))
-        .toList();
+      _bookedDates =
+          bookings
+              .where((b) => b.serviceName == widget.service.title)
+              .map((b) => DateTime(b.date.year, b.date.month, b.date.day))
+              .toList();
     });
   }
 
   bool _isDateBooked(DateTime date) {
-    return _bookedDates.any((d) => d.year == date.year && d.month == date.month && d.day == date.day);
+    return _bookedDates.any(
+      (d) => d.year == date.year && d.month == date.month && d.day == date.day,
+    );
   }
 
   @override
@@ -730,7 +1045,10 @@ class _ServiceBookingFormState extends State<ServiceBookingForm> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Calendar picker
-            Text('Select Project Date', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              'Select Project Date',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 8),
             ElevatedButton(
               onPressed: () async {
@@ -743,9 +1061,11 @@ class _ServiceBookingFormState extends State<ServiceBookingForm> {
                 );
                 if (picked != null) setState(() => _selectedDate = picked);
               },
-              child: Text(_selectedDate == null
-                  ? 'Pick a date'
-                  : DateFormat('yMMMd').format(_selectedDate!)),
+              child: Text(
+                _selectedDate == null
+                    ? 'Pick a date'
+                    : DateFormat('yMMMd').format(_selectedDate!),
+              ),
             ),
             const SizedBox(height: 16),
             // Location
@@ -755,7 +1075,8 @@ class _ServiceBookingFormState extends State<ServiceBookingForm> {
                 labelText: 'Project Location',
                 border: OutlineInputBorder(),
               ),
-              validator: (v) => v == null || v.isEmpty ? 'Enter location' : null,
+              validator:
+                  (v) => v == null || v.isEmpty ? 'Enter location' : null,
             ),
             const SizedBox(height: 16),
             // Size
@@ -771,37 +1092,45 @@ class _ServiceBookingFormState extends State<ServiceBookingForm> {
             // Transport cost (set by admin)
             Text(
               'Transport Cost: ${widget.service.price != null ? '\$${widget.service.price}' : 'Contact admin'}',
-              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.green,
+              ),
             ),
             const SizedBox(height: 24),
             // Submit
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _isLoading
-                    ? null
-                    : () async {
-                        if (!_formKey.currentState!.validate() || _selectedDate == null) return;
-                        setState(() => _isLoading = true);
-                        final booking = Booking(
-                          serviceName: widget.service.title,
-                          clientName: '', // Fill from user profile if available
-                          clientEmail: '',
-                          clientPhone: '',
-                          date: _selectedDate!,
-                          status: BookingStatus.pending,
-                          price: widget.service.price ?? 0.0,
-                          location: _locationController.text.trim(),
-                          notes: 'Size: ${_sizeController.text.trim()}',
-                        );
-                        await FirebaseService.instance.addBooking(booking);
-                        setState(() => _isLoading = false);
-                        Get.snackbar('Success', 'Booking submitted!');
-                        Navigator.of(context).pop();
-                      },
-                child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('Submit Booking'),
+                onPressed:
+                    _isLoading
+                        ? null
+                        : () async {
+                          if (!_formKey.currentState!.validate() ||
+                              _selectedDate == null)
+                            return;
+                          setState(() => _isLoading = true);
+                          final booking = Booking(
+                            serviceName: widget.service.title,
+                            clientName:
+                                '', // Fill from user profile if available
+                            clientEmail: '',
+                            clientPhone: '',
+                            date: _selectedDate!,
+                            status: BookingStatus.pending,
+                            price: widget.service.price ?? 0.0,
+                            location: _locationController.text.trim(),
+                            notes: 'Size: ${_sizeController.text.trim()}',
+                          );
+                          await FirebaseService.instance.addBooking(booking);
+                          setState(() => _isLoading = false);
+                          Get.snackbar('Success', 'Booking submitted!');
+                          Navigator.of(context).pop();
+                        },
+                child:
+                    _isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text('Submit Booking'),
               ),
             ),
           ],
@@ -830,7 +1159,11 @@ class ContactCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.contact_phone_outlined, color: Colors.white, size: 28),
+                Icon(
+                  Icons.contact_phone_outlined,
+                  color: Colors.white,
+                  size: 28,
+                ),
                 const SizedBox(width: 10),
                 const Text(
                   'Contact & Offices',
@@ -869,7 +1202,8 @@ class ContactCard extends StatelessWidget {
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: GestureDetector(
-                    onTap: () => launchUrl(Uri.parse('mailto:${item['value']}')),
+                    onTap:
+                        () => launchUrl(Uri.parse('mailto:${item['value']}')),
                     child: Row(
                       children: [
                         const Icon(Icons.email, color: Colors.white, size: 18),
@@ -891,7 +1225,11 @@ class ContactCard extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Row(
                     children: [
-                      const Icon(Icons.location_on, color: Colors.white, size: 18),
+                      const Icon(
+                        Icons.location_on,
+                        color: Colors.white,
+                        size: 18,
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -925,4 +1263,4 @@ class ContactCard extends StatelessWidget {
       ),
     );
   }
-} 
+}

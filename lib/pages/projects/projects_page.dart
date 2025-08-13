@@ -53,7 +53,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
   Project? _selectedProject;
 
   // Add this variable to the state class for admin check:
-  bool _isAdmin = true; // Set to false for normal users
+  final bool _isAdmin = true; // Set to false for normal users
 
   // Add this variable to store bookings
   List<Map<String, dynamic>> bookedDates = [];
@@ -436,24 +436,24 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                        if (project.progress != null) ...[
-                          const SizedBox(height: 6),
-                        LinearProgressIndicator(
-                          value: project.progress! / 100,
-                            backgroundColor: AppTheme.surfaceLight,
-                          valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
-                            minHeight: 5,
-                          borderRadius: BorderRadius.circular(3),
+                        ...[
+                        const SizedBox(height: 6),
+                      LinearProgressIndicator(
+                        value: project.progress! / 100,
+                          backgroundColor: AppTheme.surfaceLight,
+                        valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                          minHeight: 5,
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                        const SizedBox(height: 2),
+                      Text(
+                        '${project.progress}% Complete',
+                        style: const TextStyle(
+                            fontSize: 10,
+                          fontWeight: FontWeight.bold,
                         ),
-                          const SizedBox(height: 2),
-                        Text(
-                          '${project.progress}% Complete',
-                          style: const TextStyle(
-                              fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -581,18 +581,17 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                                style: const TextStyle(fontSize: 15, height: 1.5),
                   ),
                              const SizedBox(height: 14),
-                             if (project.progress != null)
-                    _projectDetailItem('Progress', '${project.progress}% Complete'),
-                             if (project.progress != null) ...[
-                               const SizedBox(height: 8),
-                               LinearProgressIndicator(
-                                 value: project.progress! / 100,
-                                 backgroundColor: AppTheme.surfaceLight,
-                                 valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
-                                 minHeight: 6,
-                                 borderRadius: BorderRadius.circular(3),
-                               ),
-                             ],
+                             _projectDetailItem('Progress', '${project.progress}% Complete'),
+                             ...[
+                             const SizedBox(height: 8),
+                             LinearProgressIndicator(
+                               value: project.progress! / 100,
+                               backgroundColor: AppTheme.surfaceLight,
+                               valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                               minHeight: 6,
+                               borderRadius: BorderRadius.circular(3),
+                             ),
+                           ],
                            ],
                          ),
                        ),
@@ -699,7 +698,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                       Expanded(
                         child: Text(pickedDate == null
                             ? 'No date picked'
-                            : 'Picked Date: ${pickedDate!.toLocal().toString().split(' ')[0]}'),
+                            : 'Picked Date: ${pickedDate.toLocal().toString().split(' ')[0]}'),
                       ),
                       ElevatedButton(
                         onPressed: () async {
