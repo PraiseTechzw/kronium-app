@@ -12,6 +12,7 @@ import 'package:kronium/core/user_auth_service.dart'
     show userController, UserAuthService;
 import 'package:kronium/core/firebase_service.dart';
 import 'package:kronium/models/booking_model.dart';
+import 'package:flutter_social_button/flutter_social_button.dart';
 
 /// Keep this widget focused and readable. Extend as needed.
 class HomeScreen extends StatelessWidget {
@@ -815,116 +816,6 @@ class _ServiceDetailSheet extends StatelessWidget {
                         ),
                         const SizedBox(height: 18),
                       ],
-                      // Pricing & Booking
-                      const Text(
-                        'Pricing & Booking',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      _detailItem(
-                        Icons.attach_money,
-                        'Starting Price',
-                        service.price != null
-                            ? '\$${service.price}'
-                            : 'Contact for quote',
-                      ),
-                      _detailItem(Icons.schedule, 'Duration', '2-6 weeks'),
-                      _detailItem(
-                        Icons.event_available,
-                        'Availability',
-                        'Next 2 weeks',
-                      ),
-                      const SizedBox(height: 30),
-
-                      // Contact Information Section
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[50],
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey[200]!),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Contact Us',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            const Text(
-                              'Our technical team is readily available to assist you.',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.phone,
-                                  color: Colors.green,
-                                  size: 18,
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap:
-                                        () => launchUrl(
-                                          Uri.parse('tel:+263784148718'),
-                                        ),
-                                    child: Text(
-                                      '+263 78 414 8718',
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.green,
-                                        decoration: TextDecoration.underline,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.email,
-                                  color: Colors.green,
-                                  size: 18,
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap:
-                                        () => launchUrl(
-                                          Uri.parse(
-                                            'mailto:enquiries@kronium.co.zw',
-                                          ),
-                                        ),
-                                    child: Text(
-                                      'enquiries@kronium.co.zw',
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.green,
-                                        decoration: TextDecoration.underline,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 20),
 
                       // Action button
                       SizedBox(
@@ -971,28 +862,6 @@ class _ServiceDetailSheet extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _detailItem(IconData icon, String title, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 18, color: AppTheme.primaryColor),
-          const SizedBox(width: 10),
-          SizedBox(
-            width: 120,
-            child: Text(
-              title,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(child: Text(value)),
-        ],
-      ),
     );
   }
 }
@@ -1246,18 +1115,81 @@ class ContactCard extends StatelessWidget {
               }
               return const SizedBox.shrink();
             }),
-            if (socials != null && socials!.isNotEmpty) ...[
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  for (var social in socials!)
-                    IconButton(
-                      icon: Icon(social['icon'], color: Colors.white, size: 22),
-                      onPressed: () => launchUrl(Uri.parse(social['url'])),
+            // Website link
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: GestureDetector(
+                onTap: () => launchUrl(Uri.parse('https://www.kronium.co.zw')),
+                child: Row(
+                  children: [
+                    const Icon(Icons.language, color: Colors.white, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      'www.kronium.co.zw',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        decoration: TextDecoration.underline,
+                      ),
                     ),
-                ],
+                  ],
+                ),
               ),
-            ],
+            ),
+            const SizedBox(height: 14),
+            // Social media icons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // LinkedIn
+                FlutterSocialButton(
+                  onTap:
+                      () => launchUrl(
+                        Uri.parse('https://linkedin.com/company/kronium'),
+                      ),
+                  buttonType: ButtonType.linkedin,
+                  icon: Icons.work,
+                  title: '',
+                  buttonWidth: 45,
+                  buttonHeight: 45,
+                ),
+                const SizedBox(width: 12),
+                // Instagram
+                FlutterSocialButton(
+                  onTap:
+                      () =>
+                          launchUrl(Uri.parse('https://instagram.com/kronium')),
+                  buttonType: ButtonType.instagram,
+                  icon: Icons.camera_alt,
+                  title: '',
+                  buttonWidth: 45,
+                  buttonHeight: 45,
+                ),
+                const SizedBox(width: 12),
+                // Facebook
+                FlutterSocialButton(
+                  onTap:
+                      () =>
+                          launchUrl(Uri.parse('https://facebook.com/kronium')),
+                  buttonType: ButtonType.facebook,
+                  icon: Icons.facebook,
+                  title: '',
+                  buttonWidth: 45,
+                  buttonHeight: 45,
+                ),
+                const SizedBox(width: 12),
+                // WhatsApp
+                FlutterSocialButton(
+                  onTap:
+                      () => launchUrl(Uri.parse('https://wa.me/263784148718')),
+                  buttonType: ButtonType.whatsapp,
+                  icon: Icons.message,
+                  title: '',
+                  buttonWidth: 45,
+                  buttonHeight: 45,
+                ),
+              ],
+            ),
           ],
         ),
       ),
