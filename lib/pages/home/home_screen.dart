@@ -261,10 +261,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 margin: const EdgeInsets.only(bottom: 20),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
-                  color: Colors.white.withValues(alpha: 0.9),
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.white.withValues(alpha: 0.95),
+                      Colors.white.withValues(alpha: 0.85),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.06),
+                      color: Colors.black.withValues(alpha: 0.08),
                       blurRadius: 15,
                       offset: const Offset(0, 5),
                     ),
@@ -273,15 +280,25 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Quick Actions',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.primaryColor,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Quick Actions',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primaryColor,
+                          ),
+                        ),
+                        Icon(
+                          Icons.bolt,
+                          color: AppTheme.primaryColor,
+                          size: 24,
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
                     Row(
                       children: [
                         Expanded(
@@ -332,7 +349,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
-              // Status & Info Section
+              // Company Stats Section
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
@@ -352,490 +369,173 @@ class _HomeScreenState extends State<HomeScreen> {
                     width: 1,
                   ),
                 ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: _buildStatusItem(
-                        icon: Icons.access_time,
-                        title: 'Business Hours',
-                        subtitle: 'Mon - Fri: 8:00 AM - 6:00 PM',
-                        color: AppTheme.primaryColor,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Company Overview',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primaryColor,
+                          ),
+                        ),
+                        Icon(
+                          Icons.business,
+                          color: AppTheme.primaryColor,
+                          size: 24,
+                        ),
+                      ],
                     ),
-                    Container(
-                      width: 1,
-                      height: 50,
-                      color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildStatusItem(
+                            icon: Icons.access_time,
+                            title: 'Business Hours',
+                            subtitle: 'Mon - Fri: 8:00 AM - 6:00 PM',
+                            color: AppTheme.primaryColor,
+                          ),
+                        ),
+                        Container(
+                          width: 1,
+                          height: 50,
+                          color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                        ),
+                        Expanded(
+                          child: _buildStatusItem(
+                            icon: Icons.location_on,
+                            title: 'Location',
+                            subtitle: 'Zimbabwe',
+                            color: AppTheme.secondaryColor,
+                          ),
+                        ),
+                      ],
                     ),
-                    Expanded(
-                      child: _buildStatusItem(
-                        icon: Icons.location_on,
-                        title: 'Location',
-                        subtitle: 'Zimbabwe',
-                        color: AppTheme.secondaryColor,
-                      ),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildStatusItem(
+                            icon: Icons.engineering,
+                            title: 'Services',
+                            subtitle: '6 Core Services',
+                            color: Colors.teal,
+                          ),
+                        ),
+                        Container(
+                          width: 1,
+                          height: 50,
+                          color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                        ),
+                        Expanded(
+                          child: _buildStatusItem(
+                            icon: Icons.people,
+                            title: 'Programs',
+                            subtitle: '11 Specialized Programs',
+                            color: Colors.indigo,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-              // Company Info Carousel (Enhanced)
-              Column(
-                children: [
-                  CarouselSlider(
-                    carouselController: carouselController,
-                    options: CarouselOptions(
-                      height: 240,
-                      autoPlay: true,
-                      enlargeCenterPage: true,
-                      viewportFraction: 0.95,
-                      aspectRatio: 16 / 7,
-                      autoPlayInterval: const Duration(seconds: 6),
-                      onPageChanged:
-                          (index, reason) =>
-                              setState(() => currentSlide = index),
-                    ),
-                    items:
-                        companySlides.map((slide) {
-                          return Builder(
-                            builder:
-                                (context) => Container(
-                                  width: MediaQuery.of(context).size.width,
-                                  margin: const EdgeInsets.symmetric(
-                                    horizontal: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(18),
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        AppTheme.primaryColor,
-                                        AppTheme.secondaryColor.withValues(
-                                          alpha: 0.85,
-                                        ),
-                                      ],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: AppTheme.primaryColor.withValues(
-                                          alpha: 0.13,
-                                        ),
-                                        blurRadius: 10,
-                                        offset: const Offset(0, 5),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 24,
-                                      vertical: 18,
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            if (slide['logo'] != null)
-                                              Padding(
-                                                padding: const EdgeInsets.only(
-                                                  right: 12,
-                                                ),
-                                                child: ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                  child: Image.asset(
-                                                    slide['logo'],
-                                                    width: 40,
-                                                    height: 40,
-                                                    fit: BoxFit.cover,
-                                                  ),
-                                                ),
-                                              ),
-                                            if (slide['icon'] != null)
-                                              Icon(
-                                                slide['icon'],
-                                                color: Colors.white,
-                                                size: 32,
-                                              ),
-                                            if (slide['icon'] != null)
-                                              const SizedBox(width: 12),
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  if (slide['title'] != null)
-                                                    Text(
-                                                      slide['title'],
-                                                      style: const TextStyle(
-                                                        color: Colors.white,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        fontSize: 20,
-                                                        letterSpacing: 0.5,
-                                                        shadows: [
-                                                          Shadow(
-                                                            blurRadius: 8,
-                                                            color:
-                                                                Colors.black26,
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  if (slide['subtitle'] != null)
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                            top: 2.0,
-                                                          ),
-                                                      child: Text(
-                                                        slide['subtitle'],
-                                                        style: const TextStyle(
-                                                          color: Colors.white70,
-                                                          fontSize: 15,
-                                                          fontWeight:
-                                                              FontWeight.w400,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 10),
-                                        if (slide['body'] != null &&
-                                            slide['body'] is String)
-                                          Expanded(
-                                            child: SingleChildScrollView(
-                                              child: Text(
-                                                slide['body'],
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 15,
-                                                  fontWeight: FontWeight.w400,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        if (slide['body'] != null &&
-                                            slide['body'] is List)
-                                          Expanded(
-                                            child: SingleChildScrollView(
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  for (var item
-                                                      in slide['body'])
-                                                    if (item is String)
-                                                      Padding(
-                                                        padding:
-                                                            const EdgeInsets.symmetric(
-                                                              vertical: 2.5,
-                                                            ),
-                                                        child: Row(
-                                                          crossAxisAlignment:
-                                                              CrossAxisAlignment
-                                                                  .start,
-                                                          children: [
-                                                            const Icon(
-                                                              Icons.circle,
-                                                              size: 8,
-                                                              color:
-                                                                  Colors
-                                                                      .white70,
-                                                            ),
-                                                            const SizedBox(
-                                                              width: 8,
-                                                            ),
-                                                            Expanded(
-                                                              child: Text(
-                                                                item,
-                                                                style: const TextStyle(
-                                                                  color:
-                                                                      Colors
-                                                                          .white,
-                                                                  fontSize: 15,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w400,
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      )
-                                                    else if (item is Map &&
-                                                        item['type'] == 'phone')
-                                                      Padding(
-                                                        padding:
-                                                            const EdgeInsets.symmetric(
-                                                              vertical: 2.5,
-                                                            ),
-                                                        child: GestureDetector(
-                                                          onTap:
-                                                              () => launchUrl(
-                                                                Uri.parse(
-                                                                  'tel:${item['value']}',
-                                                                ),
-                                                              ),
-                                                          child: Row(
-                                                            children: [
-                                                              const Icon(
-                                                                Icons.phone,
-                                                                size: 16,
-                                                                color:
-                                                                    Colors
-                                                                        .white,
-                                                              ),
-                                                              const SizedBox(
-                                                                width: 8,
-                                                              ),
-                                                              Text(
-                                                                item['value'],
-                                                                style: const TextStyle(
-                                                                  color:
-                                                                      Colors
-                                                                          .white,
-                                                                  fontSize: 15,
-                                                                  decoration:
-                                                                      TextDecoration
-                                                                          .underline,
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      )
-                                                    else if (item is Map &&
-                                                        item['type'] == 'email')
-                                                      Padding(
-                                                        padding:
-                                                            const EdgeInsets.symmetric(
-                                                              vertical: 2.5,
-                                                            ),
-                                                        child: GestureDetector(
-                                                          onTap:
-                                                              () => launchUrl(
-                                                                Uri.parse(
-                                                                  'mailto:${item['value']}',
-                                                                ),
-                                                              ),
-                                                          child: Row(
-                                                            children: [
-                                                              const Icon(
-                                                                Icons.email,
-                                                                size: 16,
-                                                                color:
-                                                                    Colors
-                                                                        .white,
-                                                              ),
-                                                              const SizedBox(
-                                                                width: 8,
-                                                              ),
-                                                              Text(
-                                                                item['value'],
-                                                                style: const TextStyle(
-                                                                  color:
-                                                                      Colors
-                                                                          .white,
-                                                                  fontSize: 15,
-                                                                  decoration:
-                                                                      TextDecoration
-                                                                          .underline,
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      )
-                                                    else if (item is Map &&
-                                                        item['type'] ==
-                                                            'address')
-                                                      Padding(
-                                                        padding:
-                                                            const EdgeInsets.symmetric(
-                                                              vertical: 2.5,
-                                                            ),
-                                                        child: Row(
-                                                          children: [
-                                                            const Icon(
-                                                              Icons.location_on,
-                                                              size: 16,
-                                                              color:
-                                                                  Colors.white,
-                                                            ),
-                                                            const SizedBox(
-                                                              width: 8,
-                                                            ),
-                                                            Expanded(
-                                                              child: Text(
-                                                                item['value'],
-                                                                style: const TextStyle(
-                                                                  color:
-                                                                      Colors
-                                                                          .white,
-                                                                  fontSize: 15,
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        if (slide['socials'] != null)
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                              top: 10,
-                                            ),
-                                            child: Row(
-                                              children: [
-                                                for (var social
-                                                    in slide['socials'])
-                                                  IconButton(
-                                                    icon: Icon(
-                                                      social['icon'],
-                                                      color: Colors.white,
-                                                      size: 22,
-                                                    ),
-                                                    onPressed:
-                                                        () => launchUrl(
-                                                          Uri.parse(
-                                                            social['url'],
-                                                          ),
-                                                        ),
-                                                  ),
-                                              ],
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                          );
-                        }).toList(),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(
-                      companySlides.length,
-                      (index) => AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        margin: const EdgeInsets.symmetric(horizontal: 3),
-                        width: currentSlide == index ? 18 : 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color:
-                              currentSlide == index
-                                  ? Colors.white
-                                  : Colors.white38,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              // Featured Services horizontal list
+              // Featured Services Section
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.all(20),
                 margin: const EdgeInsets.only(bottom: 20),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
-                  color: Colors.white.withValues(alpha: 0.9),
+                  color: Colors.white.withValues(alpha: 0.95),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.06),
+                      blurRadius: 15,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Featured Services',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Featured Services',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                            color: AppTheme.primaryColor,
                           ),
-                          TextButton(
-                            onPressed: () => Get.toNamed(AppRoutes.services),
-                            child: const Text('View All'),
-                          ),
-                        ],
-                      ),
+                        ),
+                        TextButton(
+                          onPressed: () => Get.toNamed(AppRoutes.services),
+                          child: const Text('View All'),
+                        ),
+                      ],
                     ),
+                    const SizedBox(height: 16),
                     SizedBox(
-                      height: 150,
-                      child: ListView.separated(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                      height: 120,
+                      child: ListView.builder(
                         scrollDirection: Axis.horizontal,
                         itemCount: servicesData.length,
-                        separatorBuilder: (_, __) => const SizedBox(width: 12),
                         itemBuilder: (context, index) {
                           final s = servicesData[index];
-                          return InkWell(
-                            onTap: () => Get.toNamed(AppRoutes.services),
-                            child: Container(
-                              width: 240,
-                              padding: const EdgeInsets.all(14),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(16),
-                                gradient: LinearGradient(
-                                  colors: [
-                                    AppTheme.primaryColor.withValues(
-                                      alpha: 0.08,
-                                    ),
-                                    AppTheme.secondaryColor.withValues(
-                                      alpha: 0.06,
-                                    ),
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                                border: Border.all(
-                                  color: AppTheme.primaryColor.withValues(
-                                    alpha: 0.12,
-                                  ),
-                                ),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Icon(
-                                    s['icon'] as IconData,
-                                    color: AppTheme.primaryColor,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    s['title'] as String,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    s['description'] as String,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.black54,
-                                    ),
-                                  ),
+                          return Container(
+                            width: 160,
+                            margin: const EdgeInsets.only(right: 16),
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppTheme.primaryColor.withValues(alpha: 0.08),
+                                  AppTheme.secondaryColor.withValues(alpha: 0.06),
                                 ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
                               ),
+                              border: Border.all(
+                                color: AppTheme.primaryColor.withValues(alpha: 0.12),
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(
+                                  s['icon'] as IconData,
+                                  color: AppTheme.primaryColor,
+                                  size: 24,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  s['title'] as String,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  s['description'] as String,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.black54,
+                                  ),
+                                ),
+                              ],
                             ),
                           );
                         },
