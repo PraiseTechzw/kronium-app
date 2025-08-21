@@ -106,4 +106,58 @@ class AppTheme {
       titleSmall: TextStyle(color: textDisabled),
     ),
   );
+
+  // Dark theme for better background handling
+  static ThemeData darkTheme = ThemeData(
+    primaryColor: primaryColor,
+    colorScheme: const ColorScheme.dark(
+      primary: primaryColor,
+      secondary: secondaryColor,
+      error: errorColor,
+      surface: surfaceDark,
+    ),
+    scaffoldBackgroundColor: backgroundDark,
+    fontFamily: 'Poppins',
+    appBarTheme: const AppBarTheme(
+      elevation: 0,
+      centerTitle: true,
+      backgroundColor: appBarDark,
+      iconTheme: IconThemeData(color: textLight),
+      titleTextStyle: TextStyle(
+        color: textLight,
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+      ),
+    ),
+    cardColor: cardDark,
+    dividerColor: divider,
+    disabledColor: disabled,
+    shadowColor: shadow,
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: buttonPrimary,
+        elevation: 8,
+        shadowColor: shadow,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        textStyle: const TextStyle(
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.5,
+        ),
+      ),
+    ),
+    snackBarTheme: const SnackBarThemeData(
+      backgroundColor: snackbarBackground,
+      contentTextStyle: TextStyle(color: snackbarText),
+    ),
+    iconTheme: const IconThemeData(color: iconPrimary),
+    textTheme: const TextTheme(
+      bodyLarge: TextStyle(color: textLight),
+      bodyMedium: TextStyle(color: textLight),
+      bodySmall: TextStyle(color: textDisabled),
+      titleLarge: TextStyle(color: textLight, fontWeight: FontWeight.bold),
+      titleMedium: TextStyle(color: textLight),
+      titleSmall: TextStyle(color: textDisabled),
+    ),
+  );
 }

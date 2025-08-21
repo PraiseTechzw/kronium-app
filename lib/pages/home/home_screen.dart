@@ -1,22 +1,191 @@
 import 'package:flutter/material.dart';
-import 'package:iconsax/iconsax.dart';
-import 'package:kronium/core/app_theme.dart';
-import 'package:kronium/models/service_model.dart';
-import 'package:get/get.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:get/get.dart';
 import 'package:kronium/core/constants.dart';
 import 'package:kronium/widgets/background_switcher.dart';
-import 'package:intl/intl.dart';
+import 'package:kronium/core/app_theme.dart';
+import 'package:kronium/core/routes.dart';
+import 'package:kronium/core/firebase_service.dart';
 import 'package:kronium/core/user_auth_service.dart'
     show userController, UserAuthService;
-import 'package:kronium/core/firebase_service.dart';
-import 'package:kronium/models/booking_model.dart';
+import 'package:kronium/models/project_model.dart';
+import 'package:kronium/core/services_data.dart';
 import 'package:flutter_social_button/flutter_social_button.dart';
 
 /// Keep this widget focused and readable. Extend as needed.
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int currentSlide = 0;
+  final CarouselSliderController carouselController =
+      CarouselSliderController();
+
+  // Helper method to build greeting message based on time
+  Widget _buildGreetingMessage() {
+    final now = DateTime.now();
+    final hour = now.hour;
+
+    String greeting;
+    IconData greetingIcon;
+
+    if (hour < 12) {
+      greeting = 'Good Morning';
+      greetingIcon = Icons.wb_sunny;
+    } else if (hour < 17) {
+      greeting = 'Good Afternoon';
+      greetingIcon = Icons.wb_sunny_outlined;
+    } else {
+      greeting = 'Good Evening';
+      greetingIcon = Icons.nights_stay;
+    }
+
+    return Row(
+      children: [
+        Icon(greetingIcon, color: AppTheme.primaryColor, size: 24),
+        const SizedBox(width: 8),
+        Text(
+          greeting,
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: AppTheme.primaryColor,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Helper method to build date display
+  Widget _buildDateDisplay() {
+    final now = DateTime.now();
+    final days = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
+    final months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+
+    final dayName = days[now.weekday - 1];
+    final monthName = months[now.month - 1];
+    final day = now.day;
+    final year = now.year;
+
+    return Text(
+      '$dayName, $monthName $day, $year',
+      style: TextStyle(
+        fontSize: 16,
+        color: Colors.grey[600],
+        fontWeight: FontWeight.w500,
+      ),
+    );
+  }
+
+  // Helper method to build quick action cards
+  Widget _buildQuickActionCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            colors: [
+              color.withValues(alpha: 0.1),
+              color.withValues(alpha: 0.05),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: color, size: 28),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 11,
+                color: color.withValues(alpha: 0.7),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Helper method to build status items
+  Widget _buildStatusItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 24),
+          const SizedBox(height: 8),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: TextStyle(fontSize: 12, color: color.withValues(alpha: 0.7)),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
 
   // Mock testimonials (replace with real data as needed)
 
@@ -24,34 +193,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final List<Map<String, dynamic>> companySlides =
         AppConstants.companySlidesData;
-    int currentSlide = 0;
-    final CarouselSliderController carouselController =
-        CarouselSliderController();
 
-    final List<Map<String, dynamic>> services = [
-      {
-        'title': 'Greenhouse Construction',
-        'image': 'assets/images/services/Greenhouse.jpg',
-      },
-      {
-        'title': 'Construction',
-        'image': 'assets/images/services/construction.jpg',
-      },
-      {
-        'title': 'Steel Structures',
-        'image': 'assets/images/services/construction.jpg',
-      },
-      {'title': 'Solar Systems', 'image': 'assets/images/services/solar.png'},
-      {
-        'title': 'Irrigation Systems',
-        'image': 'assets/images/services/irrigation.jpg',
-      },
-      {'title': 'Logistics', 'image': 'assets/images/services/logistics.png'},
-      {
-        'title': 'IoT & Automation Projects',
-        'image': 'assets/images/services/Iot.png',
-      },
-    ];
     return BackgroundSwitcher(
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -60,479 +202,792 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Company Info Carousel (Enhanced)
-              StatefulBuilder(
-                builder:
-                    (context, setState) => Column(
+              // Modern Greeting Section
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(24),
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.white.withValues(alpha: 0.95),
+                      Colors.white.withValues(alpha: 0.85),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Greeting based on time
+                    _buildGreetingMessage(),
+                    const SizedBox(height: 8),
+                    // Current date
+                    _buildDateDisplay(),
+                    const SizedBox(height: 16),
+                    // Welcome message
+                    Text(
+                      'Welcome to Kronium',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.primaryColor,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Your trusted partner for innovative agricultural and construction solutions',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey[700],
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Quick Actions Section
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: Colors.white.withValues(alpha: 0.9),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.06),
+                      blurRadius: 15,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Quick Actions',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.primaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
                       children: [
-                        CarouselSlider(
-                          carouselController: carouselController,
-                          options: CarouselOptions(
-                            height: 240,
-                            autoPlay: true,
-                            enlargeCenterPage: true,
-                            viewportFraction: 0.95,
-                            aspectRatio: 16 / 7,
-                            autoPlayInterval: const Duration(seconds: 6),
-                            onPageChanged:
-                                (index, reason) =>
-                                    setState(() => currentSlide = index),
+                        Expanded(
+                          child: _buildQuickActionCard(
+                            icon: Icons.construction,
+                            title: 'Our Services',
+                            subtitle: 'Explore solutions',
+                            color: AppTheme.primaryColor,
+                            onTap: () => Get.toNamed(AppRoutes.services),
                           ),
-                          items:
-                              companySlides.map((slide) {
-                                return Builder(
-                                  builder:
-                                      (context) => Container(
-                                        width:
-                                            MediaQuery.of(context).size.width,
-                                        margin: const EdgeInsets.symmetric(
-                                          horizontal: 4,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(
-                                            18,
-                                          ),
-                                          gradient: LinearGradient(
-                                            colors: [
-                                              AppTheme.primaryColor,
-                                              AppTheme.secondaryColor
-                                                  .withOpacity(0.85),
-                                            ],
-                                            begin: Alignment.topLeft,
-                                            end: Alignment.bottomRight,
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: AppTheme.primaryColor
-                                                  .withOpacity(0.13),
-                                              blurRadius: 10,
-                                              offset: const Offset(0, 5),
-                                            ),
-                                          ],
-                                        ),
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 24,
-                                            vertical: 18,
-                                          ),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Row(
-                                                children: [
-                                                  if (slide['logo'] != null)
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                            right: 12,
-                                                          ),
-                                                      child: ClipRRect(
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                              8,
-                                                            ),
-                                                        child: Image.asset(
-                                                          slide['logo'],
-                                                          width: 40,
-                                                          height: 40,
-                                                          fit: BoxFit.cover,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  if (slide['icon'] != null)
-                                                    Icon(
-                                                      slide['icon'],
-                                                      color: Colors.white,
-                                                      size: 32,
-                                                    ),
-                                                  if (slide['icon'] != null)
-                                                    const SizedBox(width: 12),
-                                                  Expanded(
-                                                    child: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        if (slide['title'] !=
-                                                            null)
-                                                          Text(
-                                                            slide['title'],
-                                                            style: const TextStyle(
-                                                              color:
-                                                                  Colors.white,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                              fontSize: 20,
-                                                              letterSpacing:
-                                                                  0.5,
-                                                              shadows: [
-                                                                Shadow(
-                                                                  blurRadius: 8,
-                                                                  color:
-                                                                      Colors
-                                                                          .black26,
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                        if (slide['subtitle'] !=
-                                                            null)
-                                                          Padding(
-                                                            padding:
-                                                                const EdgeInsets.only(
-                                                                  top: 2.0,
-                                                                ),
-                                                            child: Text(
-                                                              slide['subtitle'],
-                                                              style: const TextStyle(
-                                                                color:
-                                                                    Colors
-                                                                        .white70,
-                                                                fontSize: 15,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w400,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              const SizedBox(height: 10),
-                                              if (slide['body'] != null &&
-                                                  slide['body'] is String)
-                                                Expanded(
-                                                  child: SingleChildScrollView(
-                                                    child: Text(
-                                                      slide['body'],
-                                                      style: const TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 15,
-                                                        fontWeight:
-                                                            FontWeight.w400,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              if (slide['body'] != null &&
-                                                  slide['body'] is List)
-                                                Expanded(
-                                                  child: SingleChildScrollView(
-                                                    child: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        for (var item
-                                                            in slide['body'])
-                                                          if (item is String)
-                                                            Padding(
-                                                              padding:
-                                                                  const EdgeInsets.symmetric(
-                                                                    vertical:
-                                                                        2.5,
-                                                                  ),
-                                                              child: Row(
-                                                                crossAxisAlignment:
-                                                                    CrossAxisAlignment
-                                                                        .start,
-                                                                children: [
-                                                                  const Icon(
-                                                                    Icons
-                                                                        .circle,
-                                                                    size: 8,
-                                                                    color:
-                                                                        Colors
-                                                                            .white70,
-                                                                  ),
-                                                                  const SizedBox(
-                                                                    width: 8,
-                                                                  ),
-                                                                  Expanded(
-                                                                    child: Text(
-                                                                      item,
-                                                                      style: const TextStyle(
-                                                                        color:
-                                                                            Colors.white,
-                                                                        fontSize:
-                                                                            15,
-                                                                        fontWeight:
-                                                                            FontWeight.w400,
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                            )
-                                                          else if (item
-                                                                  is Map &&
-                                                              item['type'] ==
-                                                                  'phone')
-                                                            Padding(
-                                                              padding:
-                                                                  const EdgeInsets.symmetric(
-                                                                    vertical:
-                                                                        2.5,
-                                                                  ),
-                                                              child: GestureDetector(
-                                                                onTap:
-                                                                    () => launchUrl(
-                                                                      Uri.parse(
-                                                                        'tel:${item['value']}',
-                                                                      ),
-                                                                    ),
-                                                                child: Row(
-                                                                  children: [
-                                                                    const Icon(
-                                                                      Icons
-                                                                          .phone,
-                                                                      size: 16,
-                                                                      color:
-                                                                          Colors
-                                                                              .white,
-                                                                    ),
-                                                                    const SizedBox(
-                                                                      width: 8,
-                                                                    ),
-                                                                    Text(
-                                                                      item['value'],
-                                                                      style: const TextStyle(
-                                                                        color:
-                                                                            Colors.white,
-                                                                        fontSize:
-                                                                            15,
-                                                                        decoration:
-                                                                            TextDecoration.underline,
-                                                                      ),
-                                                                    ),
-                                                                  ],
-                                                                ),
-                                                              ),
-                                                            )
-                                                          else if (item
-                                                                  is Map &&
-                                                              item['type'] ==
-                                                                  'email')
-                                                            Padding(
-                                                              padding:
-                                                                  const EdgeInsets.symmetric(
-                                                                    vertical:
-                                                                        2.5,
-                                                                  ),
-                                                              child: GestureDetector(
-                                                                onTap:
-                                                                    () => launchUrl(
-                                                                      Uri.parse(
-                                                                        'mailto:${item['value']}',
-                                                                      ),
-                                                                    ),
-                                                                child: Row(
-                                                                  children: [
-                                                                    const Icon(
-                                                                      Icons
-                                                                          .email,
-                                                                      size: 16,
-                                                                      color:
-                                                                          Colors
-                                                                              .white,
-                                                                    ),
-                                                                    const SizedBox(
-                                                                      width: 8,
-                                                                    ),
-                                                                    Text(
-                                                                      item['value'],
-                                                                      style: const TextStyle(
-                                                                        color:
-                                                                            Colors.white,
-                                                                        fontSize:
-                                                                            15,
-                                                                        decoration:
-                                                                            TextDecoration.underline,
-                                                                      ),
-                                                                    ),
-                                                                  ],
-                                                                ),
-                                                              ),
-                                                            )
-                                                          else if (item
-                                                                  is Map &&
-                                                              item['type'] ==
-                                                                  'address')
-                                                            Padding(
-                                                              padding:
-                                                                  const EdgeInsets.symmetric(
-                                                                    vertical:
-                                                                        2.5,
-                                                                  ),
-                                                              child: Row(
-                                                                children: [
-                                                                  const Icon(
-                                                                    Icons
-                                                                        .location_on,
-                                                                    size: 16,
-                                                                    color:
-                                                                        Colors
-                                                                            .white,
-                                                                  ),
-                                                                  const SizedBox(
-                                                                    width: 8,
-                                                                  ),
-                                                                  Expanded(
-                                                                    child: Text(
-                                                                      item['value'],
-                                                                      style: const TextStyle(
-                                                                        color:
-                                                                            Colors.white,
-                                                                        fontSize:
-                                                                            15,
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                            ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
-                                              if (slide['socials'] != null)
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                        top: 10,
-                                                      ),
-                                                  child: Row(
-                                                    children: [
-                                                      for (var social
-                                                          in slide['socials'])
-                                                        IconButton(
-                                                          icon: Icon(
-                                                            social['icon'],
-                                                            color: Colors.white,
-                                                            size: 22,
-                                                          ),
-                                                          onPressed:
-                                                              () => launchUrl(
-                                                                Uri.parse(
-                                                                  social['url'],
-                                                                ),
-                                                              ),
-                                                        ),
-                                                    ],
-                                                  ),
-                                                ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                );
-                              }).toList(),
                         ),
-                        const SizedBox(height: 10),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: List.generate(
-                            companySlides.length,
-                            (index) => AnimatedContainer(
-                              duration: const Duration(milliseconds: 300),
-                              margin: const EdgeInsets.symmetric(horizontal: 3),
-                              width: currentSlide == index ? 18 : 8,
-                              height: 8,
-                              decoration: BoxDecoration(
-                                color:
-                                    currentSlide == index
-                                        ? Colors.white
-                                        : Colors.white38,
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                            ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildQuickActionCard(
+                            icon: Icons.phone,
+                            title: 'Contact Us',
+                            subtitle: 'Get in touch',
+                            color: AppTheme.secondaryColor,
+                            onTap: () {},
                           ),
                         ),
                       ],
                     ),
-              ),
-              const SizedBox(height: 24),
-
-              // Rotating Banner (Carousel)
-              const SizedBox(height: 24),
-              // Services/Projects List (Grid)
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 0.85,
-                ),
-                itemCount: services.length,
-                itemBuilder: (context, index) {
-                  final service = services[index];
-                  return GestureDetector(
-                    onTap: () => _onServiceTap(context, service),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      curve: Curves.easeInOut,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
-                            blurRadius: 12,
-                            offset: const Offset(0, 6),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildQuickActionCard(
+                            icon: Icons.assignment_turned_in_outlined,
+                            title: 'Projects',
+                            subtitle: 'Bookings & progress',
+                            color: Colors.teal,
+                            onTap: () => Get.toNamed(AppRoutes.projects),
                           ),
-                        ],
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildQuickActionCard(
+                            icon: Icons.description_outlined,
+                            title: 'Book Project',
+                            subtitle: 'Request a quote',
+                            color: Colors.indigo,
+                            onTap: () => Get.toNamed(AppRoutes.projects),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              // Status & Info Section
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  gradient: LinearGradient(
+                    colors: [
+                      AppTheme.primaryColor.withValues(alpha: 0.1),
+                      AppTheme.secondaryColor.withValues(alpha: 0.05),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  border: Border.all(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatusItem(
+                        icon: Icons.access_time,
+                        title: 'Business Hours',
+                        subtitle: 'Mon - Fri: 8:00 AM - 6:00 PM',
+                        color: AppTheme.primaryColor,
                       ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            Image.asset(service['image'], fit: BoxFit.cover),
-                            Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                gradient: LinearGradient(
-                                  begin: Alignment.bottomCenter,
-                                  end: Alignment.topCenter,
-                                  colors: [
-                                    Colors.black.withOpacity(0.6),
-                                    Colors.transparent,
-                                  ],
-                                ),
-                              ),
-                            ),
-                            Align(
-                              alignment: Alignment.bottomLeft,
-                              child: Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Text(
-                                  service['title'],
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                    shadows: [
-                                      Shadow(
-                                        color: Colors.black54,
-                                        blurRadius: 6,
+                    ),
+                    Container(
+                      width: 1,
+                      height: 50,
+                      color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                    ),
+                    Expanded(
+                      child: _buildStatusItem(
+                        icon: Icons.location_on,
+                        title: 'Location',
+                        subtitle: 'Zimbabwe',
+                        color: AppTheme.secondaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Company Info Carousel (Enhanced)
+              Column(
+                children: [
+                  CarouselSlider(
+                    carouselController: carouselController,
+                    options: CarouselOptions(
+                      height: 240,
+                      autoPlay: true,
+                      enlargeCenterPage: true,
+                      viewportFraction: 0.95,
+                      aspectRatio: 16 / 7,
+                      autoPlayInterval: const Duration(seconds: 6),
+                      onPageChanged:
+                          (index, reason) =>
+                              setState(() => currentSlide = index),
+                    ),
+                    items:
+                        companySlides.map((slide) {
+                          return Builder(
+                            builder:
+                                (context) => Container(
+                                  width: MediaQuery.of(context).size.width,
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(18),
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        AppTheme.primaryColor,
+                                        AppTheme.secondaryColor.withValues(
+                                          alpha: 0.85,
+                                        ),
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppTheme.primaryColor.withValues(
+                                          alpha: 0.13,
+                                        ),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 5),
                                       ),
                                     ],
                                   ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                      vertical: 18,
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            if (slide['logo'] != null)
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                  right: 12,
+                                                ),
+                                                child: ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  child: Image.asset(
+                                                    slide['logo'],
+                                                    width: 40,
+                                                    height: 40,
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                                ),
+                                              ),
+                                            if (slide['icon'] != null)
+                                              Icon(
+                                                slide['icon'],
+                                                color: Colors.white,
+                                                size: 32,
+                                              ),
+                                            if (slide['icon'] != null)
+                                              const SizedBox(width: 12),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  if (slide['title'] != null)
+                                                    Text(
+                                                      slide['title'],
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 20,
+                                                        letterSpacing: 0.5,
+                                                        shadows: [
+                                                          Shadow(
+                                                            blurRadius: 8,
+                                                            color:
+                                                                Colors.black26,
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  if (slide['subtitle'] != null)
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                            top: 2.0,
+                                                          ),
+                                                      child: Text(
+                                                        slide['subtitle'],
+                                                        style: const TextStyle(
+                                                          color: Colors.white70,
+                                                          fontSize: 15,
+                                                          fontWeight:
+                                                              FontWeight.w400,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 10),
+                                        if (slide['body'] != null &&
+                                            slide['body'] is String)
+                                          Expanded(
+                                            child: SingleChildScrollView(
+                                              child: Text(
+                                                slide['body'],
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w400,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        if (slide['body'] != null &&
+                                            slide['body'] is List)
+                                          Expanded(
+                                            child: SingleChildScrollView(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  for (var item
+                                                      in slide['body'])
+                                                    if (item is String)
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets.symmetric(
+                                                              vertical: 2.5,
+                                                            ),
+                                                        child: Row(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            const Icon(
+                                                              Icons.circle,
+                                                              size: 8,
+                                                              color:
+                                                                  Colors
+                                                                      .white70,
+                                                            ),
+                                                            const SizedBox(
+                                                              width: 8,
+                                                            ),
+                                                            Expanded(
+                                                              child: Text(
+                                                                item,
+                                                                style: const TextStyle(
+                                                                  color:
+                                                                      Colors
+                                                                          .white,
+                                                                  fontSize: 15,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w400,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      )
+                                                    else if (item is Map &&
+                                                        item['type'] == 'phone')
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets.symmetric(
+                                                              vertical: 2.5,
+                                                            ),
+                                                        child: GestureDetector(
+                                                          onTap:
+                                                              () => launchUrl(
+                                                                Uri.parse(
+                                                                  'tel:${item['value']}',
+                                                                ),
+                                                              ),
+                                                          child: Row(
+                                                            children: [
+                                                              const Icon(
+                                                                Icons.phone,
+                                                                size: 16,
+                                                                color:
+                                                                    Colors
+                                                                        .white,
+                                                              ),
+                                                              const SizedBox(
+                                                                width: 8,
+                                                              ),
+                                                              Text(
+                                                                item['value'],
+                                                                style: const TextStyle(
+                                                                  color:
+                                                                      Colors
+                                                                          .white,
+                                                                  fontSize: 15,
+                                                                  decoration:
+                                                                      TextDecoration
+                                                                          .underline,
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      )
+                                                    else if (item is Map &&
+                                                        item['type'] == 'email')
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets.symmetric(
+                                                              vertical: 2.5,
+                                                            ),
+                                                        child: GestureDetector(
+                                                          onTap:
+                                                              () => launchUrl(
+                                                                Uri.parse(
+                                                                  'mailto:${item['value']}',
+                                                                ),
+                                                              ),
+                                                          child: Row(
+                                                            children: [
+                                                              const Icon(
+                                                                Icons.email,
+                                                                size: 16,
+                                                                color:
+                                                                    Colors
+                                                                        .white,
+                                                              ),
+                                                              const SizedBox(
+                                                                width: 8,
+                                                              ),
+                                                              Text(
+                                                                item['value'],
+                                                                style: const TextStyle(
+                                                                  color:
+                                                                      Colors
+                                                                          .white,
+                                                                  fontSize: 15,
+                                                                  decoration:
+                                                                      TextDecoration
+                                                                          .underline,
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      )
+                                                    else if (item is Map &&
+                                                        item['type'] ==
+                                                            'address')
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets.symmetric(
+                                                              vertical: 2.5,
+                                                            ),
+                                                        child: Row(
+                                                          children: [
+                                                            const Icon(
+                                                              Icons.location_on,
+                                                              size: 16,
+                                                              color:
+                                                                  Colors.white,
+                                                            ),
+                                                            const SizedBox(
+                                                              width: 8,
+                                                            ),
+                                                            Expanded(
+                                                              child: Text(
+                                                                item['value'],
+                                                                style: const TextStyle(
+                                                                  color:
+                                                                      Colors
+                                                                          .white,
+                                                                  fontSize: 15,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        if (slide['socials'] != null)
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                              top: 10,
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                for (var social
+                                                    in slide['socials'])
+                                                  IconButton(
+                                                    icon: Icon(
+                                                      social['icon'],
+                                                      color: Colors.white,
+                                                      size: 22,
+                                                    ),
+                                                    onPressed:
+                                                        () => launchUrl(
+                                                          Uri.parse(
+                                                            social['url'],
+                                                          ),
+                                                        ),
+                                                  ),
+                                              ],
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                          ],
+                          );
+                        }).toList(),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      companySlides.length,
+                      (index) => AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        margin: const EdgeInsets.symmetric(horizontal: 3),
+                        width: currentSlide == index ? 18 : 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color:
+                              currentSlide == index
+                                  ? Colors.white
+                                  : Colors.white38,
+                          borderRadius: BorderRadius.circular(6),
                         ),
                       ),
                     ),
-                  );
-                },
+                  ),
+                ],
               ),
+              const SizedBox(height: 24),
+              // Featured Services horizontal list
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: Colors.white.withValues(alpha: 0.9),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Featured Services',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () => Get.toNamed(AppRoutes.services),
+                            child: const Text('View All'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      height: 150,
+                      child: ListView.separated(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        scrollDirection: Axis.horizontal,
+                        itemCount: servicesData.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 12),
+                        itemBuilder: (context, index) {
+                          final s = servicesData[index];
+                          return InkWell(
+                            onTap: () => Get.toNamed(AppRoutes.services),
+                            child: Container(
+                              width: 240,
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                gradient: LinearGradient(
+                                  colors: [
+                                    AppTheme.primaryColor.withValues(
+                                      alpha: 0.08,
+                                    ),
+                                    AppTheme.secondaryColor.withValues(
+                                      alpha: 0.06,
+                                    ),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                border: Border.all(
+                                  color: AppTheme.primaryColor.withValues(
+                                    alpha: 0.12,
+                                  ),
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Icon(
+                                    s['icon'] as IconData,
+                                    color: AppTheme.primaryColor,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    s['title'] as String,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    s['description'] as String,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.black54,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Active projects for current user (top 3)
+              Obx(() {
+                final isLoggedIn =
+                    UserAuthService.instance.isUserLoggedIn.value;
+                if (!isLoggedIn) return const SizedBox.shrink();
+                final userId =
+                    userController.userProfile.value?.id ??
+                    userController.userId.value;
+                if (userId.isEmpty) return const SizedBox.shrink();
+                return Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    color: Colors.white.withValues(alpha: 0.9),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'My Active Projects',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      StreamBuilder<List<Project>>(
+                        stream: FirebaseService.instance.getProjects(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                            );
+                          }
+                          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                            return const Text('No active projects yet.');
+                          }
+                          final mine =
+                              snapshot.data!
+                                  .where(
+                                    (p) => p.bookedDates.any(
+                                      (d) => d.clientId == userId,
+                                    ),
+                                  )
+                                  .toList();
+                          if (mine.isEmpty) {
+                            return const Text('No active projects yet.');
+                          }
+                          mine.sort((a, b) => b.progress.compareTo(a.progress));
+                          final top = mine.take(3).toList();
+                          return Column(
+                            children:
+                                top.map((p) {
+                                  final status =
+                                      p.progress >= 100
+                                          ? 'Completed'
+                                          : (p.progress > 0
+                                              ? 'In Progress'
+                                              : 'Booked');
+                                  return Container(
+                                    margin: const EdgeInsets.only(bottom: 12),
+                                    padding: const EdgeInsets.all(14),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: AppTheme.primaryColor.withValues(
+                                          alpha: 0.12,
+                                        ),
+                                      ),
+                                      color: Colors.white,
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                p.title,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                            Chip(
+                                              label: Text(status),
+                                              backgroundColor:
+                                                  status == 'Completed'
+                                                      ? Colors.green
+                                                      : status == 'In Progress'
+                                                      ? Colors.orange
+                                                      : AppTheme.primaryColor,
+                                              labelStyle: const TextStyle(
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 8),
+                                        LinearProgressIndicator(
+                                          value:
+                                              (p.progress.clamp(0, 100)) / 100,
+                                          minHeight: 6,
+                                          backgroundColor:
+                                              AppTheme.surfaceLight,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                status == 'Completed'
+                                                    ? Colors.green
+                                                    : status == 'In Progress'
+                                                    ? Colors.orange
+                                                    : AppTheme.primaryColor,
+                                              ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () => Get.toNamed(AppRoutes.projects),
+                          child: const Text('Open Projects'),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
               ContactCard(
                 contacts:
                     companySlides.firstWhere(
@@ -549,464 +1004,6 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
-
-  void _onServiceTap(BuildContext context, Map<String, dynamic> service) {
-    if (service['title'] == 'IoT & Automation Projects') {
-      showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        builder:
-            (context) => FractionallySizedBox(
-              heightFactor: 0.75, // 75% of screen height
-              child: Container(
-                padding: const EdgeInsets.all(32),
-                child: const Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Iconsax.cpu, size: 48, color: Colors.grey),
-                    SizedBox(height: 16),
-                    Text(
-                      'IoT & Automation Projects',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      'Coming Soon!',
-                      style: TextStyle(fontSize: 16, color: Colors.grey),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-      );
-    } else {
-      final Service? detail = Service.getAllServices().firstWhereOrNull(
-        (s) => s.title == service['title'],
-      );
-      if (detail == null) {
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          builder:
-              (context) => FractionallySizedBox(
-                heightFactor: 0.75,
-                child: Container(
-                  padding: const EdgeInsets.all(32),
-                  child: Text('Service details not found.'),
-                ),
-              ),
-        );
-        return;
-      }
-      showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        builder:
-            (context) => FractionallySizedBox(
-              heightFactor: 0.75,
-              child: _ServiceDetailSheet(service: detail),
-            ),
-      );
-    }
-  }
-}
-
-// Full service detail sheet using the Service model and layout from services_page.dart
-class _ServiceDetailSheet extends StatelessWidget {
-  final Service service;
-  const _ServiceDetailSheet({required this.service});
-  @override
-  Widget build(BuildContext context) {
-    final isAdmin = userController.role.value == 'admin';
-    final List<String> missing = [];
-    if (isAdmin) {
-      if (service.description.isEmpty) missing.add('Description');
-      if (service.features.isEmpty) missing.add('Features');
-      if (service.price == null) missing.add('Price');
-    }
-    return Stack(
-      children: [
-        Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (isAdmin && missing.isNotEmpty)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    margin: const EdgeInsets.only(bottom: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.orange[100],
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(20),
-                        topRight: Radius.circular(20),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.warning,
-                          color: Colors.orange,
-                          size: 22,
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            'Missing info: ${missing.join(', ')}',
-                            style: const TextStyle(
-                              color: Colors.orange,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                // Large rounded image at the top
-                ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20),
-                  ),
-                  child:
-                      service.imageUrl != null
-                          ? Image.asset(
-                            service.imageUrl!,
-                            width: double.infinity,
-                            height: 200,
-                            fit: BoxFit.cover,
-                          )
-                          : Container(
-                            width: double.infinity,
-                            height: 200,
-                            color: Colors.grey[200],
-                            child: const Icon(
-                              Icons.broken_image,
-                              size: 48,
-                              color: Colors.grey,
-                            ),
-                          ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Title and category
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  service.title,
-                                  style: const TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                if (service.category.isNotEmpty)
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.green.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      service.category,
-                                      style: const TextStyle(
-                                        color: Colors.green,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                          // Modern close button
-                          IconButton(
-                            icon: const Icon(Icons.close, size: 26),
-                            onPressed: () => Navigator.of(context).pop(),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 18),
-                      // Overview
-                      const Text(
-                        'Service Overview',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        service.description,
-                        style: const TextStyle(fontSize: 16, height: 1.5),
-                      ),
-                      const SizedBox(height: 18),
-                      // Features
-                      if (service.features.isNotEmpty) ...[
-                        const Text(
-                          'Key Features',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Column(
-                          children:
-                              service.features
-                                  .map(
-                                    (feature) => Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 6,
-                                      ),
-                                      child: Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          const Icon(
-                                            Icons.check_circle,
-                                            color: Colors.green,
-                                            size: 18,
-                                          ),
-                                          const SizedBox(width: 10),
-                                          Expanded(
-                                            child: Text(
-                                              feature,
-                                              style: const TextStyle(
-                                                fontSize: 15,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  )
-                                  .toList(),
-                        ),
-                        const SizedBox(height: 18),
-                      ],
-
-                      // Action button
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          icon: const Icon(
-                            Iconsax.calendar,
-                            color: Colors.white,
-                          ),
-                          label: const Text(
-                            'Book Service',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onPressed: () {
-                            showModalBottomSheet(
-                              context: Get.context!,
-                              isScrollControlled: true,
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.vertical(
-                                  top: Radius.circular(24),
-                                ),
-                              ),
-                              builder:
-                                  (context) =>
-                                      ServiceBookingForm(service: service),
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class ServiceBookingForm extends StatefulWidget {
-  final Service service;
-  const ServiceBookingForm({super.key, required this.service});
-  @override
-  State<ServiceBookingForm> createState() => _ServiceBookingFormState();
-}
-
-class _ServiceBookingFormState extends State<ServiceBookingForm> {
-  final _formKey = GlobalKey<FormState>();
-  final _locationController = TextEditingController();
-  final _sizeController = TextEditingController();
-  DateTime? _selectedDate;
-  bool _isLoading = false;
-  List<DateTime> _bookedDates = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchBookedDates();
-  }
-
-  Future<void> _fetchBookedDates() async {
-    final bookings = await FirebaseService.instance.getBookings().first;
-    setState(() {
-      _bookedDates =
-          bookings
-              .where((b) => b.serviceName == widget.service.title)
-              .map((b) => DateTime(b.date.year, b.date.month, b.date.day))
-              .toList();
-    });
-  }
-
-  bool _isDateBooked(DateTime date) {
-    return _bookedDates.any(
-      (d) => d.year == date.year && d.month == date.month && d.day == date.day,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Calendar picker
-            Text(
-              'Select Project Date',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            ElevatedButton(
-              onPressed: () async {
-                final picked = await showDatePicker(
-                  context: context,
-                  initialDate: DateTime.now().add(const Duration(days: 1)),
-                  firstDate: DateTime.now(),
-                  lastDate: DateTime.now().add(const Duration(days: 365)),
-                  selectableDayPredicate: (date) => !_isDateBooked(date),
-                );
-                if (picked != null) setState(() => _selectedDate = picked);
-              },
-              child: Text(
-                _selectedDate == null
-                    ? 'Pick a date'
-                    : DateFormat('yMMMd').format(_selectedDate!),
-              ),
-            ),
-            const SizedBox(height: 16),
-            // Location
-            TextFormField(
-              controller: _locationController,
-              decoration: const InputDecoration(
-                labelText: 'Project Location',
-                border: OutlineInputBorder(),
-              ),
-              validator:
-                  (v) => v == null || v.isEmpty ? 'Enter location' : null,
-            ),
-            const SizedBox(height: 16),
-            // Size
-            TextFormField(
-              controller: _sizeController,
-              decoration: const InputDecoration(
-                labelText: 'Project Size (e.g., sqm)',
-                border: OutlineInputBorder(),
-              ),
-              validator: (v) => v == null || v.isEmpty ? 'Enter size' : null,
-            ),
-            const SizedBox(height: 16),
-            // Transport cost (set by admin)
-            Text(
-              'Transport Cost: ${widget.service.price != null ? '\$${widget.service.price}' : 'Contact admin'}',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.green,
-              ),
-            ),
-            const SizedBox(height: 24),
-            // Submit
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed:
-                    _isLoading
-                        ? null
-                        : () async {
-                          if (!_formKey.currentState!.validate() ||
-                              _selectedDate == null)
-                            return;
-                          setState(() => _isLoading = true);
-                          final booking = Booking(
-                            serviceName: widget.service.title,
-                            clientName:
-                                '', // Fill from user profile if available
-                            clientEmail: '',
-                            clientPhone: '',
-                            date: _selectedDate!,
-                            status: BookingStatus.pending,
-                            price: widget.service.price ?? 0.0,
-                            location: _locationController.text.trim(),
-                            notes: 'Size: ${_sizeController.text.trim()}',
-                          );
-                          await FirebaseService.instance.addBooking(booking);
-                          setState(() => _isLoading = false);
-                          Get.snackbar('Success', 'Booking submitted!');
-                          Navigator.of(context).pop();
-                        },
-                child:
-                    _isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text('Submit Booking'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 class ContactCard extends StatelessWidget {
@@ -1019,7 +1016,7 @@ class ContactCard extends StatelessWidget {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 4,
-      color: AppTheme.primaryColor.withOpacity(0.80),
+      color: AppTheme.primaryColor.withValues(alpha: 0.80),
       margin: const EdgeInsets.symmetric(vertical: 16),
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -1142,51 +1139,58 @@ class ContactCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // LinkedIn
-                FlutterSocialButton(
-                  onTap:
-                      () => launchUrl(
-                        Uri.parse('https://linkedin.com/company/kronium'),
-                      ),
-                  buttonType: ButtonType.linkedin,
-                  icon: Icons.work,
-                  title: '',
-                  buttonWidth: 45,
-                  buttonHeight: 45,
+                SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: FlutterSocialButton(
+                    onTap:
+                        () => launchUrl(
+                          Uri.parse('https://linkedin.com/company/kronium'),
+                        ),
+                    buttonType: ButtonType.linkedin,
+                    title: '',
+                  ),
                 ),
                 const SizedBox(width: 12),
                 // Instagram
-                FlutterSocialButton(
-                  onTap:
-                      () =>
-                          launchUrl(Uri.parse('https://instagram.com/kronium')),
-                  buttonType: ButtonType.instagram,
-                  icon: Icons.camera_alt,
-                  title: '',
-                  buttonWidth: 45,
-                  buttonHeight: 45,
+                SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: FlutterSocialButton(
+                    onTap:
+                        () => launchUrl(
+                          Uri.parse('https://instagram.com/kronium'),
+                        ),
+                    buttonType: ButtonType.instagram,
+                    title: '',
+                  ),
                 ),
                 const SizedBox(width: 12),
                 // Facebook
-                FlutterSocialButton(
-                  onTap:
-                      () =>
-                          launchUrl(Uri.parse('https://facebook.com/kronium')),
-                  buttonType: ButtonType.facebook,
-                  icon: Icons.facebook,
-                  title: '',
-                  buttonWidth: 45,
-                  buttonHeight: 45,
+                SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: FlutterSocialButton(
+                    onTap:
+                        () => launchUrl(
+                          Uri.parse('https://facebook.com/kronium'),
+                        ),
+                    buttonType: ButtonType.facebook,
+                    title: '',
+                  ),
                 ),
                 const SizedBox(width: 12),
                 // WhatsApp
-                FlutterSocialButton(
-                  onTap:
-                      () => launchUrl(Uri.parse('https://wa.me/263784148718')),
-                  buttonType: ButtonType.whatsapp,
-                  icon: Icons.message,
-                  title: '',
-                  buttonWidth: 45,
-                  buttonHeight: 45,
+                SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: FlutterSocialButton(
+                    onTap:
+                        () =>
+                            launchUrl(Uri.parse('https://wa.me/263784148718')),
+                    buttonType: ButtonType.whatsapp,
+                    title: '',
+                  ),
                 ),
               ],
             ),

@@ -25,7 +25,7 @@ class AppConstants {
       'subtitle': 'Kronium Engineering',
       'body': 'An independent firm of designers, architects, planners, engineers, environmental specialists, agronomists and electricians offering a broad range of professional services.',
       'icon': Icons.flash_on,
-      'logo': 'assets/images/logo.jpg',
+      'logo': 'assets/images/logo.png',
     },
     {
       'title': 'ABOUT KRONIUM ENGINEERING',

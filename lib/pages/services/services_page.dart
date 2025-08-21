@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:kronium/core/app_theme.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'package:kronium/core/user_auth_service.dart'
     show userController, UserAuthService;
@@ -26,6 +25,120 @@ class ServicesPageState extends State<ServicesPage> {
     'Price: Low to High',
     'Price: High to Low',
   ];
+
+  List<Service> _getHardcodedServices() {
+    return [
+      Service(
+        id: '1',
+        title: 'Greenhouse Construction',
+        category: 'Agriculture',
+        icon: Icons.warehouse,
+        color: const Color(0xFF2ECC71),
+        description:
+            'Professional greenhouse design and construction for optimal plant growth',
+        features: [
+          'Customised sizing options',
+          'Wooden / Metal structure frame',
+          'Drip irrigation system',
+          'Fertigation system',
+          'Ventilation curtain design',
+          '40% shadenet',
+          'Bolt and nut linkages',
+          '200micron greenhouse plastic / 40% shadenet',
+          'Curiosite treated gumpoles / painted steel round tubes',
+          'Greenhouse Types: Wooden, Hybrid (Wooden/Metal), Metal, Netshade',
+        ],
+        imageUrl: 'assets/images/services/Greenhouse.jpg',
+        price: 3500,
+
+      ),
+      Service(
+        id: '2',
+        title: 'Irrigation Systems',
+        category: 'Agriculture',
+        icon: Icons.water_drop,
+        color: const Color(0xFF3498DB),
+        description:
+            'Professional irrigation design and installation for optimal plant health and growth',
+        features: [
+          'Customised design',
+          'Pipe network',
+          'Valves',
+          'All necessary accessories',
+          'Irrigation Types: Drip, Rainpipe, Centre pivots',
+        ],
+        imageUrl: 'assets/images/services/irrigation.jpg',
+        price: 2500,
+      ),
+      Service(
+        id: '3',
+        title: 'Construction',
+        category: 'Building',
+        icon: Icons.home_work,
+        color: const Color(0xFFE67E22),
+        description:
+            'Professional building and construction service with inclusion of structure plans, 3D models and rendering',
+        features: [
+          'Structure Types: Modern Houses, Animal Shelter, Farm Structures',
+        ],
+        imageUrl: 'assets/images/services/construction.jpg',
+        price: 5000,
+      ),
+      Service(
+        id: '4',
+        title: 'Steel Structures',
+        category: 'Building',
+        icon: Icons.construction,
+        color: const Color(0xFF95A5A6),
+        description:
+            'Professional customised steel fabrication services including design and installation of structures',
+        features: [
+          'Steel sheds',
+          'Spray races',
+          'Neck clamps',
+          'Steel reservoir tanks',
+          'Solar dryers',
+        ],
+        imageUrl: 'assets/images/services/Iot.png',
+        price: 4000,
+      ),
+      Service(
+        id: '5',
+        title: 'Solar Systems',
+        category: 'Energy',
+        icon: Icons.solar_power,
+        color: const Color(0xFFF1C40F),
+        description:
+            'Domestic, industrial and commercial solar systems design and installation to ensure all your farm, home or business process run smoothly without any power outages',
+        features: [
+          'Domestic solar systems',
+          'Industrial solar systems',
+          'Commercial solar systems',
+          'Design and installation',
+          'Power outage prevention',
+        ],
+        imageUrl: 'assets/images/services/solar.png',
+        price: 8000,
+      ),
+      Service(
+        id: '6',
+        title: 'Logistics',
+        category: 'Transport',
+        icon: Icons.local_shipping,
+        color: const Color(0xFF9B59B6),
+        description:
+            'Professional transport and logistics provision for carrying your farm produce to the market from your farm',
+        features: [
+          'Farm to market transport',
+          'Professional logistics',
+          'Produce transportation',
+          'Reliable delivery service',
+        ],
+        imageUrl: 'assets/images/services/logistics.png',
+        price: 1500,
+      ),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -101,209 +214,225 @@ class ServicesPageState extends State<ServicesPage> {
           ),
         ),
       ),
-      body: StreamBuilder<List<Service>>(
-        stream: FirebaseService.instance.getServices(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error loading services'));
-          }
-          final services = snapshot.data ?? [];
-          final filtered =
-              services.where((s) {
-                final query = _searchQuery.value.toLowerCase();
-                return query.isEmpty ||
-                    s.title.toLowerCase().contains(query) ||
-                    s.category.toLowerCase().contains(query);
-              }).toList();
-          if (filtered.isEmpty) {
-            return const Center(child: Text('No services found'));
-          }
-          return Padding(
-            padding: const EdgeInsets.all(16),
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 0.85,
-              ),
-              itemCount: filtered.length,
-              itemBuilder: (context, index) {
-                final service = filtered[index];
-                final missing = <String>[];
-                if (isAdmin) {
-                  if (service.description.isEmpty) missing.add('Description');
-                  if (service.features.isEmpty) missing.add('Features');
-                  if (service.price == null) missing.add('Price');
+      body: Column(
+        children: [
+          // Services Grid
+          Expanded(
+            child: StreamBuilder<List<Service>>(
+              stream: FirebaseService.instance.getServices(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
                 }
-                return Stack(
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(
-                              top: Radius.circular(24),
-                            ),
-                          ),
-                          builder:
-                              (context) => _ServiceDetailSheet(
-                                service: service,
-                                isAdmin: isAdmin,
-                              ),
-                        );
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        curve: Curves.easeInOut,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.08),
-                              blurRadius: 12,
-                              offset: const Offset(0, 6),
-                            ),
-                          ],
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error loading services'));
+                }
+                final services = snapshot.data ?? [];
+
+                // Add hardcoded services if Firebase is empty
+                final allServices =
+                    services.isEmpty ? _getHardcodedServices() : services;
+
+                final filtered =
+                    allServices.where((s) {
+                      final query = _searchQuery.value.toLowerCase();
+                      return query.isEmpty ||
+                          s.title.toLowerCase().contains(query) ||
+                          s.category.toLowerCase().contains(query);
+                    }).toList();
+
+                if (filtered.isEmpty) {
+                  return const Center(child: Text('No services found'));
+                }
+                return Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: GridView.builder(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                          childAspectRatio: 0.85,
                         ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              service.imageUrl != null &&
-                                      service.imageUrl!.isNotEmpty
-                                  ? Image.network(
-                                    service.imageUrl!,
-                                    fit: BoxFit.cover,
-                                    errorBuilder:
-                                        (context, error, stackTrace) =>
-                                            Container(
-                                              color: Colors.grey[200],
-                                              child: const Icon(
-                                                Icons.broken_image,
-                                                size: 48,
-                                                color: Colors.grey,
-                                              ),
-                                            ),
-                                  )
-                                  : Container(
-                                    color: Colors.grey[200],
-                                    child: const Icon(
-                                      Icons.broken_image,
-                                      size: 48,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                              Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(20),
-                                  gradient: LinearGradient(
-                                    begin: Alignment.bottomCenter,
-                                    end: Alignment.topCenter,
-                                    colors: [
-                                      Colors.black.withOpacity(0.6),
-                                      Colors.transparent,
-                                    ],
+                    itemCount: filtered.length,
+                    itemBuilder: (context, index) {
+                      final service = filtered[index];
+                      final missing = <String>[];
+                      if (isAdmin) {
+                        if (service.description.isEmpty) {
+                          missing.add('Description');
+                        }
+                        if (service.features.isEmpty) missing.add('Features');
+                        if (service.price == null) missing.add('Price');
+                      }
+                      return Stack(
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.vertical(
+                                    top: Radius.circular(24),
                                   ),
                                 ),
+                                builder:
+                                    (context) => _ServiceDetailSheet(
+                                      service: service,
+                                      isAdmin: isAdmin,
+                                    ),
+                              );
+                            },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              curve: Curves.easeInOut,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.08),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 6),
+                                  ),
+                                ],
                               ),
-                              Align(
-                                alignment: Alignment.bottomLeft,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Text(
-                                    service.title,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                      shadows: [
-                                        Shadow(
-                                          color: Colors.black54,
-                                          blurRadius: 6,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(20),
+                                child: Stack(
+                                  fit: StackFit.expand,
+                                  children: [
+                                    service.imageUrl != null &&
+                                            service.imageUrl!.isNotEmpty
+                                        ? Image.network(
+                                          service.imageUrl!,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stackTrace) =>
+                                                  Container(
+                                                    color: Colors.grey[200],
+                                                    child: const Icon(
+                                                      Icons.broken_image,
+                                                      size: 48,
+                                                      color: Colors.grey,
+                                                    ),
+                                                  ),
+                                        )
+                                        : Container(
+                                          color: Colors.grey[200],
+                                          child: const Icon(
+                                            Icons.broken_image,
+                                            size: 48,
+                                            color: Colors.grey,
+                                          ),
                                         ),
-                                      ],
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(20),
+                                        gradient: LinearGradient(
+                                          begin: Alignment.bottomCenter,
+                                          end: Alignment.topCenter,
+                                          colors: [
+                                            Colors.black.withOpacity(0.6),
+                                            Colors.transparent,
+                                          ],
+                                        ),
+                                      ),
                                     ),
-                                  ),
+                                    Align(
+                                      alignment: Alignment.bottomLeft,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(16),
+                                        child: Text(
+                                          service.title,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                            shadows: [
+                                              Shadow(
+                                                color: Colors.black54,
+                                                blurRadius: 6,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (isAdmin && missing.isNotEmpty)
-                      Positioned(
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 6,
-                            horizontal: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.orange[100],
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(20),
-                              topRight: Radius.circular(20),
                             ),
                           ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.warning,
-                                color: Colors.orange,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  'Missing: ${missing.join(', ')}',
-                                  style: const TextStyle(
-                                    color: Colors.orange,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
+                          if (isAdmin && missing.isNotEmpty)
+                            Positioned(
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 6,
+                                  horizontal: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange[100],
+                                  borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(20),
+                                    topRight: Radius.circular(20),
                                   ),
                                 ),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.warning,
+                                      color: Colors.orange,
+                                      size: 18,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Expanded(
+                                      child: Text(
+                                        'Missing: ${missing.join(', ')}',
+                                        style: const TextStyle(
+                                          color: Colors.orange,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    if (isAdmin)
-                      Positioned(
-                        top: 8,
-                        right: 8,
-                        child: PopupMenuButton<String>(
-                          onSelected: (value) {
-                            // TODO: Implement edit/delete
-                          },
-                          itemBuilder:
-                              (context) => [
-                                const PopupMenuItem(
-                                  value: 'edit',
-                                  child: Text('Edit'),
-                                ),
-                                const PopupMenuItem(
-                                  value: 'delete',
-                                  child: Text('Delete'),
-                                ),
-                              ],
-                        ),
-                      ),
-                  ],
+                            ),
+                          if (isAdmin)
+                            Positioned(
+                              top: 8,
+                              right: 8,
+                              child: PopupMenuButton<String>(
+                                onSelected: (value) {
+                                  // TODO: Implement edit/delete
+                                },
+                                itemBuilder:
+                                    (context) => [
+                                      const PopupMenuItem(
+                                        value: 'edit',
+                                        child: Text('Edit'),
+                                      ),
+                                      const PopupMenuItem(
+                                        value: 'delete',
+                                        child: Text('Delete'),
+                                      ),
+                                    ],
+                              ),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
                 );
               },
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
@@ -467,7 +596,6 @@ class _ServiceDetailSheet extends StatelessWidget {
               ),
               const SizedBox(height: 18),
             ],
-            
 
             if (!isAdmin)
               Center(

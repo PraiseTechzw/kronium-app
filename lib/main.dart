@@ -8,24 +8,22 @@ import 'package:kronium/core/firebase_service.dart';
 import 'package:kronium/core/routes.dart';
 import 'package:kronium/core/user_auth_service.dart';
 import 'package:kronium/core/appwrite_client.dart';
-import 'firebase_options.dart'; 
+import 'firebase_options.dart';
 
 void main() async {
   // Ensure Flutter binding is initialized
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
   // Initialize services
   Get.put(AdminAuthService());
   Get.put(UserAuthService());
   Get.put(FirebaseService());
   Get.put(UserController(), permanent: true);
   AppwriteService.init();
-  
+
   runApp(const KroniumProApp());
 }
 

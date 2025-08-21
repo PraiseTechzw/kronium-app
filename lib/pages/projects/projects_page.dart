@@ -439,7 +439,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                         ...[
                         const SizedBox(height: 6),
                       LinearProgressIndicator(
-                        value: project.progress! / 100,
+                        value: project.progress / 100,
                           backgroundColor: AppTheme.surfaceLight,
                         valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
                           minHeight: 5,
@@ -585,7 +585,7 @@ class ProjectsPageState extends State<ProjectsPage> with SingleTickerProviderSta
                              ...[
                              const SizedBox(height: 8),
                              LinearProgressIndicator(
-                               value: project.progress! / 100,
+                               value: project.progress / 100,
                                backgroundColor: AppTheme.surfaceLight,
                                valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
                                minHeight: 6,

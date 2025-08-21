@@ -5,6 +5,7 @@ import 'package:animate_do/animate_do.dart';
 import 'package:kronium/core/admin_auth_service.dart';
 import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/routes.dart';
+import 'package:kronium/core/constants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -43,6 +44,8 @@ class _AdminSetupPageState extends State<AdminSetupPage> {
         'Error',
         'Passwords do not match',
         snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppTheme.errorColor,
+        colorText: Colors.white,
       );
       return;
     }
@@ -76,11 +79,12 @@ class _AdminSetupPageState extends State<AdminSetupPage> {
         'Success',
         'Admin account created successfully!',
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
+        backgroundColor: AppTheme.successColor,
         colorText: Colors.white,
       );
 
-      Get.offAllNamed(AppRoutes.adminDashboard);
+      // Redirect to welcome page first, then user can continue to dashboard
+      Get.offAllNamed(AppRoutes.welcome);
     } catch (e) {
       String errorMessage = 'Failed to create admin account';
       if (e.toString().contains('email-already-in-use')) {
@@ -93,7 +97,7 @@ class _AdminSetupPageState extends State<AdminSetupPage> {
         'Error',
         errorMessage,
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
+        backgroundColor: AppTheme.errorColor,
         colorText: Colors.white,
       );
     } finally {
@@ -104,313 +108,340 @@ class _AdminSetupPageState extends State<AdminSetupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.primaryColor,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Container(
-            height: MediaQuery.of(context).size.height - 100,
+      backgroundColor: Colors.white,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.white,
+              Color(0xFFF8F9FA),
+              Colors.white,
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
-            child: Column(
-              children: [
-                // Header Section
-                Expanded(
-                  flex: 2,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      FadeInDown(
-                        duration: const Duration(milliseconds: 1000),
-                        child: Container(
-                          padding: const EdgeInsets.all(20),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 20),
+                  
+                  // Logo and Title Section
+                  FadeInDown(
+                    child: Column(
+                      children: [
+                        // Kronium Logo
+                        Container(
+                          width: 100,
+                          height: 100,
                           decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(25),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
+                                color: AppTheme.primaryColor.withValues(alpha: 0.2),
                                 blurRadius: 20,
-                                spreadRadius: 5,
+                                offset: const Offset(0, 10),
                               ),
                             ],
                           ),
-                          child: const Icon(
-                            Iconsax.shield_tick,
-                            size: 80,
-                            color: Colors.white,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(25),
+                            child: Image.asset(
+                              AppConstants.appLogo,
+                              fit: BoxFit.cover,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 30),
-                      FadeInUp(
-                        duration: const Duration(milliseconds: 1000),
-                        child: const Text(
-                          'Admin Setup',
+                        const SizedBox(height: 24),
+                        
+                        // App Name
+                        Text(
+                          AppConstants.appName,
                           style: TextStyle(
                             fontSize: 32,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: AppTheme.primaryColor,
+                            letterSpacing: 2.0,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      FadeInUp(
-                        delay: const Duration(milliseconds: 200),
-                        duration: const Duration(milliseconds: 1000),
-                        child: Text(
-                          'Create your admin account',
+                        const SizedBox(height: 8),
+                        
+                        // Subtitle
+                        const Text(
+                          'Admin Setup',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        
+                        Text(
+                          'Create your administrator account for KRONIUM',
                           style: TextStyle(
                             fontSize: 16,
-                            color: Colors.white.withOpacity(0.8),
+                            color: Colors.grey[600],
+                            height: 1.5,
                           ),
+                          textAlign: TextAlign.center,
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-
-                // Setup Form
-                Expanded(
-                  flex: 3,
-                  child: FadeInUp(
+                  
+                  const SizedBox(height: 40),
+                  
+                  // Form Fields
+                  // Name Field
+                  FadeInLeft(
+                    delay: const Duration(milliseconds: 100),
+                    child: _buildTextField(
+                      controller: _nameController,
+                      label: 'Full Name',
+                      icon: Iconsax.user,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your name';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 20),
+                  
+                  // Email Field
+                  FadeInLeft(
+                    delay: const Duration(milliseconds: 200),
+                    child: _buildTextField(
+                      controller: _emailController,
+                      label: 'Email Address',
+                      icon: Iconsax.sms,
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your email';
+                        }
+                        if (!GetUtils.isEmail(value)) {
+                          return 'Please enter a valid email';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 20),
+                  
+                  // Password Field
+                  FadeInLeft(
+                    delay: const Duration(milliseconds: 300),
+                    child: _buildPasswordField(
+                      controller: _passwordController,
+                      label: 'Password',
+                      obscureText: _obscurePassword,
+                      onToggle: () => setState(() => _obscurePassword = !_obscurePassword),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a password';
+                        }
+                        if (value.length < 6) {
+                          return 'Password must be at least 6 characters';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 20),
+                  
+                  // Confirm Password Field
+                  FadeInLeft(
                     delay: const Duration(milliseconds: 400),
-                    duration: const Duration(milliseconds: 1000),
-                    child: Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 20,
-                            spreadRadius: 5,
+                    child: _buildPasswordField(
+                      controller: _confirmPasswordController,
+                      label: 'Confirm Password',
+                      obscureText: _obscureConfirmPassword,
+                      onToggle: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please confirm your password';
+                        }
+                        if (value != _passwordController.text) {
+                          return 'Passwords do not match';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 32),
+                  
+                  // Create Admin Button
+                  FadeInUp(
+                    delay: const Duration(milliseconds: 500),
+                    child: SizedBox(
+                      height: 56,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _createAdminAccount,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryColor,
+                          foregroundColor: Colors.white,
+                          elevation: 8,
+                          shadowColor: AppTheme.primaryColor.withValues(alpha: 0.3),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
                           ),
-                        ],
-                      ),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            // Name Field
-                            TextFormField(
-                              controller: _nameController,
-                              decoration: InputDecoration(
-                                labelText: 'Full Name',
-                                prefixIcon: const Icon(Iconsax.user),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(
-                                    color: Colors.grey.shade300,
-                                  ),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(
-                                    color: AppTheme.primaryColor,
-                                    width: 2,
-                                  ),
-                                ),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter your name';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 20),
-
-                            // Email Field
-                            TextFormField(
-                              controller: _emailController,
-                              keyboardType: TextInputType.emailAddress,
-                              decoration: InputDecoration(
-                                labelText: 'Admin Email',
-                                prefixIcon: const Icon(Iconsax.sms),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(
-                                    color: Colors.grey.shade300,
-                                  ),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(
-                                    color: AppTheme.primaryColor,
-                                    width: 2,
-                                  ),
-                                ),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter your email';
-                                }
-                                if (!GetUtils.isEmail(value)) {
-                                  return 'Please enter a valid email';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 20),
-
-                            // Password Field
-                            TextFormField(
-                              controller: _passwordController,
-                              obscureText: _obscurePassword,
-                              decoration: InputDecoration(
-                                labelText: 'Password',
-                                prefixIcon: const Icon(Iconsax.lock),
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _obscurePassword
-                                        ? Iconsax.eye_slash
-                                        : Iconsax.eye,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _obscurePassword = !_obscurePassword;
-                                    });
-                                  },
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(
-                                    color: Colors.grey.shade300,
-                                  ),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(
-                                    color: AppTheme.primaryColor,
-                                    width: 2,
-                                  ),
-                                ),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter a password';
-                                }
-                                if (value.length < 6) {
-                                  return 'Password must be at least 6 characters';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 20),
-
-                            // Confirm Password Field
-                            TextFormField(
-                              controller: _confirmPasswordController,
-                              obscureText: _obscureConfirmPassword,
-                              decoration: InputDecoration(
-                                labelText: 'Confirm Password',
-                                prefixIcon: const Icon(Iconsax.lock),
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _obscureConfirmPassword
-                                        ? Iconsax.eye_slash
-                                        : Iconsax.eye,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _obscureConfirmPassword = !_obscureConfirmPassword;
-                                    });
-                                  },
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(
-                                    color: Colors.grey.shade300,
-                                  ),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(
-                                    color: AppTheme.primaryColor,
-                                    width: 2,
-                                  ),
-                                ),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please confirm your password';
-                                }
-                                if (value != _passwordController.text) {
-                                  return 'Passwords do not match';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 30),
-
-                            // Create Account Button
-                            ElevatedButton(
-                              onPressed: _isLoading ? null : _createAdminAccount,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppTheme.primaryColor,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                elevation: 5,
-                              ),
-                              child: _isLoading
-                                  ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation<Color>(
-                                          Colors.white,
-                                        ),
-                                      ),
-                                    )
-                                  : const Text(
-                                      'Create Admin Account',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                            ),
-                            const SizedBox(height: 20),
-
-                            // Back to Login Button
-                            TextButton(
-                              onPressed: () => Get.offAllNamed(AppRoutes.customerLogin),
-                              child: Text(
-                                'Already have an account? Sign in',
-                                style: TextStyle(
-                                  color: Colors.grey.shade600,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ),
-                          ],
                         ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text(
+                                'Create Admin Account',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                  
+                  const SizedBox(height: 24),
+                  
+                  // Back to Login Link
+                  FadeInUp(
+                    delay: const Duration(milliseconds: 600),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Already have an account? ',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 16,
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () => Get.back(),
+                          child: Text(
+                            'Sign In',
+                            style: TextStyle(
+                              color: AppTheme.primaryColor,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    TextInputType? keyboardType,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      style: const TextStyle(color: Colors.black87),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: Colors.grey[600]),
+        prefixIcon: Icon(icon, color: AppTheme.primaryColor),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: Colors.grey[300]!),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: Colors.grey[300]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: AppTheme.primaryColor, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: AppTheme.errorColor, width: 2),
+        ),
+        filled: true,
+        fillColor: Colors.grey[50],
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      ),
+      validator: validator,
+    );
+  }
+
+  Widget _buildPasswordField({
+    required TextEditingController controller,
+    required String label,
+    required bool obscureText,
+    required VoidCallback onToggle,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      style: const TextStyle(color: Colors.black87),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: Colors.grey[600]),
+        prefixIcon: Icon(Iconsax.lock, color: AppTheme.primaryColor),
+        suffixIcon: IconButton(
+          onPressed: onToggle,
+          icon: Icon(
+            obscureText ? Iconsax.eye : Iconsax.eye_slash,
+            color: Colors.grey[600],
+          ),
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: Colors.grey[300]!),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: Colors.grey[300]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: AppTheme.primaryColor, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: AppTheme.errorColor, width: 2),
+        ),
+        filled: true,
+        fillColor: Colors.grey[50],
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      ),
+      validator: validator,
     );
   }
 } 

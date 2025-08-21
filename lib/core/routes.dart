@@ -6,6 +6,7 @@ import 'package:kronium/pages/admin/admin_services_page.dart';
 import 'package:kronium/pages/admin/admin_setup_page.dart';
 import 'package:kronium/pages/auth/customer_login_page.dart';
 import 'package:kronium/pages/auth/customer_register_page.dart';
+import 'package:kronium/pages/auth/forgot_password_page.dart';
 import 'package:kronium/pages/customer/customer_chat_page.dart';
 import 'package:kronium/pages/customer/customer_dashboard_page.dart';
 import 'package:kronium/pages/customer/customer_profile_page.dart';
@@ -16,16 +17,18 @@ import 'package:kronium/pages/projects/projects_page.dart';
 import 'package:kronium/pages/services/add_services_page.dart';
 import 'package:kronium/pages/services/services_page.dart';
 import 'package:kronium/pages/splash/splash_page.dart';
+import 'package:kronium/pages/welcome/welcome_page.dart';
 import 'package:kronium/core/user_auth_service.dart';
 import 'package:kronium/pages/admin/admin_add_service_page.dart';
 import 'package:kronium/pages/admin/admin_projects_page.dart';
 
-
 class AppRoutes {
   // Route names
   static const String splash = '/';
+  static const String welcome = '/welcome';
   static const String customerLogin = '/customer-login';
   static const String customerRegister = '/customer-register';
+  static const String forgotPassword = '/forgot-password';
   static const String customerDashboard = '/customer-dashboard';
   static const String customerProfile = '/customer-profile';
   static const String customerChat = '/customer-chat';
@@ -51,7 +54,15 @@ class AppRoutes {
       transition: Transition.fadeIn,
       transitionDuration: const Duration(milliseconds: 800),
     ),
-    
+
+    // Welcome Page
+    GetPage(
+      name: welcome,
+      page: () => const WelcomePage(),
+      transition: Transition.fadeIn,
+      transitionDuration: const Duration(milliseconds: 1000),
+    ),
+
     // Customer Auth Pages
     GetPage(
       name: customerLogin,
@@ -64,6 +75,12 @@ class AppRoutes {
       page: () => const CustomerRegisterPage(),
       transition: Transition.rightToLeftWithFade,
       transitionDuration: const Duration(milliseconds: 1000),
+    ),
+    GetPage(
+      name: forgotPassword,
+      page: () => const ForgotPasswordPage(),
+      transition: Transition.rightToLeftWithFade,
+      transitionDuration: const Duration(milliseconds: 800),
     ),
     GetPage(
       name: customerDashboard,
@@ -83,7 +100,7 @@ class AppRoutes {
       transition: Transition.rightToLeftWithFade,
       transitionDuration: const Duration(milliseconds: 800),
     ),
-    
+
     // Admin Pages
     GetPage(
       name: adminSetup,
@@ -127,7 +144,7 @@ class AppRoutes {
       transition: Transition.cupertino,
       transitionDuration: const Duration(milliseconds: 800),
     ),
-    
+
     // Main App Pages (User-facing)
     GetPage(
       name: home,
@@ -135,7 +152,7 @@ class AppRoutes {
       transition: Transition.zoom,
       transitionDuration: const Duration(milliseconds: 800),
     ),
-    
+
     // Project-related Pages
     GetPage(
       name: projects,
@@ -155,7 +172,7 @@ class AppRoutes {
       transition: Transition.downToUp,
       transitionDuration: const Duration(milliseconds: 800),
     ),
-    
+
     // Services Page
     GetPage(
       name: services,
@@ -163,7 +180,7 @@ class AppRoutes {
       transition: Transition.topLevel,
       transitionDuration: const Duration(milliseconds: 800),
     ),
-    
+
     // Profile & Settings
     GetPage(
       name: profile,
@@ -175,13 +192,19 @@ class AppRoutes {
 
   // Helper to get initial route based on user role
   static String getInitialRoute() {
-    switch (userController.role.value) {
-      case 'admin':
-        return adminDashboard;
-      case 'customer':
-        return customerDashboard;
-      default:
-        return home;
+    // Check if user is authenticated
+    if (UserAuthService.instance.isUserLoggedIn.value) {
+      switch (userController.role.value) {
+        case 'admin':
+          return adminDashboard;
+        case 'customer':
+          return customerDashboard;
+        default:
+          return home;
+      }
+    } else {
+      // For new/unauthenticated users, show the sign-up page first
+      return customerRegister;
     }
   }
 }

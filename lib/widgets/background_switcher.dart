@@ -67,6 +67,7 @@ class _BackgroundSwitcherState extends State<BackgroundSwitcher> {
 
   int _currentIndex = 0;
   Timer? _timer;
+  bool _isImageLoaded = false;
 
   @override
   void initState() {
@@ -79,6 +80,25 @@ class _BackgroundSwitcherState extends State<BackgroundSwitcher> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isImageLoaded) {
+      _preloadFirstImage();
+    }
+  }
+
+  void _preloadFirstImage() {
+    // Preload the first image to prevent white flash
+    precacheImage(AssetImage(_backgrounds[0]), context).then((_) {
+      if (mounted) {
+        setState(() {
+          _isImageLoaded = true;
+        });
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _timer?.cancel();
     super.dispose();
@@ -86,22 +106,77 @@ class _BackgroundSwitcherState extends State<BackgroundSwitcher> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        AnimatedSwitcher(
-          duration: const Duration(seconds: 1),
-          child: Image.asset(
-            _backgrounds[_currentIndex],
-            key: ValueKey(_backgrounds[_currentIndex]),
-            fit: BoxFit.cover,
+    return Container(
+      color: Colors.white, // White background while loading
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Background image with loading state
+          AnimatedSwitcher(
+            duration: const Duration(seconds: 1),
+            child:
+                _isImageLoaded
+                    ? Image.asset(
+                      _backgrounds[_currentIndex],
+                      key: ValueKey(_backgrounds[_currentIndex]),
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
+                      frameBuilder: (
+                        context,
+                        child,
+                        frame,
+                        wasSynchronouslyLoaded,
+                      ) {
+                        if (wasSynchronouslyLoaded) {
+                          _onImageLoaded();
+                          return child;
+                        }
+                        return AnimatedOpacity(
+                          opacity: frame == null ? 0 : 1,
+                          duration: const Duration(milliseconds: 300),
+                          child: child,
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        // Fallback to white background if image fails to load
+                        return Container(
+                          color: Colors.white,
+                          child: const Center(
+                            child: Icon(
+                              Icons.image_not_supported,
+                              color: Color(0xFF666666),
+                              size: 48,
+                            ),
+                          ),
+                        );
+                      },
+                    )
+                    : Container(
+                      key: const ValueKey('loading'),
+                      color: Colors.white,
+                      child: const Center(
+                        child: CircularProgressIndicator(
+                          color: Color(0xFF0C8A44),
+                          strokeWidth: 2,
+                        ),
+                      ),
+                    ),
           ),
-        ),
-        Container(
-          color: Colors.black.withOpacity(0.3), // Optional overlay for readability
-        ),
-        widget.child,
-      ],
+          // Light overlay for better readability
+          Container(color: Colors.white.withValues(alpha: 0.1)),
+          // Content
+          widget.child,
+        ],
+      ),
     );
   }
-} 
+
+  void _onImageLoaded() {
+    if (!_isImageLoaded) {
+      setState(() {
+        _isImageLoaded = true;
+      });
+    }
+  }
+}

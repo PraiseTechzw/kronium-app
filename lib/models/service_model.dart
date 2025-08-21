@@ -218,7 +218,7 @@ class Service {
           'Steel reservoir tanks',
           'Solar dryers',
         ],
-        imageUrl: 'assets/images/services/construction.jpg',
+        imageUrl: 'assets/images/services/Iot.png',
         price: 4000,
       ),
       Service(
