@@ -26,79 +26,35 @@ class _HomeScreenState extends State<HomeScreen> {
   final CarouselSliderController carouselController =
       CarouselSliderController();
 
-  // Helper method to build greeting message based on time
-  Widget _buildGreetingMessage() {
-    final now = DateTime.now();
-    final hour = now.hour;
-
-    String greeting;
-    IconData greetingIcon;
-
-    if (hour < 12) {
-      greeting = 'Good Morning';
-      greetingIcon = Icons.wb_sunny;
-    } else if (hour < 17) {
-      greeting = 'Good Afternoon';
-      greetingIcon = Icons.wb_sunny_outlined;
-    } else {
-      greeting = 'Good Evening';
-      greetingIcon = Icons.nights_stay;
-    }
-
-    return Row(
-      children: [
-        Icon(greetingIcon, color: AppTheme.primaryColor, size: 24),
-        const SizedBox(width: 8),
-        Text(
-          greeting,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: AppTheme.primaryColor,
+  // Helper method to build status items
+  Widget _buildStatusItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 24),
+          const SizedBox(height: 8),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+            textAlign: TextAlign.center,
           ),
-        ),
-      ],
-    );
-  }
-
-  // Helper method to build date display
-  Widget _buildDateDisplay() {
-    final now = DateTime.now();
-    final days = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday',
-    ];
-    final months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-
-    final dayName = days[now.weekday - 1];
-    final monthName = months[now.month - 1];
-    final day = now.day;
-    final year = now.year;
-
-    return Text(
-      '$dayName, $monthName $day, $year',
-      style: TextStyle(
-        fontSize: 16,
-        color: Colors.grey[600],
-        fontWeight: FontWeight.w500,
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: TextStyle(fontSize: 12, color: color.withValues(alpha: 0.7)),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
@@ -154,39 +110,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Helper method to build status items
-  Widget _buildStatusItem({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Color color,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 8),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            style: TextStyle(fontSize: 12, color: color.withValues(alpha: 0.7)),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
   // Mock testimonials (replace with real data as needed)
 
   @override
@@ -202,7 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Modern Greeting Section
+              // Header Section with Logo, User Name, and User ID
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(24),
@@ -226,30 +149,105 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Greeting based on time
-                    _buildGreetingMessage(),
-                    const SizedBox(height: 8),
-                    // Current date
-                    _buildDateDisplay(),
-                    const SizedBox(height: 16),
-                    // Welcome message
+                    // App Logo and User Info Row
+                    Row(
+                      children: [
+                        // App Logo
+                        Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(15),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppTheme.primaryColor.withValues(
+                                  alpha: 0.2,
+                                ),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(15),
+                            child: Image.asset(
+                              'assets/images/logo.jpg',
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.primaryColor,
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                  child: const Icon(
+                                    Icons.agriculture,
+                                    color: Colors.white,
+                                    size: 30,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 20),
+                        // User Info
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // User Full Name
+                              Obx(() {
+                                final userName =
+                                    userController.userProfile.value?.name ??
+                                    'User';
+                                return Text(
+                                  userName,
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.primaryColor,
+                                    letterSpacing: 0.5,
+                                  ),
+                                );
+                              }),
+                              const SizedBox(height: 4),
+                              // User ID
+                              Obx(() {
+                                final userId =
+                                    userController.userProfile.value?.id ??
+                                    userController.userId.value;
+                                return Text(
+                                  'ID: ${userId.isNotEmpty ? userId : 'N/A'}',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey[600],
+                                    fontFamily: 'monospace',
+                                  ),
+                                );
+                              }),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    // Welcome Message
                     Text(
                       'Welcome to Kronium',
                       style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.primaryColor,
-                        letterSpacing: 0.5,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[700],
+                        letterSpacing: 0.3,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Your trusted partner for innovative agricultural and construction solutions',
                       style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[700],
+                        fontSize: 14,
+                        color: Colors.grey[600],
                         height: 1.4,
                       ),
                     ),
