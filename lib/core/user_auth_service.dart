@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:kronium/models/user_model.dart';
+import 'package:kronium/core/user_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserAuthService extends GetxController {
@@ -16,6 +17,8 @@ class UserAuthService extends GetxController {
   final Rx<User?> userProfile = Rx<User?>(null);
   final RxBool isInitialized = false.obs;
   
+  UserController get userController => Get.find<UserController>();
+
   @override
   void onInit() {
     super.onInit();
@@ -33,6 +36,14 @@ class UserAuthService extends GetxController {
       }
       isInitialized.value = true;
     });
+    
+    // Also check current state immediately in case user is already signed in
+    final currentUser = _auth.currentUser;
+    if (currentUser != null) {
+      _loadUserProfile(currentUser);
+    } else {
+      isInitialized.value = true;
+    }
   }
   
   Future<void> _loadUserProfile(firebase_auth.User user) async {
@@ -326,36 +337,4 @@ class UserAuthService extends GetxController {
   bool get isLoggedIn => isUserLoggedIn.value;
   User? get currentUserProfile => userProfile.value;
   firebase_auth.FirebaseAuth get auth => _auth;
-}
-
-// User roles: 'admin', 'customer', 'guest'
-class UserController extends GetxController {
-  RxString role = 'guest'.obs;
-  RxString userId = ''.obs;
-  RxString userName = ''.obs;
-  // Add more user info as needed
-  Rx<User?> userProfile = Rx<User?>(null);
-
-  void setRole(String newRole) {
-    role.value = newRole;
-  }
-
-  void setUser(String id, String name, String newRole) {
-    userId.value = id;
-    userName.value = name;
-    role.value = newRole;
-  }
-
-  void logout() {
-    userId.value = '';
-    userName.value = '';
-    role.value = 'guest';
-    userProfile.value = null;
-  }
-  // Optionally, add a method to update userProfile
-  void setUserProfile(User? profile) {
-    userProfile.value = profile;
-  }
-}
-
-final userController = Get.put(UserController(), permanent: true); 
+} 

@@ -30,6 +30,14 @@ class AdminAuthService extends GetxController {
       }
       isInitialized.value = true;
     });
+
+    // Also check current state immediately in case user is already signed in
+    final currentUser = _auth.currentUser;
+    if (currentUser != null) {
+      _checkAdminStatus(currentUser);
+    } else {
+      isInitialized.value = true;
+    }
   }
 
   Future<void> _checkAdminStatus(User user) async {

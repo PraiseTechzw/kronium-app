@@ -4,7 +4,8 @@ import 'package:animate_do/animate_do.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/routes.dart';
-import 'package:kronium/core/user_auth_service.dart' show userController, UserAuthService;
+import 'package:kronium/core/user_auth_service.dart';
+import 'package:kronium/core/user_controller.dart';
 import 'package:kronium/widgets/login_bottom_sheet.dart';
 
 class CustomerProfilePage extends StatefulWidget {
@@ -19,7 +20,7 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
-  
+
   bool _isEditing = false;
   bool _isLoading = false;
 
@@ -71,6 +72,7 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
   @override
   Widget build(BuildContext context) {
     final userAuthService = Get.find<UserAuthService>();
+    final userController = Get.find<UserController>();
     final isLoggedIn = userController.role.value != 'guest';
 
     return Scaffold(
@@ -81,7 +83,7 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
           Obx(() {
             final user = userAuthService.currentUserProfile;
             if (user == null) return const SizedBox.shrink();
-            
+
             return IconButton(
               icon: Icon(_isEditing ? Iconsax.close_square : Iconsax.edit),
               onPressed: () {
@@ -106,7 +108,10 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
               children: [
                 const Icon(Iconsax.login, size: 60, color: Colors.orange),
                 const SizedBox(height: 20),
-                const Text('Please log in to view your profile.', style: TextStyle(fontSize: 18)),
+                const Text(
+                  'Please log in to view your profile.',
+                  style: TextStyle(fontSize: 18),
+                ),
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () => showLoginBottomSheet(context),
@@ -132,7 +137,10 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
+                        colors: [
+                          AppTheme.primaryColor,
+                          AppTheme.secondaryColor,
+                        ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -144,7 +152,9 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                           radius: 50,
                           backgroundColor: Colors.white,
                           child: Text(
-                            user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
+                            user.name.isNotEmpty
+                                ? user.name[0].toUpperCase()
+                                : 'U',
                             style: const TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
@@ -173,9 +183,9 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Profile Information
                 FadeInUp(
                   delay: const Duration(milliseconds: 100),
@@ -217,7 +227,8 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   filled: !_isEditing,
-                                  fillColor: _isEditing ? null : Colors.grey[100],
+                                  fillColor:
+                                      _isEditing ? null : Colors.grey[100],
                                 ),
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
@@ -229,9 +240,9 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                             ],
                           ),
                         ),
-                        
+
                         const Divider(height: 1),
-                        
+
                         // Email Field (Read-only)
                         Padding(
                           padding: const EdgeInsets.all(16),
@@ -247,7 +258,10 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                               ),
                               const SizedBox(height: 8),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 16,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.grey[100],
                                   borderRadius: BorderRadius.circular(12),
@@ -270,9 +284,9 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                             ],
                           ),
                         ),
-                        
+
                         const Divider(height: 1),
-                        
+
                         // Phone Field
                         Padding(
                           padding: const EdgeInsets.all(16),
@@ -297,7 +311,8 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   filled: !_isEditing,
-                                  fillColor: _isEditing ? null : Colors.grey[100],
+                                  fillColor:
+                                      _isEditing ? null : Colors.grey[100],
                                 ),
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
@@ -309,9 +324,9 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                             ],
                           ),
                         ),
-                        
+
                         const Divider(height: 1),
-                        
+
                         // Address Field
                         Padding(
                           padding: const EdgeInsets.all(16),
@@ -336,7 +351,8 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   filled: !_isEditing,
-                                  fillColor: _isEditing ? null : Colors.grey[100],
+                                  fillColor:
+                                      _isEditing ? null : Colors.grey[100],
                                 ),
                               ),
                             ],
@@ -346,9 +362,9 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Save Button (only when editing)
                 if (_isEditing)
                   FadeInUp(
@@ -358,28 +374,31 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                       height: 56,
                       child: ElevatedButton(
                         onPressed: _isLoading ? null : _saveProfile,
-                        child: _isLoading
-                            ? const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        child:
+                            _isLoading
+                                ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
+                                  ),
+                                )
+                                : const Text(
+                                  'Save Changes',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                              )
-                            : const Text(
-                                'Save Changes',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
                       ),
                     ),
                   ),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Account Actions
                 FadeInUp(
                   delay: const Duration(milliseconds: 300),
@@ -399,7 +418,10 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                     child: Column(
                       children: [
                         ListTile(
-                          leading: const Icon(Iconsax.shield_tick, color: AppTheme.primaryColor),
+                          leading: const Icon(
+                            Iconsax.shield_tick,
+                            color: AppTheme.primaryColor,
+                          ),
                           title: const Text('Change Password'),
                           trailing: const Icon(Iconsax.arrow_right_3),
                           onTap: () async {
@@ -408,11 +430,15 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                               context: context,
                               isScrollControlled: true,
                               shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                                borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(24),
+                                ),
                               ),
                               builder: (context) {
-                                final passwordController = TextEditingController();
-                                final confirmController = TextEditingController();
+                                final passwordController =
+                                    TextEditingController();
+                                final confirmController =
+                                    TextEditingController();
                                 final formKey = GlobalKey<FormState>();
                                 bool isLoading = false;
                                 return StatefulBuilder(
@@ -422,17 +448,25 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                                         left: 24,
                                         right: 24,
                                         top: 24,
-                                        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+                                        bottom:
+                                            MediaQuery.of(
+                                              context,
+                                            ).viewInsets.bottom +
+                                            24,
                                       ),
                                       child: Form(
                                         key: formKey,
                                         child: Column(
                                           mainAxisSize: MainAxisSize.min,
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             const Text(
                                               'Change Password',
-                                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                              style: TextStyle(
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                             ),
                                             const SizedBox(height: 16),
                                             TextFormField(
@@ -443,7 +477,8 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                                                 prefixIcon: Icon(Iconsax.lock),
                                               ),
                                               validator: (value) {
-                                                if (value == null || value.isEmpty) {
+                                                if (value == null ||
+                                                    value.isEmpty) {
                                                   return 'Please enter a new password';
                                                 }
                                                 if (value.length < 6) {
@@ -461,7 +496,8 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                                                 prefixIcon: Icon(Iconsax.lock),
                                               ),
                                               validator: (value) {
-                                                if (value != passwordController.text) {
+                                                if (value !=
+                                                    passwordController.text) {
                                                   return 'Passwords do not match';
                                                 }
                                                 return null;
@@ -472,26 +508,56 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                                               width: double.infinity,
                                               height: 48,
                                               child: ElevatedButton(
-                                                onPressed: isLoading
-                                                    ? null
-                                                    : () async {
-                                                        if (formKey.currentState!.validate()) {
-                                                          setState(() => isLoading = true);
-                                                          final userAuthService = Get.find<UserAuthService>();
-                                                          final success = await userAuthService.changePassword(passwordController.text);
-                                                          setState(() => isLoading = false);
-                                                          if (success) {
-                                                            Navigator.pop(context);
+                                                onPressed:
+                                                    isLoading
+                                                        ? null
+                                                        : () async {
+                                                          if (formKey
+                                                              .currentState!
+                                                              .validate()) {
+                                                            setState(
+                                                              () =>
+                                                                  isLoading =
+                                                                      true,
+                                                            );
+                                                            final userAuthService =
+                                                                Get.find<
+                                                                  UserAuthService
+                                                                >();
+                                                            final success =
+                                                                await userAuthService
+                                                                    .changePassword(
+                                                                      passwordController
+                                                                          .text,
+                                                                    );
+                                                            setState(
+                                                              () =>
+                                                                  isLoading =
+                                                                      false,
+                                                            );
+                                                            if (success) {
+                                                              Navigator.pop(
+                                                                context,
+                                                              );
+                                                            }
                                                           }
-                                                        }
-                                                      },
-                                                child: isLoading
-                                                    ? const SizedBox(
-                                                        width: 24,
-                                                        height: 24,
-                                                        child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
-                                                      )
-                                                    : const Text('Update Password'),
+                                                        },
+                                                child:
+                                                    isLoading
+                                                        ? const SizedBox(
+                                                          width: 24,
+                                                          height: 24,
+                                                          child: CircularProgressIndicator(
+                                                            strokeWidth: 2,
+                                                            valueColor:
+                                                                AlwaysStoppedAnimation<
+                                                                  Color
+                                                                >(Colors.white),
+                                                          ),
+                                                        )
+                                                        : const Text(
+                                                          'Update Password',
+                                                        ),
                                               ),
                                             ),
                                           ],
@@ -505,11 +571,17 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                           },
                         ),
                         const Divider(height: 1),
-                       
+
                         const Divider(height: 1),
                         ListTile(
-                          leading: const Icon(Iconsax.logout, color: Colors.red),
-                          title: const Text('Logout', style: TextStyle(color: Colors.red)),
+                          leading: const Icon(
+                            Iconsax.logout,
+                            color: Colors.red,
+                          ),
+                          title: const Text(
+                            'Logout',
+                            style: TextStyle(color: Colors.red),
+                          ),
                           onTap: () async {
                             final userAuthService = Get.find<UserAuthService>();
                             await userAuthService.logout();
@@ -520,7 +592,7 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 32),
               ],
             ),
@@ -529,4 +601,4 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
       }),
     );
   }
-} 
+}

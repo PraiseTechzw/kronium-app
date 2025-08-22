@@ -7,6 +7,7 @@ import 'package:kronium/core/constants.dart';
 import 'package:kronium/core/firebase_service.dart';
 import 'package:kronium/core/routes.dart';
 import 'package:kronium/core/user_auth_service.dart';
+import 'package:kronium/core/user_controller.dart';
 import 'package:kronium/core/appwrite_client.dart';
 import 'firebase_options.dart';
 
@@ -14,17 +15,23 @@ void main() async {
   // Ensure Flutter binding is initialized
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  try {
+    // Initialize Firebase
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Initialize services
-  Get.put(AdminAuthService());
-  Get.put(UserAuthService());
-  Get.put(FirebaseService());
-  Get.put(UserController(), permanent: true);
-  AppwriteService.init();
+    // Initialize services in the correct order
+    Get.put(UserController(), permanent: true);
+    Get.put(UserAuthService());
+    Get.put(AdminAuthService());
+    Get.put(FirebaseService());
+    AppwriteService.init();
 
-  runApp(const KroniumProApp());
+    runApp(const KroniumProApp());
+  } catch (e) {
+    print('Error initializing app: $e');
+    // Still run the app even if some services fail to initialize
+    runApp(const KroniumProApp());
+  }
 }
 
 class KroniumProApp extends StatelessWidget {

@@ -21,6 +21,7 @@ import 'package:kronium/pages/welcome/welcome_page.dart';
 import 'package:kronium/core/user_auth_service.dart';
 import 'package:kronium/pages/admin/admin_add_service_page.dart';
 import 'package:kronium/pages/admin/admin_projects_page.dart';
+import 'package:kronium/core/admin_auth_service.dart';
 
 class AppRoutes {
   // Route names
@@ -192,8 +193,22 @@ class AppRoutes {
 
   // Helper to get initial route based on user role
   static String getInitialRoute() {
+    // Always start with splash page to allow auth services to initialize
+    return splash;
+  }
+  
+  // Helper to get the appropriate route after authentication check
+  static String getAuthenticatedRoute() {
+    final userAuthService = UserAuthService.instance;
+    final adminAuthService = AdminAuthService.instance;
+    
+    // Wait for services to initialize
+    if (!userAuthService.isInitialized.value || !adminAuthService.isInitialized.value) {
+      return splash;
+    }
+    
     // Check if user is authenticated
-    if (UserAuthService.instance.isUserLoggedIn.value) {
+    if (userAuthService.isUserLoggedIn.value) {
       switch (userController.role.value) {
         case 'admin':
           return adminDashboard;
@@ -202,6 +217,8 @@ class AppRoutes {
         default:
           return home;
       }
+    } else if (adminAuthService.isAdmin) {
+      return adminDashboard;
     } else {
       // For new/unauthenticated users, show the sign-up page first
       return customerRegister;

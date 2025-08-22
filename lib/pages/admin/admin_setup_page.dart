@@ -6,7 +6,7 @@ import 'package:kronium/core/admin_auth_service.dart';
 import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/firebase_service.dart';
 import 'package:kronium/core/routes.dart';
-import 'package:kronium/core/user_auth_service.dart' show userController;
+import 'package:kronium/core/user_controller.dart';
 
 class AdminSetupPage extends StatefulWidget {
   const AdminSetupPage({super.key});

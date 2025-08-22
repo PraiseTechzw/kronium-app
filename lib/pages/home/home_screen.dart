@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:kronium/core/app_theme.dart';
-import 'package:kronium/core/user_auth_service.dart'
-    show userController;
+import 'package:kronium/core/user_controller.dart';
 import 'package:kronium/pages/home/active_projects_section.dart';
 import 'package:kronium/pages/home/featured_services_section.dart';
 import 'package:kronium/pages/home/quick_actions_sections.dart';
@@ -17,6 +16,14 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  late final UserController userController;
+
+  @override
+  void initState() {
+    super.initState();
+    userController = Get.find<UserController>();
+  }
+
   @override
   Widget build(BuildContext context) {
     return BackgroundSwitcher(
