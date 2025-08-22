@@ -14,38 +14,87 @@ class UserAuthService extends GetxController {
   final RxBool isUserLoggedIn = false.obs;
   final Rx<firebase_auth.User?> currentUser = Rx<firebase_auth.User?>(null);
   final Rx<User?> userProfile = Rx<User?>(null);
+  final RxBool isInitialized = false.obs;
   
   @override
   void onInit() {
     super.onInit();
-    _checkUserSession();
+    _setupAuthStateListener();
+  }
+  
+  void _setupAuthStateListener() {
+    _auth.authStateChanges().listen((firebase_auth.User? user) async {
+      if (user != null) {
+        // User is signed in
+        await _loadUserProfile(user);
+      } else {
+        // User is signed out
+        await _clearUserSession();
+      }
+      isInitialized.value = true;
+    });
+  }
+  
+  Future<void> _loadUserProfile(firebase_auth.User user) async {
+    try {
+      // Check if user profile exists in Firestore
+      final userDoc = await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .get();
+          
+      if (userDoc.exists) {
+        currentUser.value = user;
+        userProfile.value = User.fromFirestore(userDoc);
+        isUserLoggedIn.value = true;
+        
+        // Set role in userController from Firestore, default to 'customer'
+        final role = userDoc.data()?['role'] ?? 'customer';
+        userController.role.value = role;
+        userController.setUserProfile(User.fromFirestore(userDoc));
+        
+        // Save user session
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_email', user.email ?? '');
+        
+        print('User session restored: ${user.email}');
+      } else {
+        // User profile doesn't exist, sign out
+        await _auth.signOut();
+        await _clearUserSession();
+      }
+    } catch (e) {
+      print('Error loading user profile: $e');
+      await _auth.signOut();
+      await _clearUserSession();
+    }
+  }
+  
+  Future<void> _clearUserSession() async {
+    currentUser.value = null;
+    userProfile.value = null;
+    isUserLoggedIn.value = false;
+    userController.logout();
+    
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('user_email');
+    
+    print('User session cleared');
   }
   
   Future<void> _checkUserSession() async {
+    // This method is now deprecated in favor of auth state listener
+    // Keeping for backward compatibility
     final prefs = await SharedPreferences.getInstance();
     final userEmail = prefs.getString('user_email');
     
     if (userEmail != null) {
       final user = _auth.currentUser;
       if (user != null && user.email == userEmail) {
-        // Verify if user profile exists in Firestore
-        final userDoc = await _firestore
-            .collection('users')
-            .doc(user.uid)
-            .get();
-            
-        if (userDoc.exists) {
-          currentUser.value = user;
-          userProfile.value = User.fromFirestore(userDoc);
-          isUserLoggedIn.value = true;
-          // Set role in userController from Firestore, default to 'customer'
-          final role = userDoc.data()?['role'] ?? 'customer';
-          userController.role.value = role;
-        } else {
-          await _logout();
-        }
+        await _loadUserProfile(user);
       }
     }
+    isInitialized.value = true;
   }
   
   Future<bool> registerUser(String name, String email, String phone, String password) async {

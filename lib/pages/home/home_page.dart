@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:animate_do/animate_do.dart';
@@ -54,117 +53,170 @@ class HomePage extends StatelessWidget {
       ];
       if (role == 'customer' || (isAdmin && viewAsAdmin)) {
         pages.add(const CustomerChatPage());
-        items.add(const BottomNavigationBarItem(
-          icon: Icon(Iconsax.message),
-          label: 'Chat',
-        ));
+        items.add(
+          const BottomNavigationBarItem(
+            icon: Icon(Iconsax.message),
+            label: 'Chat',
+          ),
+        );
       }
       // Always add Profile/Login as last tab
-      items.add(BottomNavigationBarItem(
-        icon: const Icon(Iconsax.user),
-        label: role == 'guest' ? 'Login' : (isAdmin ? (viewAsAdmin ? 'Admin Profile' : 'Profile') : 'Profile'),
-      ));
+      items.add(
+        BottomNavigationBarItem(
+          icon: const Icon(Iconsax.user),
+          label:
+              role == 'guest'
+                  ? 'Login'
+                  : (isAdmin
+                      ? (viewAsAdmin ? 'Admin Profile' : 'Profile')
+                      : 'Profile'),
+        ),
+      );
       pages.add(const CustomerProfilePage()); // Show actual profile page
 
       return BackgroundSwitcher(
         child: Scaffold(
           backgroundColor: Colors.transparent,
-        appBar: _currentIndex.value == 0
-            ? AppBar(
-          title: FadeInLeft(
-                  child: const Text('KRONIUM', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          actions: [
-            FadeInRight(
-              child: IconButton(
-                icon: const Icon(Iconsax.notification),
-                onPressed: () => _showNotifications(),
-              ),
-            ),
-                ],
-                elevation: 0,
-                backgroundColor: AppTheme.primaryColor,
-                iconTheme: IconThemeData(color: isDarkMode ? Colors.white : Colors.black),
-              )
-            : null,
-        drawer: AppDrawer(
-          isDarkMode: isDarkMode,
-          userAuthService: Get.find<UserAuthService>(),
-          adminAuthService: Get.find<AdminAuthService>(),
-          onDarkModeChanged: (val) => _isDarkMode.value = val,
-          onShowAbout: _showAboutPage,
-          onShowContact: _showContactInfo,
-            extraItems: isAdmin
-                ? [
-                    Obx(() => SwitchListTile(
-                          title: Text(_viewAsAdmin.value ? 'View as Admin' : 'View as Customer'),
+          appBar:
+              _currentIndex.value == 0
+                  ? AppBar(
+                    title: FadeInLeft(
+                      child: const Text(
+                        'KRONIUM',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    actions: [],
+                    elevation: 0,
+                    backgroundColor: AppTheme.primaryColor,
+                    iconTheme: IconThemeData(
+                      color: isDarkMode ? Colors.white : Colors.black,
+                    ),
+                  )
+                  : null,
+          drawer: AppDrawer(
+            isDarkMode: isDarkMode,
+            userAuthService: Get.find<UserAuthService>(),
+            adminAuthService: Get.find<AdminAuthService>(),
+            onDarkModeChanged: (val) => _isDarkMode.value = val,
+            onShowAbout: _showAboutPage,
+            onShowContact: _showContactInfo,
+            extraItems:
+                isAdmin
+                    ? [
+                      Obx(
+                        () => SwitchListTile(
+                          title: Text(
+                            _viewAsAdmin.value
+                                ? 'View as Admin'
+                                : 'View as Customer',
+                          ),
                           value: _viewAsAdmin.value,
                           onChanged: (val) => _viewAsAdmin.value = val,
-                          secondary: Icon(_viewAsAdmin.value ? Iconsax.shield_tick : Iconsax.user),
-                        )),
-                  ]
-                : role == 'customer'
-              ? [
-                  ListTile(
-                    leading: const Icon(Iconsax.activity),
-                    title: const Text('Dashboard'),
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      Get.to(() => const CustomerDashboardPage());
-                    },
-                  ),
-                ]
-              : [],
-        ),
-        body: PageView(
-          controller: _pageController,
-          onPageChanged: (index) => _currentIndex.value = index,
-          children: pages,
-        ),
-          floatingActionButton: isAdmin && viewAsAdmin
-              ? FloatingActionButton(
-                  backgroundColor: AppTheme.primaryColor,
-                  child: const Icon(Iconsax.setting_2, color: Colors.white),
-                  onPressed: () {
-                    showModalBottomSheet(
-                      context: context,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                      ),
-                      builder: (context) => Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Text('Admin Quick Actions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                            const SizedBox(height: 16),
-                            ListTile(
-                              leading: const Icon(Iconsax.shield_tick, color: AppTheme.primaryColor),
-                              title: const Text('Admin Dashboard'),
-                              onTap: () { Get.toNamed('/admin-dashboard'); Navigator.pop(context); },
-                            ),
-                            ListTile(
-                              leading: const Icon(Iconsax.box, color: AppTheme.primaryColor),
-                              title: const Text('Manage Services'),
-                              onTap: () { Get.toNamed('/admin-services'); Navigator.pop(context); },
-                            ),
-                            ListTile(
-                              leading: const Icon(Iconsax.calendar, color: AppTheme.primaryColor),
-                              title: const Text('Bookings'),
-                              onTap: () { Get.toNamed('/admin-bookings'); Navigator.pop(context); },
-                            ),
-                            ListTile(
-                              leading: const Icon(Iconsax.message, color: AppTheme.primaryColor),
-                              title: const Text('Admin Chat'),
-                              onTap: () { Get.toNamed('/admin-chat'); Navigator.pop(context); },
-                            ),
-                          ],
+                          secondary: Icon(
+                            _viewAsAdmin.value
+                                ? Iconsax.shield_tick
+                                : Iconsax.user,
+                          ),
                         ),
                       ),
-                    );
-                  },
-                )
-              : null,
+                    ]
+                    : role == 'customer'
+                    ? [
+                      ListTile(
+                        leading: const Icon(Iconsax.activity),
+                        title: const Text('Dashboard'),
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          Get.to(() => const CustomerDashboardPage());
+                        },
+                      ),
+                    ]
+                    : [],
+          ),
+          body: PageView(
+            controller: _pageController,
+            onPageChanged: (index) => _currentIndex.value = index,
+            children: pages,
+          ),
+          floatingActionButton:
+              isAdmin && viewAsAdmin
+                  ? FloatingActionButton(
+                    backgroundColor: AppTheme.primaryColor,
+                    child: const Icon(Iconsax.setting_2, color: Colors.white),
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(24),
+                          ),
+                        ),
+                        builder:
+                            (context) => Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Text(
+                                    'Admin Quick Actions',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  ListTile(
+                                    leading: const Icon(
+                                      Iconsax.shield_tick,
+                                      color: AppTheme.primaryColor,
+                                    ),
+                                    title: const Text('Admin Dashboard'),
+                                    onTap: () {
+                                      Get.toNamed('/admin-dashboard');
+                                      Navigator.pop(context);
+                                    },
+                                  ),
+                                  ListTile(
+                                    leading: const Icon(
+                                      Iconsax.box,
+                                      color: AppTheme.primaryColor,
+                                    ),
+                                    title: const Text('Manage Services'),
+                                    onTap: () {
+                                      Get.toNamed('/admin-services');
+                                      Navigator.pop(context);
+                                    },
+                                  ),
+                                  ListTile(
+                                    leading: const Icon(
+                                      Iconsax.calendar,
+                                      color: AppTheme.primaryColor,
+                                    ),
+                                    title: const Text('Bookings'),
+                                    onTap: () {
+                                      Get.toNamed('/admin-bookings');
+                                      Navigator.pop(context);
+                                    },
+                                  ),
+                                  ListTile(
+                                    leading: const Icon(
+                                      Iconsax.message,
+                                      color: AppTheme.primaryColor,
+                                    ),
+                                    title: const Text('Admin Chat'),
+                                    onTap: () {
+                                      Get.toNamed('/admin-chat');
+                                      Navigator.pop(context);
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                      );
+                    },
+                  )
+                  : null,
           bottomNavigationBar: Obx(() {
             final role = userController.role.value;
             final isAdmin = role == 'admin';
@@ -184,18 +236,27 @@ class HomePage extends StatelessWidget {
               ),
             ];
             if (role == 'customer' || (isAdmin && viewAsAdmin)) {
-              items.add(const BottomNavigationBarItem(
-                icon: Icon(Iconsax.message),
-                label: 'Chat',
-              ));
+              items.add(
+                const BottomNavigationBarItem(
+                  icon: Icon(Iconsax.message),
+                  label: 'Chat',
+                ),
+              );
             }
-            items.add(BottomNavigationBarItem(
-              icon: const Icon(Iconsax.user),
-              label: role == 'guest' ? 'Login' : (isAdmin ? (viewAsAdmin ? 'Admin Profile' : 'Profile') : 'Profile'),
-            ));
+            items.add(
+              BottomNavigationBarItem(
+                icon: const Icon(Iconsax.user),
+                label:
+                    role == 'guest'
+                        ? 'Login'
+                        : (isAdmin
+                            ? (viewAsAdmin ? 'Admin Profile' : 'Profile')
+                            : 'Profile'),
+              ),
+            );
             return FadeInUp(
-          child: BottomNavigationBar(
-            currentIndex: _currentIndex.value,
+              child: BottomNavigationBar(
+                currentIndex: _currentIndex.value,
                 onTap: (index) async {
                   final isProfileTab = index == items.length - 1;
                   final isLoggedIn = userController.role.value != 'guest';
@@ -203,20 +264,20 @@ class HomePage extends StatelessWidget {
                     Get.toNamed('/customer-login');
                     return;
                   }
-              _currentIndex.value = index;
-              _pageController.animateToPage(
-                index,
-                duration: const Duration(milliseconds: 500),
-                curve: Curves.easeInOut,
-              );
-            },
-            backgroundColor: AppTheme.surfaceLight,
-            selectedItemColor: AppTheme.primaryColor,
-            unselectedItemColor: AppTheme.secondaryColor,
-            showUnselectedLabels: true,
-            type: BottomNavigationBarType.fixed,
-            items: items,
-          ),
+                  _currentIndex.value = index;
+                  _pageController.animateToPage(
+                    index,
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeInOut,
+                  );
+                },
+                backgroundColor: AppTheme.surfaceLight,
+                selectedItemColor: AppTheme.primaryColor,
+                unselectedItemColor: AppTheme.secondaryColor,
+                showUnselectedLabels: true,
+                type: BottomNavigationBarType.fixed,
+                items: items,
+              ),
             );
           }),
         ),
@@ -224,7 +285,6 @@ class HomePage extends StatelessWidget {
     });
   }
 
-  
   /// Show notifications (placeholder)
   void _showNotifications() {
     Get.snackbar(
@@ -246,10 +306,7 @@ class HomePage extends StatelessWidget {
             children: [
               const Text(
                 'Professional Excellence',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               Text(
@@ -265,41 +322,35 @@ class HomePage extends StatelessWidget {
               const SizedBox(height: 20),
               const Text(
                 'Our Mission',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Text(
                 'To provide innovative solutions that exceed client expectations '
                 'while maintaining the highest standards of quality and professionalism.',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                ),
+                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
               ),
               const SizedBox(height: 20),
               const Text(
                 'Our Values',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               _buildValueItem('Quality', 'We never compromise on quality'),
-              _buildValueItem('Innovation', 'We embrace new technologies and methods'),
-              _buildValueItem('Integrity', 'We maintain the highest ethical standards'),
+              _buildValueItem(
+                'Innovation',
+                'We embrace new technologies and methods',
+              ),
+              _buildValueItem(
+                'Integrity',
+                'We maintain the highest ethical standards',
+              ),
               _buildValueItem('Customer Focus', 'Your success is our priority'),
             ],
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Close'),
-          ),
+          TextButton(onPressed: () => Get.back(), child: const Text('Close')),
         ],
       ),
     );
@@ -318,14 +369,15 @@ class HomePage extends StatelessWidget {
             const SizedBox(height: 12),
             _buildContactItem(Iconsax.call, 'Phone', '+1 (555) 123-4567'),
             const SizedBox(height: 12),
-            _buildContactItem(Iconsax.location, 'Address', '123 Business St, City, State 12345'),
+            _buildContactItem(
+              Iconsax.location,
+              'Address',
+              '123 Business St, City, State 12345',
+            ),
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Close'),
-          ),
+          TextButton(onPressed: () => Get.back(), child: const Text('Close')),
         ],
       ),
     );
@@ -340,17 +392,11 @@ class HomePage extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
           ),
           Text(
             description,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[600],
-            ),
+            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
           ),
         ],
       ),
@@ -374,10 +420,7 @@ class HomePage extends StatelessWidget {
                   fontSize: 12,
                 ),
               ),
-              Text(
-                value,
-                style: const TextStyle(fontSize: 14),
-              ),
+              Text(value, style: const TextStyle(fontSize: 14)),
             ],
           ),
         ),
