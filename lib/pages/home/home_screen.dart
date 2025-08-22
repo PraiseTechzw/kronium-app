@@ -6,11 +6,7 @@ import 'package:kronium/core/constants.dart';
 import 'package:kronium/widgets/background_switcher.dart';
 import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/routes.dart';
-import 'package:kronium/core/firebase_service.dart';
-import 'package:kronium/core/user_auth_service.dart'
-    show userController, UserAuthService;
-import 'package:kronium/models/project_model.dart';
-import 'package:kronium/core/services_data.dart';
+import 'package:kronium/core/user_auth_service.dart';
 import 'package:flutter_social_button/flutter_social_button.dart';
 
 /// Keep this widget focused and readable. Extend as needed.
@@ -25,39 +21,6 @@ class _HomeScreenState extends State<HomeScreen> {
   int currentSlide = 0;
   final CarouselSliderController carouselController =
       CarouselSliderController();
-
-  // Helper method to build status items
-  Widget _buildStatusItem({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Color color,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 8),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            style: TextStyle(fontSize: 12, color: color.withValues(alpha: 0.7)),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
 
   // Helper method to build quick action cards
   Widget _buildQuickActionCard({
@@ -110,7 +73,42 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Mock testimonials (replace with real data as needed)
+  // Helper method to build status items
+  Widget _buildStatusItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: color.withValues(alpha: 0.1),
+        border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: color, size: 24),
+          const SizedBox(height: 8),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: TextStyle(fontSize: 12, color: color.withValues(alpha: 0.7)),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -120,584 +118,1052 @@ class _HomeScreenState extends State<HomeScreen> {
     return BackgroundSwitcher(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header Section with Logo, User Name, and User ID
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(24),
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.white.withValues(alpha: 0.95),
-                      Colors.white.withValues(alpha: 0.85),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.08),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
+        body: CustomScrollView(
+          slivers: [
+            // Silver App Bar with integrated header
+            SliverAppBar(
+              expandedHeight: 300.0,
+              floating: false,
+              pinned: true,
+              automaticallyImplyLeading: false,
+              backgroundColor: AppTheme.primaryColor,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppTheme.primaryColor,
+                        AppTheme.secondaryColor,
+                        AppTheme.primaryColor.withValues(alpha: 0.9),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    // App Logo and User Info Row
-                    Row(
-                      children: [
-                        // App Logo
-                        Container(
-                          width: 60,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(15),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppTheme.primaryColor.withValues(
-                                  alpha: 0.2,
-                                ),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(15),
-                            child: Image.asset(
-                              'assets/images/logo.jpg',
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.primaryColor,
-                                    borderRadius: BorderRadius.circular(15),
-                                  ),
-                                  child: const Icon(
-                                    Icons.agriculture,
-                                    color: Colors.white,
-                                    size: 30,
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 20),
-                        // User Info
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                  ),
+                  child: SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        children: [
+                          // Top Row: Logo, Title, and Actions
+                          Row(
                             children: [
-                              // User Full Name
-                              Obx(() {
-                                final userName =
-                                    userController.userProfile.value?.name ??
-                                    'User';
-                                return Text(
-                                  userName,
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppTheme.primaryColor,
-                                    letterSpacing: 0.5,
+                              // App Logo - Enhanced with proper styling
+                              Container(
+                                width: 60,
+                                height: 60,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(18),
+                                  color: Colors.white.withValues(alpha: 0.25),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.4),
+                                    width: 2,
                                   ),
-                                );
-                              }),
-                              const SizedBox(height: 4),
-                              // User ID
-                              Obx(() {
-                                final userId =
-                                    userController.userProfile.value?.id ??
-                                    userController.userId.value;
-                                return Text(
-                                  'ID: ${userId.isNotEmpty ? userId : 'N/A'}',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey[600],
-                                    fontFamily: 'monospace',
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppTheme.shadow,
+                                      blurRadius: 15,
+                                      offset: const Offset(0, 8),
+                                    ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: Image.asset(
+                                    'assets/images/logo.png',
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        decoration: BoxDecoration(
+                                          color: AppTheme.primaryColor
+                                              .withValues(alpha: 0.3),
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
+                                        ),
+                                        child: Icon(
+                                          Icons.engineering,
+                                          color: Colors.white,
+                                          size: 28,
+                                        ),
+                                      );
+                                    },
                                   ),
-                                );
-                              }),
+                                ),
+                              ),
+                              const SizedBox(width: 20),
+                              // App Title and Tagline - Enhanced typography
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'KRONIUM',
+                                      style: TextStyle(
+                                        fontSize: 28,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                        letterSpacing: 2.0,
+                                        shadows: [
+                                          Shadow(
+                                            color: AppTheme.shadow,
+                                            blurRadius: 10,
+                                            offset: const Offset(0, 4),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Text(
+                                      'Engineering Solutions',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.white.withValues(
+                                          alpha: 0.95,
+                                        ),
+                                        fontWeight: FontWeight.w600,
+                                        letterSpacing: 0.8,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Action Icons section removed
+                            ],
+                          ),
+                          const SizedBox(height: 28),
+                          // User Information Section - Enhanced with better theming
+                          Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.3),
+                                width: 1.5,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.shadow,
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 10),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                // User Avatar - Enhanced styling
+                                Container(
+                                  width: 70,
+                                  height: 70,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.25),
+                                    borderRadius: BorderRadius.circular(35),
+                                    border: Border.all(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.4,
+                                      ),
+                                      width: 2.5,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppTheme.shadow,
+                                        blurRadius: 15,
+                                        offset: const Offset(0, 6),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Icon(
+                                    Icons.person,
+                                    color: Colors.white,
+                                    size: 35,
+                                  ),
+                                ),
+                                const SizedBox(width: 24),
+                                // User Details
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      // Welcome Message
+                                      Text(
+                                        'Welcome back!',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.white.withValues(
+                                            alpha: 0.95,
+                                          ),
+                                          fontWeight: FontWeight.w600,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      // User Name
+                                      Obx(() {
+                                        final userName =
+                                            userController
+                                                .userProfile
+                                                .value
+                                                ?.name ??
+                                            'User';
+                                        return Text(
+                                          userName,
+                                          style: TextStyle(
+                                            fontSize: 26,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                            letterSpacing: 0.8,
+                                            shadows: [
+                                              Shadow(
+                                                color: AppTheme.shadow,
+                                                blurRadius: 8,
+                                                offset: const Offset(0, 3),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }),
+                                      const SizedBox(height: 10),
+                                      // User ID Badge - Enhanced with consistent theming
+                                      Obx(() {
+                                        final userId =
+                                            userController
+                                                .userProfile
+                                                .value
+                                                ?.id ??
+                                            userController.userId.value;
+                                        return Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 8,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: AppTheme.secondaryColor
+                                                .withValues(alpha: 0.3),
+                                            borderRadius: BorderRadius.circular(
+                                              24,
+                                            ),
+                                            border: Border.all(
+                                              color: AppTheme.secondaryColor
+                                                  .withValues(alpha: 0.5),
+                                              width: 1.5,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                Icons.fingerprint,
+                                                size: 16,
+                                                color: Colors.white,
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                'ID: ${userId.isNotEmpty ? userId : 'N/A'}',
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  color: Colors.white,
+                                                  fontFamily: 'monospace',
+                                                  fontWeight: FontWeight.w700,
+                                                  letterSpacing: 0.5,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }),
+                                    ],
+                                  ),
+                                ),
+                                // Quick Stats - Enhanced with consistent theming
+                                Column(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.secondaryColor
+                                            .withValues(alpha: 0.3),
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                          color: AppTheme.secondaryColor
+                                              .withValues(alpha: 0.5),
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          Icon(
+                                            Icons.assignment_turned_in,
+                                            color: Colors.white,
+                                            size: 24,
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            'Projects',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w600,
+                                              letterSpacing: 0.3,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            // Sliver content
+            SliverPadding(
+              padding: const EdgeInsets.all(16),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  // Quick Actions Section
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(24),
+                    margin: const EdgeInsets.only(bottom: 24),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24),
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.white.withValues(alpha: 0.98),
+                          Colors.white.withValues(alpha: 0.95),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.shadow.withValues(alpha: 0.1),
+                          blurRadius: 25,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                      border: Border.all(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Quick Actions',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.primaryColor,
+                              ),
+                            ),
+                            Icon(
+                              Icons.bolt,
+                              color: AppTheme.primaryColor,
+                              size: 24,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildQuickActionCard(
+                                icon: Icons.construction,
+                                title: 'Our Services',
+                                subtitle: 'Explore solutions',
+                                color: AppTheme.primaryColor,
+                                onTap: () => Get.toNamed(AppRoutes.services),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildQuickActionCard(
+                                icon: Icons.phone,
+                                title: 'Contact Us',
+                                subtitle: 'Get in touch',
+                                color: AppTheme.secondaryColor,
+                                onTap: () {},
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildQuickActionCard(
+                                icon: Icons.assignment_turned_in_outlined,
+                                title: 'Projects',
+                                subtitle: 'Bookings & progress',
+                                color: Colors.teal,
+                                onTap: () => Get.toNamed(AppRoutes.projects),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildQuickActionCard(
+                                icon: Icons.description_outlined,
+                                title: 'Book Project',
+                                subtitle: 'Request a quote',
+                                color: Colors.indigo,
+                                onTap: () => Get.toNamed(AppRoutes.projects),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Company Stats Section
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(24),
+                    margin: const EdgeInsets.only(bottom: 24),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24),
+                      gradient: LinearGradient(
+                        colors: [
+                          AppTheme.primaryColor.withValues(alpha: 0.1),
+                          AppTheme.secondaryColor.withValues(alpha: 0.05),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      border: Border.all(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Company Overview',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.primaryColor,
+                              ),
+                            ),
+                            Icon(
+                              Icons.business,
+                              color: AppTheme.primaryColor,
+                              size: 24,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildStatusItem(
+                                icon: Icons.access_time,
+                                title: 'Business Hours',
+                                subtitle: 'Mon - Fri: 8:00 AM - 6:00 PM',
+                                color: AppTheme.primaryColor,
+                              ),
+                            ),
+                            Container(
+                              width: 1,
+                              height: 50,
+                              color: AppTheme.primaryColor.withValues(
+                                alpha: 0.2,
+                              ),
+                            ),
+                            Expanded(
+                              child: _buildStatusItem(
+                                icon: Icons.location_on,
+                                title: 'Location',
+                                subtitle: 'Zimbabwe',
+                                color: AppTheme.secondaryColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildStatusItem(
+                                icon: Icons.engineering,
+                                title: 'Services',
+                                subtitle: '6 Core Services',
+                                color: Colors.teal,
+                              ),
+                            ),
+                            Container(
+                              width: 1,
+                              height: 50,
+                              color: AppTheme.primaryColor.withValues(
+                                alpha: 0.2,
+                              ),
+                            ),
+                            Expanded(
+                              child: _buildStatusItem(
+                                icon: Icons.people,
+                                title: 'Programs',
+                                subtitle: '11 Specialized Programs',
+                                color: Colors.indigo,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Featured Services Section
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(24),
+                    margin: const EdgeInsets.only(bottom: 24),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24),
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.white.withValues(alpha: 0.98),
+                          Colors.white.withValues(alpha: 0.95),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.shadow.withValues(alpha: 0.1),
+                          blurRadius: 25,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                      border: Border.all(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Featured Services',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                                color: AppTheme.primaryColor,
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () => Get.toNamed(AppRoutes.services),
+                              child: const Text('View All'),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          height: 120,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: 6,
+                            itemBuilder: (context, index) {
+                              final services = [
+                                {
+                                  'title': 'Greenhouse Construction',
+                                  'icon': Icons.eco,
+                                  'description': 'Modern greenhouse solutions',
+                                },
+                                {
+                                  'title': 'Solar Systems',
+                                  'icon': Icons.solar_power,
+                                  'description':
+                                      'Renewable energy installations',
+                                },
+                                {
+                                  'title': 'Borehole Drilling',
+                                  'icon': Icons.water_drop,
+                                  'description': 'Water solutions',
+                                },
+                                {
+                                  'title': 'Irrigation Systems',
+                                  'icon': Icons.opacity,
+                                  'description': 'Agricultural automation',
+                                },
+                                {
+                                  'title': 'AC/DC Pumps',
+                                  'icon': Icons.power,
+                                  'description': 'Pumping solutions',
+                                },
+                                {
+                                  'title': 'Engineering',
+                                  'icon': Icons.engineering,
+                                  'description': 'Professional consulting',
+                                },
+                              ];
+                              final s = services[index];
+                              return Container(
+                                width: 160,
+                                margin: const EdgeInsets.only(right: 16),
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      AppTheme.primaryColor.withValues(
+                                        alpha: 0.08,
+                                      ),
+                                      AppTheme.secondaryColor.withValues(
+                                        alpha: 0.06,
+                                      ),
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  border: Border.all(
+                                    color: AppTheme.primaryColor.withValues(
+                                      alpha: 0.12,
+                                    ),
+                                  ),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Icon(
+                                      s['icon'] as IconData,
+                                      color: AppTheme.primaryColor,
+                                      size: 24,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      s['title'] as String,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      s['description'] as String,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        color: Colors.black54,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Company Info Carousel Section
+                  Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(bottom: 24),
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'About Kronium',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.primaryColor,
+                                ),
+                              ),
+                              Icon(
+                                Icons.info_outline,
+                                color: AppTheme.primaryColor,
+                                size: 24,
+                              ),
                             ],
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    // Welcome Message
-                    Text(
-                      'Welcome to Kronium',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[700],
-                        letterSpacing: 0.3,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Your trusted partner for innovative agricultural and construction solutions',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                        height: 1.4,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Quick Actions Section
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.white.withValues(alpha: 0.95),
-                      Colors.white.withValues(alpha: 0.85),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.08),
-                      blurRadius: 15,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Quick Actions',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.primaryColor,
+                        const SizedBox(height: 16),
+                        CarouselSlider(
+                          carouselController: carouselController,
+                          options: CarouselOptions(
+                            height: 200,
+                            autoPlay: true,
+                            enlargeCenterPage: true,
+                            viewportFraction: 0.95,
+                            aspectRatio: 16 / 7,
+                            autoPlayInterval: const Duration(seconds: 6),
+                            onPageChanged:
+                                (index, reason) =>
+                                    setState(() => currentSlide = index),
                           ),
+                          items:
+                              companySlides.map((slide) {
+                                return Builder(
+                                  builder:
+                                      (context) => Container(
+                                        width:
+                                            MediaQuery.of(context).size.width,
+                                        margin: const EdgeInsets.symmetric(
+                                          horizontal: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(
+                                            18,
+                                          ),
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              AppTheme.primaryColor,
+                                              AppTheme.secondaryColor
+                                                  .withValues(alpha: 0.85),
+                                            ],
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: AppTheme.primaryColor
+                                                  .withValues(alpha: 0.13),
+                                              blurRadius: 10,
+                                              offset: const Offset(0, 5),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 20,
+                                            vertical: 16,
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  if (slide['icon'] != null)
+                                                    Icon(
+                                                      slide['icon'],
+                                                      color: Colors.white,
+                                                      size: 28,
+                                                    ),
+                                                  if (slide['icon'] != null)
+                                                    const SizedBox(width: 12),
+                                                  Expanded(
+                                                    child: Text(
+                                                      slide['title'] ?? '',
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 18,
+                                                        letterSpacing: 0.5,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 12),
+                                              if (slide['body'] != null &&
+                                                  slide['body'] is String)
+                                                Expanded(
+                                                  child: Text(
+                                                    slide['body'],
+                                                    style: const TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.w400,
+                                                    ),
+                                                    maxLines: 4,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                              if (slide['body'] != null &&
+                                                  slide['body'] is List)
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      for (var item
+                                                          in slide['body'].take(
+                                                            3,
+                                                          ))
+                                                        if (item is String)
+                                                          Padding(
+                                                            padding:
+                                                                const EdgeInsets.symmetric(
+                                                                  vertical: 2,
+                                                                ),
+                                                            child: Row(
+                                                              crossAxisAlignment:
+                                                                  CrossAxisAlignment
+                                                                      .start,
+                                                              children: [
+                                                                const Icon(
+                                                                  Icons.circle,
+                                                                  size: 6,
+                                                                  color:
+                                                                      Colors
+                                                                          .white70,
+                                                                ),
+                                                                const SizedBox(
+                                                                  width: 8,
+                                                                ),
+                                                                Expanded(
+                                                                  child: Text(
+                                                                    item,
+                                                                    style: const TextStyle(
+                                                                      color:
+                                                                          Colors
+                                                                              .white,
+                                                                      fontSize:
+                                                                          13,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w400,
+                                                                    ),
+                                                                    maxLines: 1,
+                                                                    overflow:
+                                                                        TextOverflow
+                                                                            .ellipsis,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                    ],
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                );
+                              }).toList(),
                         ),
-                        Icon(
-                          Icons.bolt,
-                          color: AppTheme.primaryColor,
-                          size: 24,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildQuickActionCard(
-                            icon: Icons.construction,
-                            title: 'Our Services',
-                            subtitle: 'Explore solutions',
-                            color: AppTheme.primaryColor,
-                            onTap: () => Get.toNamed(AppRoutes.services),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildQuickActionCard(
-                            icon: Icons.phone,
-                            title: 'Contact Us',
-                            subtitle: 'Get in touch',
-                            color: AppTheme.secondaryColor,
-                            onTap: () {},
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildQuickActionCard(
-                            icon: Icons.assignment_turned_in_outlined,
-                            title: 'Projects',
-                            subtitle: 'Bookings & progress',
-                            color: Colors.teal,
-                            onTap: () => Get.toNamed(AppRoutes.projects),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildQuickActionCard(
-                            icon: Icons.description_outlined,
-                            title: 'Book Project',
-                            subtitle: 'Request a quote',
-                            color: Colors.indigo,
-                            onTap: () => Get.toNamed(AppRoutes.projects),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              // Company Stats Section
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  gradient: LinearGradient(
-                    colors: [
-                      AppTheme.primaryColor.withValues(alpha: 0.1),
-                      AppTheme.secondaryColor.withValues(alpha: 0.05),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  border: Border.all(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.2),
-                    width: 1,
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Company Overview',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.primaryColor,
-                          ),
-                        ),
-                        Icon(
-                          Icons.business,
-                          color: AppTheme.primaryColor,
-                          size: 24,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildStatusItem(
-                            icon: Icons.access_time,
-                            title: 'Business Hours',
-                            subtitle: 'Mon - Fri: 8:00 AM - 6:00 PM',
-                            color: AppTheme.primaryColor,
-                          ),
-                        ),
-                        Container(
-                          width: 1,
-                          height: 50,
-                          color: AppTheme.primaryColor.withValues(alpha: 0.2),
-                        ),
-                        Expanded(
-                          child: _buildStatusItem(
-                            icon: Icons.location_on,
-                            title: 'Location',
-                            subtitle: 'Zimbabwe',
-                            color: AppTheme.secondaryColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildStatusItem(
-                            icon: Icons.engineering,
-                            title: 'Services',
-                            subtitle: '6 Core Services',
-                            color: Colors.teal,
-                          ),
-                        ),
-                        Container(
-                          width: 1,
-                          height: 50,
-                          color: AppTheme.primaryColor.withValues(alpha: 0.2),
-                        ),
-                        Expanded(
-                          child: _buildStatusItem(
-                            icon: Icons.people,
-                            title: 'Programs',
-                            subtitle: '11 Specialized Programs',
-                            color: Colors.indigo,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              // Featured Services Section
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  color: Colors.white.withValues(alpha: 0.95),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.06),
-                      blurRadius: 15,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Featured Services',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
-                            color: AppTheme.primaryColor,
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () => Get.toNamed(AppRoutes.services),
-                          child: const Text('View All'),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      height: 120,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: servicesData.length,
-                        itemBuilder: (context, index) {
-                          final s = servicesData[index];
-                          return Container(
-                            width: 160,
-                            margin: const EdgeInsets.only(right: 16),
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(16),
-                              gradient: LinearGradient(
-                                colors: [
-                                  AppTheme.primaryColor.withValues(alpha: 0.08),
-                                  AppTheme.secondaryColor.withValues(alpha: 0.06),
-                                ],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              border: Border.all(
-                                color: AppTheme.primaryColor.withValues(alpha: 0.12),
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(
+                            companySlides.length,
+                            (index) => AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              margin: const EdgeInsets.symmetric(horizontal: 3),
+                              width: currentSlide == index ? 18 : 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color:
+                                    currentSlide == index
+                                        ? AppTheme.primaryColor
+                                        : AppTheme.primaryColor.withValues(
+                                          alpha: 0.3,
+                                        ),
+                                borderRadius: BorderRadius.circular(6),
                               ),
                             ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Active Projects Section (Enhanced)
+                  Obx(() {
+                    final isLoggedIn =
+                        UserAuthService.instance.isUserLoggedIn.value;
+                    if (!isLoggedIn) return const SizedBox.shrink();
+                    final userId =
+                        userController.userProfile.value?.id ??
+                        userController.userId.value;
+                    if (userId.isEmpty) return const SizedBox.shrink();
+                    return Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(24),
+                      margin: const EdgeInsets.only(bottom: 24),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(24),
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.white.withValues(alpha: 0.98),
+                            Colors.white.withValues(alpha: 0.95),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.shadow.withValues(alpha: 0.1),
+                            blurRadius: 25,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                        border: Border.all(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'My Active Projects',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20,
+                                  color: AppTheme.primaryColor,
+                                ),
+                              ),
+                              Icon(
+                                Icons.assignment_turned_in,
+                                color: AppTheme.primaryColor,
+                                size: 24,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.all(20),
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Icon(
-                                  s['icon'] as IconData,
-                                  color: AppTheme.primaryColor,
-                                  size: 24,
+                                  Icons.assignment_outlined,
+                                  size: 48,
+                                  color: Colors.grey[400],
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  'No projects yet',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.grey[600],
+                                  ),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  s['title'] as String,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  s['description'] as String,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    color: Colors.black54,
+                                  'Start by booking your first project',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey[500],
                                   ),
                                 ),
                               ],
                             ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Active projects for current user (top 3)
-              Obx(() {
-                final isLoggedIn =
-                    UserAuthService.instance.isUserLoggedIn.value;
-                if (!isLoggedIn) return const SizedBox.shrink();
-                final userId =
-                    userController.userProfile.value?.id ??
-                    userController.userId.value;
-                if (userId.isEmpty) return const SizedBox.shrink();
-                return Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  margin: const EdgeInsets.only(bottom: 20),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    color: Colors.white.withValues(alpha: 0.9),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'My Active Projects',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      StreamBuilder<List<Project>>(
-                        stream: FirebaseService.instance.getProjects(),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const Padding(
-                              padding: EdgeInsets.all(16),
-                              child: Center(
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
+                          ),
+                          const SizedBox(height: 16),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: ElevatedButton.icon(
+                              onPressed: () => Get.toNamed(AppRoutes.projects),
+                              icon: const Icon(Icons.arrow_forward, size: 18),
+                              label: const Text('View All Projects'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.primaryColor,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 12,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(25),
                                 ),
                               ),
-                            );
-                          }
-                          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                            return const Text('No active projects yet.');
-                          }
-                          final mine =
-                              snapshot.data!
-                                  .where(
-                                    (p) => p.bookedDates.any(
-                                      (d) => d.clientId == userId,
-                                    ),
-                                  )
-                                  .toList();
-                          if (mine.isEmpty) {
-                            return const Text('No active projects yet.');
-                          }
-                          mine.sort((a, b) => b.progress.compareTo(a.progress));
-                          final top = mine.take(3).toList();
-                          return Column(
-                            children:
-                                top.map((p) {
-                                  final status =
-                                      p.progress >= 100
-                                          ? 'Completed'
-                                          : (p.progress > 0
-                                              ? 'In Progress'
-                                              : 'Booked');
-                                  return Container(
-                                    margin: const EdgeInsets.only(bottom: 12),
-                                    padding: const EdgeInsets.all(14),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: AppTheme.primaryColor.withValues(
-                                          alpha: 0.12,
-                                        ),
-                                      ),
-                                      color: Colors.white,
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Expanded(
-                                              child: Text(
-                                                p.title,
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                            ),
-                                            Chip(
-                                              label: Text(status),
-                                              backgroundColor:
-                                                  status == 'Completed'
-                                                      ? Colors.green
-                                                      : status == 'In Progress'
-                                                      ? Colors.orange
-                                                      : AppTheme.primaryColor,
-                                              labelStyle: const TextStyle(
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 8),
-                                        LinearProgressIndicator(
-                                          value:
-                                              (p.progress.clamp(0, 100)) / 100,
-                                          minHeight: 6,
-                                          backgroundColor:
-                                              AppTheme.surfaceLight,
-                                          valueColor:
-                                              AlwaysStoppedAnimation<Color>(
-                                                status == 'Completed'
-                                                    ? Colors.green
-                                                    : status == 'In Progress'
-                                                    ? Colors.orange
-                                                    : AppTheme.primaryColor,
-                                              ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }).toList(),
-                          );
-                        },
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 8),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () => Get.toNamed(AppRoutes.projects),
-                          child: const Text('Open Projects'),
+                    );
+                  }),
+                  // Contact Information Section
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(24),
+                    margin: const EdgeInsets.only(bottom: 24),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24),
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.white.withValues(alpha: 0.98),
+                          Colors.white.withValues(alpha: 0.95),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.shadow.withValues(alpha: 0.1),
+                          blurRadius: 25,
+                          offset: const Offset(0, 10),
                         ),
+                      ],
+                      border: Border.all(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                        width: 1.5,
                       ),
-                    ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Contact & Offices',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.primaryColor,
+                              ),
+                            ),
+                            Icon(
+                              Icons.contact_phone,
+                              color: AppTheme.primaryColor,
+                              size: 24,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        ContactCard(
+                          contacts:
+                              companySlides.firstWhere(
+                                (s) => s['title'] == 'CONTACT & OFFICES',
+                              )['body'],
+                          socials:
+                              companySlides.firstWhere(
+                                (s) => s['title'] == 'CONTACT & OFFICES',
+                              )['socials'],
+                        ),
+                      ],
+                    ),
                   ),
-                );
-              }),
-              ContactCard(
-                contacts:
-                    companySlides.firstWhere(
-                      (s) => s['title'] == 'CONTACT & OFFICES',
-                    )['body'],
-                socials:
-                    companySlides.firstWhere(
-                      (s) => s['title'] == 'CONTACT & OFFICES',
-                    )['socials'],
+                ]),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
