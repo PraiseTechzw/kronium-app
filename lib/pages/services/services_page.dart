@@ -117,7 +117,7 @@ class ServicesPageState extends State<ServicesPage>
           'Design and installation',
           'Power outage prevention',
         ],
-        imageUrl: 'assets/images/services/solar.png',
+        imageUrl: 'assets/images/services/solar.jpg',
         price: 8000,
       ),
       Service(
@@ -527,7 +527,6 @@ class ServicesPageState extends State<ServicesPage>
                           missing.add('Description');
                         }
                         if (service.features.isEmpty) missing.add('Features');
-                        if (service.price == null) missing.add('Price');
                       }
                       return Stack(
                         children: [
@@ -679,43 +678,7 @@ class ServicesPageState extends State<ServicesPage>
                                         ],
                                       ),
                                     ),
-                                    // Price indicator
-                                    if (service.price != null)
-                                      Positioned(
-                                        top: 12,
-                                        right: 12,
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 10,
-                                            vertical: 6,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white.withOpacity(
-                                              0.95,
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                              15,
-                                            ),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.black.withOpacity(
-                                                  0.1,
-                                                ),
-                                                blurRadius: 4,
-                                                offset: const Offset(0, 2),
-                                              ),
-                                            ],
-                                          ),
-                                          child: Text(
-                                            '\$${service.price!.toStringAsFixed(0)}',
-                                            style: TextStyle(
-                                              color: service.color,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
+                                    // Price indicator removed
                                   ],
                                 ),
                               ),
@@ -805,7 +768,6 @@ class _ServiceDetailSheet extends StatelessWidget {
     if (isAdmin) {
       if (service.description.isEmpty) missing.add('Description');
       if (service.features.isEmpty) missing.add('Features');
-      if (service.price == null) missing.add('Price');
     }
     return Container(
       decoration: const BoxDecoration(
@@ -1092,47 +1054,7 @@ class _ServiceDetailSheet extends StatelessWidget {
                           ],
                         ),
                       ),
-                      // Price display
-                      if (service.price != null)
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                service.color.withOpacity(0.1),
-                                service.color.withOpacity(0.05),
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: service.color.withOpacity(0.2),
-                              width: 1,
-                            ),
-                          ),
-                          child: Column(
-                            children: [
-                              Text(
-                                'Price',
-                                style: TextStyle(
-                                  color: service.color.withOpacity(0.7),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '\$${service.price!.toStringAsFixed(0)}',
-                                style: TextStyle(
-                                  color: service.color,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                      // Price display removed
                     ],
                   ),
 
@@ -1725,7 +1647,7 @@ class _ServiceBookingFormState extends State<_ServiceBookingForm> {
                                     clientPhone: user.phone,
                                     date: _selectedDate!,
                                     status: BookingStatus.pending,
-                                    price: widget.service.price ?? 0.0,
+                                    price: 0.0, // Price removed from services
                                     location: _locationController.text.trim(),
                                     notes: _notesController.text.trim(),
                                   );

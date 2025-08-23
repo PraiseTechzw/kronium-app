@@ -4,6 +4,7 @@ import 'package:iconsax/iconsax.dart';
 import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/user_auth_service.dart';
 import 'package:kronium/core/user_controller.dart';
+import 'package:kronium/core/routes.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -15,7 +16,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   final UserController _userController = Get.find<UserController>();
   final UserAuthService _userAuthService = Get.find<UserAuthService>();
-  
+
   bool _isDarkMode = false;
   bool _notificationsEnabled = true;
   bool _biometricEnabled = false;
@@ -34,10 +35,7 @@ class _SettingsPageState extends State<SettingsPage> {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                AppTheme.primaryColor,
-                AppTheme.secondaryColor,
-              ],
+              colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
             ),
             boxShadow: [
               BoxShadow(
@@ -147,20 +145,13 @@ class _SettingsPageState extends State<SettingsPage> {
             height: 60,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  AppTheme.primaryColor,
-                  AppTheme.secondaryColor,
-                ],
+                colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(30),
             ),
-            child: Icon(
-              Iconsax.user,
-              color: Colors.white,
-              size: 30,
-            ),
+            child: Icon(Iconsax.user, color: Colors.white, size: 30),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -177,10 +168,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 const SizedBox(height: 4),
                 Text(
                   user?.email ?? 'guest@example.com',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
                 const SizedBox(height: 4),
                 Container(
@@ -189,10 +177,14 @@ class _SettingsPageState extends State<SettingsPage> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: _getRoleColor(_userController.role.value).withOpacity(0.1),
+                    color: _getRoleColor(
+                      _userController.role.value,
+                    ).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: _getRoleColor(_userController.role.value).withOpacity(0.3),
+                      color: _getRoleColor(
+                        _userController.role.value,
+                      ).withOpacity(0.3),
                       width: 1,
                     ),
                   ),
@@ -424,11 +416,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     color: AppTheme.primaryColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(
-                    icon,
-                    color: AppTheme.primaryColor,
-                    size: 20,
-                  ),
+                  child: Icon(icon, color: AppTheme.primaryColor, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Text(
@@ -463,11 +451,7 @@ class _SettingsPageState extends State<SettingsPage> {
           color: (textColor ?? AppTheme.primaryColor).withOpacity(0.1),
           borderRadius: BorderRadius.circular(10),
         ),
-        child: Icon(
-          icon,
-          color: textColor ?? AppTheme.primaryColor,
-          size: 20,
-        ),
+        child: Icon(icon, color: textColor ?? AppTheme.primaryColor, size: 20),
       ),
       title: Text(
         title,
@@ -479,17 +463,11 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
       subtitle: Text(
         subtitle,
-        style: TextStyle(
-          fontSize: 14,
-          color: Colors.grey[600],
-        ),
+        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
       ),
       trailing: trailing,
       onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 8,
-      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
     );
   }
 
@@ -601,10 +579,7 @@ class _SettingsPageState extends State<SettingsPage> {
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Close'),
-          ),
+          TextButton(onPressed: () => Get.back(), child: const Text('Close')),
         ],
       ),
     );
@@ -628,10 +603,7 @@ class _SettingsPageState extends State<SettingsPage> {
           'Are you sure you want to delete your account? This action cannot be undone.',
         ),
         actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
           TextButton(
             onPressed: () {
               Get.back();
@@ -643,9 +615,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 colorText: Colors.white,
               );
             },
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
-            ),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Delete'),
           ),
         ],
@@ -662,6 +632,8 @@ class _SettingsPageState extends State<SettingsPage> {
         backgroundColor: Colors.green,
         colorText: Colors.white,
       );
+      // Navigate to welcome page after logout
+      Get.offAllNamed(AppRoutes.welcome);
     } catch (e) {
       Get.snackbar(
         'Error',

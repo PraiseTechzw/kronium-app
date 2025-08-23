@@ -62,7 +62,11 @@ class AppDrawer extends StatelessWidget {
                   CircleAvatar(
                     radius: 36,
                     backgroundColor: Colors.white,
-                    child: Icon(Iconsax.user, color: Color(0xFF0C8A44), size: 36),
+                    child: Icon(
+                      Iconsax.user,
+                      color: Color(0xFF0C8A44),
+                      size: 36,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -88,7 +92,10 @@ class AppDrawer extends StatelessWidget {
                   if (isAdmin)
                     Container(
                       margin: const EdgeInsets.only(top: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.orange[700],
                         borderRadius: BorderRadius.circular(8),
@@ -108,23 +115,44 @@ class AppDrawer extends StatelessWidget {
             const SizedBox(height: 16),
             if (isAdmin) ...[
               ListTile(
-                leading: const Icon(Iconsax.shield_tick, color: AppTheme.primaryColor),
-                title: const Text('Admin Dashboard', style: TextStyle(color: AppTheme.textPrimary)),
+                leading: const Icon(
+                  Iconsax.shield_tick,
+                  color: AppTheme.primaryColor,
+                ),
+                title: const Text(
+                  'Admin Dashboard',
+                  style: TextStyle(color: AppTheme.textPrimary),
+                ),
                 onTap: () => Get.toNamed('/admin-dashboard'),
               ),
               ListTile(
                 leading: const Icon(Iconsax.box, color: AppTheme.primaryColor),
-                title: const Text('Manage Services', style: TextStyle(color: AppTheme.textPrimary)),
+                title: const Text(
+                  'Manage Services',
+                  style: TextStyle(color: AppTheme.textPrimary),
+                ),
                 onTap: () => Get.toNamed('/admin-services'),
               ),
               ListTile(
-                leading: const Icon(Iconsax.calendar, color: AppTheme.primaryColor),
-                title: const Text('Bookings', style: TextStyle(color: AppTheme.textPrimary)),
+                leading: const Icon(
+                  Iconsax.calendar,
+                  color: AppTheme.primaryColor,
+                ),
+                title: const Text(
+                  'Bookings',
+                  style: TextStyle(color: AppTheme.textPrimary),
+                ),
                 onTap: () => Get.toNamed('/admin-bookings'),
               ),
               ListTile(
-                leading: const Icon(Iconsax.message, color: AppTheme.primaryColor),
-                title: const Text('Admin Chat', style: TextStyle(color: AppTheme.textPrimary)),
+                leading: const Icon(
+                  Iconsax.message,
+                  color: AppTheme.primaryColor,
+                ),
+                title: const Text(
+                  'Admin Chat',
+                  style: TextStyle(color: AppTheme.textPrimary),
+                ),
                 onTap: () => Get.toNamed('/admin-chat'),
               ),
               const Divider(),
@@ -135,7 +163,10 @@ class AppDrawer extends StatelessWidget {
             // Settings Section
             ListTile(
               leading: Icon(Iconsax.moon, color: AppTheme.primaryColor),
-              title: Text('Dark Mode', style: TextStyle(color: AppTheme.textPrimary)),
+              title: Text(
+                'Dark Mode',
+                style: TextStyle(color: AppTheme.textPrimary),
+              ),
               trailing: Switch(
                 value: isDarkMode,
                 onChanged: onDarkModeChanged,
@@ -145,42 +176,79 @@ class AppDrawer extends StatelessWidget {
             Divider(color: AppTheme.divider),
             ListTile(
               leading: Icon(Iconsax.document, color: AppTheme.primaryColor),
-              title: Text('Privacy Policy', style: TextStyle(color: AppTheme.textPrimary)),
-              onTap: () {/* Show privacy policy dialog or page */},
+              title: Text(
+                'Privacy Policy',
+                style: TextStyle(color: AppTheme.textPrimary),
+              ),
+              onTap: () {
+                /* Show privacy policy dialog or page */
+              },
             ),
             ListTile(
-              leading: Icon(Iconsax.document_text, color: AppTheme.primaryColor),
-              title: Text('Terms of Service', style: TextStyle(color: AppTheme.textPrimary)),
-              onTap: () {/* Show terms of service dialog or page */},
+              leading: Icon(
+                Iconsax.document_text,
+                color: AppTheme.primaryColor,
+              ),
+              title: Text(
+                'Terms of Service',
+                style: TextStyle(color: AppTheme.textPrimary),
+              ),
+              onTap: () {
+                /* Show terms of service dialog or page */
+              },
             ),
             ListTile(
-              leading: Icon(Iconsax.message_question, color: AppTheme.primaryColor),
-              title: Text('Help & Support', style: TextStyle(color: AppTheme.textPrimary)),
-              onTap: () {/* Show help/support dialog or page */},
+              leading: Icon(
+                Iconsax.message_question,
+                color: AppTheme.primaryColor,
+              ),
+              title: Text(
+                'Help & Support',
+                style: TextStyle(color: AppTheme.textPrimary),
+              ),
+              onTap: () {
+                /* Show help/support dialog or page */
+              },
             ),
             ListTile(
               leading: Icon(Iconsax.star, color: AppTheme.primaryColor),
-              title: Text('Rate the App', style: TextStyle(color: AppTheme.textPrimary)),
-              onTap: () {/* Implement rate app logic */},
+              title: Text(
+                'Rate the App',
+                style: TextStyle(color: AppTheme.textPrimary),
+              ),
+              onTap: () {
+                /* Implement rate app logic */
+              },
             ),
             ListTile(
               leading: Icon(Iconsax.info_circle, color: AppTheme.primaryColor),
-              title: Text('About App', style: TextStyle(color: AppTheme.textPrimary)),
+              title: Text(
+                'About App',
+                style: TextStyle(color: AppTheme.textPrimary),
+              ),
               onTap: onShowAbout,
             ),
             Divider(color: AppTheme.divider),
             ListTile(
               leading: Icon(Iconsax.message, color: AppTheme.primaryColor),
-              title: Text('Contact Us', style: TextStyle(color: AppTheme.textPrimary)),
+              title: Text(
+                'Contact Us',
+                style: TextStyle(color: AppTheme.textPrimary),
+              ),
               onTap: onShowContact,
             ),
             Divider(color: AppTheme.divider),
             // Admin Section
             if (adminAuthService.isAdminLoggedIn.value) ...[
-              _drawerItem(context, 'Admin Dashboard', Iconsax.shield_tick, AppRoutes.adminDashboard),
+              _drawerItem(
+                context,
+                'Admin Dashboard',
+                Iconsax.shield_tick,
+                AppRoutes.adminDashboard,
+              ),
               _drawerItem(context, 'Sign Out Admin', Iconsax.logout, () async {
                 await adminAuthService.logout();
-                Get.back();
+                Get.offAllNamed(AppRoutes.welcome);
               }),
             ],
             const SizedBox(height: 24),
@@ -204,10 +272,21 @@ class AppDrawer extends StatelessWidget {
   }
 
   /// Drawer item builder for navigation or actions.
-  Widget _drawerItem(BuildContext context, String title, IconData icon, dynamic routeOrAction) {
+  Widget _drawerItem(
+    BuildContext context,
+    String title,
+    IconData icon,
+    dynamic routeOrAction,
+  ) {
     return ListTile(
       leading: Icon(icon, color: AppTheme.primaryColor),
-      title: Text(title, style: TextStyle(fontWeight: FontWeight.w500, color: AppTheme.textPrimary)),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontWeight: FontWeight.w500,
+          color: AppTheme.textPrimary,
+        ),
+      ),
       onTap: () {
         Get.back();
         if (routeOrAction is String) {
@@ -219,4 +298,4 @@ class AppDrawer extends StatelessWidget {
       hoverColor: AppTheme.primaryColor.withOpacity(0.08),
     );
   }
-} 
+}

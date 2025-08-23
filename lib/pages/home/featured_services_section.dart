@@ -138,7 +138,7 @@ class FeaturedServicesSection extends StatelessWidget {
                     },
                     {
                       'title': 'Solar Systems',
-                      'image': 'assets/images/services/solar.png',
+                      'image': 'assets/images/services/solar.jpg',
                       'description': 'Renewable energy installations',
                       'color': Colors.orange,
                     },

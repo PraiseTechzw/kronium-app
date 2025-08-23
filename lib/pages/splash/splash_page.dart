@@ -54,8 +54,8 @@ class _SplashPageState extends State<SplashPage> {
 
     // Navigate based on authentication status
     if (userAuthService.isLoggedIn) {
-      print('Splash: User already logged in, navigating directly to home');
-      Get.offAllNamed(AppRoutes.home);
+      print('Splash: User already logged in, navigating to welcome page');
+      Get.offAllNamed(AppRoutes.welcome);
     } else if (adminAuthService.isAdmin) {
       print('Splash: Admin logged in, navigating to admin dashboard');
       Get.offAllNamed(AppRoutes.adminDashboard);

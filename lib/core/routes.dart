@@ -24,7 +24,6 @@ import 'package:kronium/pages/admin/admin_projects_page.dart';
 import 'package:kronium/core/admin_auth_service.dart';
 import 'package:kronium/core/user_controller.dart';
 import 'package:kronium/pages/settings/settings_page.dart';
-import 'package:kronium/pages/projects/projects_overview_page.dart';
 
 class AppRoutes {
   // Route names
@@ -200,19 +199,14 @@ class AppRoutes {
       transition: Transition.rightToLeftWithFade,
       transitionDuration: const Duration(milliseconds: 800),
     ),
-    GetPage(
-      name: projectsOverview,
-      page: () => const ProjectsOverviewPage(),
-      transition: Transition.rightToLeftWithFade,
-      transitionDuration: const Duration(milliseconds: 800),
-    ),
+    
   ];
 
   // Helper to get initial route based on user role
   static String getInitialRoute() {
-    // Skip splash screen and go directly to home
-    // The app will handle authentication state after initialization
-    return home;
+    // Always start with splash screen to check authentication state
+    // The splash screen will handle routing based on session status
+    return splash;
   }
 
   // Helper to get the appropriate route after authentication check
@@ -229,14 +223,8 @@ class AppRoutes {
 
     // Check if user is authenticated
     if (userAuthService.isUserLoggedIn.value) {
-      switch (userController.role.value) {
-        case 'admin':
-          return adminDashboard;
-        case 'customer':
-          return customerDashboard;
-        default:
-          return home;
-      }
+      // For authenticated users, always show welcome page first
+      return welcome;
     } else if (adminAuthService.isAdmin) {
       return adminDashboard;
     } else {

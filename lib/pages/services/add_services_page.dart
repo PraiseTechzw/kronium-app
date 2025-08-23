@@ -14,16 +14,22 @@ class AddServicePage extends StatefulWidget {
 
 class AddServicePageState extends State<AddServicePage> {
   final _formKey = GlobalKey<FormState>();
-  final List<String> categories = ['Construction', 'Renewable Energy', 'Agriculture', 'Technology'];
+  final List<String> categories = [
+    'Construction',
+    'Renewable Energy',
+    'Agriculture',
+    'Technology',
+  ];
   final ImagePicker _picker = ImagePicker();
-  
+
   // Form controllers
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _priceController = TextEditingController();
-  final TextEditingController _imagePathController = TextEditingController(text: 'assets/images/service.jpg');
+  final TextEditingController _imagePathController = TextEditingController(
+    text: 'assets/images/service.jpg',
+  );
   final TextEditingController _videoUrlController = TextEditingController();
-  
+
   String _selectedCategory = 'Construction';
   Color _selectedColor = const Color(0xFF3498DB);
   IconData _selectedIcon = FontAwesomeIcons.building;
@@ -34,23 +40,28 @@ class AddServicePageState extends State<AddServicePage> {
 
   // Color and icon options
   final List<Color> colorOptions = [
-    const Color(0xFF2ECC71), const Color(0xFFF39C12),
-    const Color(0xFF3498DB), const Color(0xFF9B59B6),
+    const Color(0xFF2ECC71),
+    const Color(0xFFF39C12),
+    const Color(0xFF3498DB),
+    const Color(0xFF9B59B6),
     const Color(0xFFE74C3C),
   ];
 
   final List<IconData> iconOptions = [
-    FontAwesomeIcons.building, FontAwesomeIcons.solarPanel,
-    FontAwesomeIcons.tractor, FontAwesomeIcons.laptopCode,
-    FontAwesomeIcons.warehouse, FontAwesomeIcons.hardHat,
-    FontAwesomeIcons.bolt, FontAwesomeIcons.leaf,
+    FontAwesomeIcons.building,
+    FontAwesomeIcons.solarPanel,
+    FontAwesomeIcons.tractor,
+    FontAwesomeIcons.laptopCode,
+    FontAwesomeIcons.warehouse,
+    FontAwesomeIcons.hardHat,
+    FontAwesomeIcons.bolt,
+    FontAwesomeIcons.leaf,
   ];
 
   @override
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
-    _priceController.dispose();
     _imagePathController.dispose();
     _videoUrlController.dispose();
     _featureController.dispose();
@@ -66,7 +77,7 @@ class AddServicePageState extends State<AddServicePage> {
       }
     } catch (e) {
       Get.snackbar(
-        'Error', 
+        'Error',
         'Failed to pick video: ${e.toString()}',
         backgroundColor: AppTheme.errorColor,
         colorText: Colors.white,
@@ -103,26 +114,30 @@ class AddServicePageState extends State<AddServicePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          _videoFile?.path.split('/').last ?? 
-                          _videoUrlController.text,
+                          _videoFile?.path.split('/').last ??
+                              _videoUrlController.text,
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          _videoFile != null 
-                            ? '${(_videoFile!.lengthSync() / 1024 / 1024).toStringAsFixed(1)} MB' 
-                            : 'URL provided',
-                          style: const TextStyle(color: Colors.grey, fontSize: 12),
+                          _videoFile != null
+                              ? '${(_videoFile!.lengthSync() / 1024 / 1024).toStringAsFixed(1)} MB'
+                              : 'URL provided',
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 12,
+                          ),
                         ),
                       ],
                     ),
                   ),
                   IconButton(
                     icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () => setState(() {
-                      _videoFile = null;
-                      _videoUrlController.clear();
-                    }),
+                    onPressed:
+                        () => setState(() {
+                          _videoFile = null;
+                          _videoUrlController.clear();
+                        }),
                   ),
                 ],
               ),
@@ -204,8 +219,8 @@ class AddServicePageState extends State<AddServicePage> {
   }
 
   Widget _buildTextField(
-    TextEditingController controller, 
-    String label, 
+    TextEditingController controller,
+    String label,
     IconData icon, {
     int maxLines = 1,
     TextInputType keyboardType = TextInputType.text,
@@ -216,9 +231,7 @@ class AddServicePageState extends State<AddServicePage> {
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
       maxLines: maxLines,
       keyboardType: keyboardType,
@@ -238,16 +251,12 @@ class AddServicePageState extends State<AddServicePage> {
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: icon != null ? Icon(icon) : null,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
-      items: items.map((String value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text(value),
-        );
-      }).toList(),
+      items:
+          items.map((String value) {
+            return DropdownMenuItem<String>(value: value, child: Text(value));
+          }).toList(),
       onChanged: onChanged,
     );
   }
@@ -258,16 +267,15 @@ class AddServicePageState extends State<AddServicePage> {
         'title': _titleController.text,
         'description': _descriptionController.text,
         'category': _selectedCategory,
-        'price': double.tryParse(_priceController.text),
         'imagePath': _imagePathController.text,
         'video': _videoFile ?? _videoUrlController.text,
         'icon': _selectedIcon,
         'color': _selectedColor,
         'features': List<String>.from(_features),
       };
-      
+
       print('New Service with Video: $newService');
-      
+
       Get.snackbar(
         'Success',
         'Service with video added successfully',
@@ -275,7 +283,7 @@ class AddServicePageState extends State<AddServicePage> {
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
       );
-      
+
       Get.back(result: newService);
     }
   }
@@ -290,12 +298,13 @@ class AddServicePageState extends State<AddServicePage> {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Get.back(),
         ),
-        title: const Text('Add New Service', 
+        title: const Text(
+          'Add New Service',
           style: TextStyle(
-            fontWeight: FontWeight.bold, 
-            fontSize: 20, 
-            color: Colors.white
-          )
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.white,
+          ),
         ),
         centerTitle: true,
       ),
@@ -307,16 +316,28 @@ class AddServicePageState extends State<AddServicePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildFormSection('Basic Information', [
-                _buildTextField(_titleController, 'Service Title', Icons.title, validator: (value) {
-                  if (value == null || value.isEmpty) return 'Please enter a title';
-                  return null;
-                }),
-                const SizedBox(height: 16),
-                _buildTextField(_descriptionController, 'Description', Icons.description, 
-                  maxLines: 3, validator: (value) {
-                    if (value == null || value.isEmpty) return 'Please enter a description';
+                _buildTextField(
+                  _titleController,
+                  'Service Title',
+                  Icons.title,
+                  validator: (value) {
+                    if (value == null || value.isEmpty)
+                      return 'Please enter a title';
                     return null;
-                  }),
+                  },
+                ),
+                const SizedBox(height: 16),
+                _buildTextField(
+                  _descriptionController,
+                  'Description',
+                  Icons.description,
+                  maxLines: 3,
+                  validator: (value) {
+                    if (value == null || value.isEmpty)
+                      return 'Please enter a description';
+                    return null;
+                  },
+                ),
                 const SizedBox(height: 16),
                 _buildDropdownField(
                   'Category',
@@ -326,56 +347,67 @@ class AddServicePageState extends State<AddServicePage> {
                   icon: FontAwesomeIcons.list,
                 ),
                 const SizedBox(height: 16),
-                _buildTextField(_priceController, 'Price (\$)', FontAwesomeIcons.dollarSign,
-                  keyboardType: TextInputType.number, validator: (value) {
-                    if (value == null || value.isEmpty) return 'Please enter a price';
-                    if (double.tryParse(value) == null) return 'Please enter a valid number';
-                    return null;
-                  }),
+                // Price field removed
                 const SizedBox(height: 16),
-                _buildTextField(_imagePathController, 'Image Path', FontAwesomeIcons.image,
+                _buildTextField(
+                  _imagePathController,
+                  'Image Path',
+                  FontAwesomeIcons.image,
                   validator: (value) {
-                    if (value == null || value.isEmpty) return 'Please enter an image path';
+                    if (value == null || value.isEmpty)
+                      return 'Please enter an image path';
                     return null;
-                  }),
+                  },
+                ),
               ]),
-              
+
               const SizedBox(height: 24),
-              _buildFormSection('Video Demonstration', [
-                _buildVideoSection(),
-              ]),
-              
+              _buildFormSection('Video Demonstration', [_buildVideoSection()]),
+
               const SizedBox(height: 24),
               _buildFormSection('Appearance', [
-                const Text('Select Icon', style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text(
+                  'Select Icon',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 8),
                 SizedBox(
                   height: 60,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: iconOptions.length,
-                    separatorBuilder: (context, index) => const SizedBox(width: 8),
+                    separatorBuilder:
+                        (context, index) => const SizedBox(width: 8),
                     itemBuilder: (context, index) {
                       return GestureDetector(
-                        onTap: () => setState(() => _selectedIcon = iconOptions[index]),
+                        onTap:
+                            () => setState(
+                              () => _selectedIcon = iconOptions[index],
+                            ),
                         child: Container(
                           width: 50,
                           height: 50,
                           decoration: BoxDecoration(
-                            color: _selectedIcon == iconOptions[index] 
-                              ? _selectedColor.withValues(alpha: 0.2) 
-                              : Colors.grey[200],
+                            color:
+                                _selectedIcon == iconOptions[index]
+                                    ? _selectedColor.withValues(alpha: 0.2)
+                                    : Colors.grey[200],
                             borderRadius: BorderRadius.circular(12),
-                            border: _selectedIcon == iconOptions[index]
-                              ? Border.all(color: _selectedColor, width: 2)
-                              : null,
+                            border:
+                                _selectedIcon == iconOptions[index]
+                                    ? Border.all(
+                                      color: _selectedColor,
+                                      width: 2,
+                                    )
+                                    : null,
                           ),
                           child: Center(
                             child: FaIcon(
                               iconOptions[index],
-                              color: _selectedIcon == iconOptions[index] 
-                                ? _selectedColor 
-                                : Colors.grey[600],
+                              color:
+                                  _selectedIcon == iconOptions[index]
+                                      ? _selectedColor
+                                      : Colors.grey[600],
                               size: 24,
                             ),
                           ),
@@ -385,26 +417,34 @@ class AddServicePageState extends State<AddServicePage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text('Select Color', style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text(
+                  'Select Color',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 8),
                 SizedBox(
                   height: 50,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: colorOptions.length,
-                    separatorBuilder: (context, index) => const SizedBox(width: 8),
+                    separatorBuilder:
+                        (context, index) => const SizedBox(width: 8),
                     itemBuilder: (context, index) {
                       return GestureDetector(
-                        onTap: () => setState(() => _selectedColor = colorOptions[index]),
+                        onTap:
+                            () => setState(
+                              () => _selectedColor = colorOptions[index],
+                            ),
                         child: Container(
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
                             color: colorOptions[index],
                             shape: BoxShape.circle,
-                            border: _selectedColor == colorOptions[index]
-                              ? Border.all(color: Colors.white, width: 3)
-                              : null,
+                            border:
+                                _selectedColor == colorOptions[index]
+                                    ? Border.all(color: Colors.white, width: 3)
+                                    : null,
                           ),
                         ),
                       );
@@ -412,7 +452,7 @@ class AddServicePageState extends State<AddServicePage> {
                   ),
                 ),
               ]),
-              
+
               const SizedBox(height: 24),
               _buildFormSection('Features', [
                 Row(
@@ -445,28 +485,42 @@ class AddServicePageState extends State<AddServicePage> {
                 ),
                 const SizedBox(height: 8),
                 if (_features.isNotEmpty) ...[
-                  const Text('Current Features:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text(
+                    'Current Features:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: _features.map((feature) => Chip(
-                      label: Text(feature),
-                      deleteIcon: const Icon(Icons.close, size: 16),
-                      onDeleted: () => setState(() => _features.remove(feature)),
-                    )).toList(),
+                    children:
+                        _features
+                            .map(
+                              (feature) => Chip(
+                                label: Text(feature),
+                                deleteIcon: const Icon(Icons.close, size: 16),
+                                onDeleted:
+                                    () => setState(
+                                      () => _features.remove(feature),
+                                    ),
+                              ),
+                            )
+                            .toList(),
                   ),
                   const SizedBox(height: 16),
                 ],
               ]),
-              
+
               const SizedBox(height: 32),
               Center(
                 child: ElevatedButton(
                   onPressed: _submitForm,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryColor,
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 16,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),

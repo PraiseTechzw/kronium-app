@@ -27,24 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
     userController = Get.find<UserController>();
     userAuthService = Get.find<UserAuthService>();
 
-    // Debug logging to see current state
-    print('HomeScreen: initState called');
-    print(
-      'HomeScreen: UserAuthService isInitialized: ${userAuthService.isInitialized.value}',
-    );
-    print(
-      'HomeScreen: UserAuthService isUserLoggedIn: ${userAuthService.isUserLoggedIn.value}',
-    );
-    print(
-      'HomeScreen: UserAuthService userProfile: ${userAuthService.userProfile.value?.name ?? "null"}',
-    );
-    print(
-      'HomeScreen: UserController userName: ${userController.userName.value}',
-    );
-    print('HomeScreen: UserController userId: ${userController.userId.value}');
-    print(
-      'HomeScreen: UserController userProfile: ${userController.userProfile.value?.name ?? "null"}',
-    );
+    
 
     // Ensure UserController is synchronized with UserAuthService
     _syncUserData();
@@ -183,11 +166,12 @@ class _HomeScreenState extends State<HomeScreen> {
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   const SizedBox(height: 20),
-                  const QuickActionsSection(),
-                  const SizedBox(height: 24),
+                
                   const FeaturedServicesSection(),
                   const SizedBox(height: 24),
                   const ActiveProjectsSection(),
+                    const SizedBox(height: 24),
+                  const QuickActionsSection(),
                   const SizedBox(height: 40),
                 ]),
               ),
@@ -198,19 +182,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Add a method to force restore from preferences
-  void _forceRestoreFromPreferences() async {
-    print('HomeScreen: Force restoring from preferences...');
-    await userAuthService.forceRestoreFromPreferences();
-    Get.snackbar(
-      'Session Restored',
-      'User session restored from saved data',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: AppTheme.secondaryColor,
-      colorText: Colors.white,
-      duration: const Duration(seconds: 2),
-    );
-  }
 
   Widget _buildHeaderRow() {
     return Row(

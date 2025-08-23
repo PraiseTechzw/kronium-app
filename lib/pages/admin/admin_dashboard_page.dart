@@ -35,7 +35,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           icon: const Icon(Iconsax.logout),
           onPressed: () async {
             await adminAuthService.logout();
-            Get.offAllNamed(AppRoutes.home);
+            Get.offAllNamed(AppRoutes.welcome);
           },
         ),
         ElevatedButton.icon(
@@ -45,7 +45,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             backgroundColor: Colors.orange,
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
           onPressed: () => Get.to(() => const AdminProjectRequestsPage()),
         ),
@@ -57,146 +59,145 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-              // Welcome Section
-              FadeInDown(
-                child: Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+            // Welcome Section
+            FadeInDown(
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.primaryColor.withOpacity(0.18),
+                      blurRadius: 16,
+                      offset: const Offset(0, 8),
                     ),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppTheme.primaryColor.withOpacity(0.18),
-                        blurRadius: 16,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      const CircleAvatar(
-                        radius: 36,
-                        backgroundColor: Colors.white,
-                        child: Icon(
-                          Iconsax.shield_tick,
-                          color: AppTheme.primaryColor,
-                          size: 36,
-                        ),
-                      ),
-                      const SizedBox(width: 20),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Welcome, Admin',
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              'Here is your business overview and latest activity.',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.white.withOpacity(0.85),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 28),
-
-              // Statistics Cards
-              FadeInUp(
-                delay: const Duration(milliseconds: 200),
-                child: FutureBuilder<Map<String, dynamic>>(
-                  future: firebaseService.getAdminStats(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-
-                    final stats = snapshot.data ?? {
-                      'totalServices': 0,
-                      'totalBookings': 0,
-                      'pendingBookings': 0,
-                    };
-
-                    return SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
+                child: Row(
+                  children: [
+                    const CircleAvatar(
+                      radius: 36,
+                      backgroundColor: Colors.white,
+                      child: Icon(
+                        Iconsax.shield_tick,
+                        color: AppTheme.primaryColor,
+                        size: 36,
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildStatCard(
-                            'Services',
-                            stats['totalServices'].toString(),
-                            Iconsax.box,
-                            Colors.blue,
+                          Text(
+                            'Welcome, Admin',
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
-                          const SizedBox(width: 16),
-                          _buildStatCard(
-                            'Bookings',
-                            stats['totalBookings'].toString(),
-                            Iconsax.calendar,
-                            Colors.green,
-                          ),
-                          const SizedBox(width: 16),
-                          _buildStatCard(
-                            'Pending',
-                            stats['pendingBookings'].toString(),
-                            Iconsax.clock,
-                            Colors.orange,
-                          ),
-                          const SizedBox(width: 16),
-                          _buildStatCard(
-                            'Revenue',
-                            '\$${(stats['totalBookings'] * 100).toString()}',
-                            Iconsax.dollar_circle,
-                            Colors.purple,
+                          const SizedBox(height: 6),
+                          Text(
+                            'Here is your business overview and latest activity.',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.white.withOpacity(0.85),
+                            ),
                           ),
                         ],
                       ),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              // Recent Activity (Latest Bookings)
-              FadeInUp(
-                delay: const Duration(milliseconds: 400),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Recent Bookings',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
                     ),
-                    const SizedBox(height: 12),
-                    _RecentBookingsList(),
                   ],
                 ),
               ),
-              const SizedBox(height: 32),
+            ),
+            const SizedBox(height: 28),
 
-              // (Optional) Analytics/Graphs section can be added here
-            ],
-          ),
+            // Statistics Cards
+            FadeInUp(
+              delay: const Duration(milliseconds: 200),
+              child: FutureBuilder<Map<String, dynamic>>(
+                future: firebaseService.getAdminStats(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  final stats =
+                      snapshot.data ??
+                      {
+                        'totalServices': 0,
+                        'totalBookings': 0,
+                        'pendingBookings': 0,
+                      };
+
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _buildStatCard(
+                          'Services',
+                          stats['totalServices'].toString(),
+                          Iconsax.box,
+                          Colors.blue,
+                        ),
+                        const SizedBox(width: 16),
+                        _buildStatCard(
+                          'Bookings',
+                          stats['totalBookings'].toString(),
+                          Iconsax.calendar,
+                          Colors.green,
+                        ),
+                        const SizedBox(width: 16),
+                        _buildStatCard(
+                          'Pending',
+                          stats['pendingBookings'].toString(),
+                          Iconsax.clock,
+                          Colors.orange,
+                        ),
+                        const SizedBox(width: 16),
+                        _buildStatCard(
+                          'Revenue',
+                          '\$${(stats['totalBookings'] * 100).toString()}',
+                          Iconsax.dollar_circle,
+                          Colors.purple,
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 32),
+
+            // Recent Activity (Latest Bookings)
+            FadeInUp(
+              delay: const Duration(milliseconds: 400),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Recent Bookings',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  _RecentBookingsList(),
+                ],
+              ),
+            ),
+            const SizedBox(height: 32),
+
+            // (Optional) Analytics/Graphs section can be added here
+          ],
         ),
-      
+      ),
+
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0, // Dashboard tab
         onTap: (index) {
@@ -228,28 +229,24 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             icon: Icon(Iconsax.home_2),
             label: 'Dashboard',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Iconsax.box),
-            label: 'Services',
-          ),
+          BottomNavigationBarItem(icon: Icon(Iconsax.box), label: 'Services'),
           BottomNavigationBarItem(
             icon: Icon(Iconsax.document_text),
             label: 'Projects',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Iconsax.message),
-            label: 'Chat',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Iconsax.user),
-            label: 'Profile',
-          ),
+          BottomNavigationBarItem(icon: Icon(Iconsax.message), label: 'Chat'),
+          BottomNavigationBarItem(icon: Icon(Iconsax.user), label: 'Profile'),
         ],
-      ),  
-    );  
+      ),
+    );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -286,19 +283,13 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           const SizedBox(height: 4),
           Text(
             title,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[600],
-            ),
+            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
         ],
       ),
     );
   }
-
-
-
 }
 
 class _RecentBookingsList extends StatelessWidget {
@@ -325,12 +316,23 @@ class _RecentBookingsList extends StatelessWidget {
             return ListTile(
               leading: CircleAvatar(
                 backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
-                child: const Icon(Iconsax.calendar, color: AppTheme.primaryColor),
+                child: const Icon(
+                  Iconsax.calendar,
+                  color: AppTheme.primaryColor,
+                ),
               ),
-              title: Text(booking.clientName, style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text('${booking.serviceName} • ${booking.date.toLocal().toString().split(' ')[0]}'),
+              title: Text(
+                booking.clientName,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Text(
+                '${booking.serviceName} • ${booking.date.toLocal().toString().split(' ')[0]}',
+              ),
               trailing: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: _statusColor(booking.status.name).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -376,4 +378,4 @@ class _RecentBookingsList extends StatelessWidget {
         return status;
     }
   }
-} 
+}

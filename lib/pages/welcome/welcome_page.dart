@@ -126,8 +126,16 @@ class _WelcomePageState extends State<WelcomePage>
   }
 
   void _navigateForward() {
-    // Always land on Home; users can reach Projects/Dashboard from tabs
-    Get.offAllNamed(AppRoutes.home);
+    // Navigate based on user role after welcome
+    final userController = Get.find<UserController>();
+    final userRole = userController.role.value;
+
+    if (userRole == 'admin') {
+      Get.offAllNamed(AppRoutes.adminDashboard);
+    } else {
+      // For customers, go to home page
+      Get.offAllNamed(AppRoutes.home);
+    }
   }
 
   @override
@@ -183,7 +191,12 @@ class _WelcomePageState extends State<WelcomePage>
                         style: const TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                          color: Color.fromRGBO(
+                            37,
+                            150,
+                            190,
+                            1.0,
+                          ), // RGB(37, 150, 190)
                           letterSpacing: 2.0,
                         ),
                       ),

@@ -585,7 +585,7 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                           onTap: () async {
                             final userAuthService = Get.find<UserAuthService>();
                             await userAuthService.logout();
-                            Get.offAllNamed(AppRoutes.customerLogin);
+                            Get.offAllNamed(AppRoutes.welcome);
                           },
                         ),
                       ],
