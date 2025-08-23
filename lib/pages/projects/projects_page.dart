@@ -186,7 +186,18 @@ class ProjectsPageState extends State<ProjectsPage>
               tooltip: 'Manage Booked Dates',
               onPressed: _showAdminBookedDatesBottomSheet,
             ),
-          Container(),
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              icon: const Icon(Iconsax.document_text, color: Colors.white),
+              onPressed: () => Get.toNamed('/projects-overview'),
+              tooltip: 'Projects Overview',
+            ),
+          ),
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(120),
