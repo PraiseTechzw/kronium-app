@@ -41,19 +41,24 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _loadSettings() {
-    _isDarkMode = _settingsService.isDarkMode;
-    _notificationsEnabled = _settingsService.pushNotificationsEnabled;
-    _biometricEnabled = _settingsService.biometricAuthEnabled;
-    _language =
-        _settingsService.currentLanguage == 'en' ? 'English' : 'English';
-    _currency = _settingsService.currentCurrency;
-    _projectNotifications = _settingsService.projectNotificationsEnabled;
-    _bookingReminders = _settingsService.bookingRemindersEnabled;
-    _serviceUpdates = _settingsService.serviceUpdatesEnabled;
-    _locationBasedServices = _settingsService.locationBasedServicesEnabled;
-    _preferredServiceRadius = _settingsService.preferredServiceRadius;
-    _showTransportCosts = _settingsService.showTransportCosts;
-    _autoCalculateQuotes = _settingsService.autoCalculateQuotes;
+    try {
+      _isDarkMode = _settingsService.isDarkMode;
+      _notificationsEnabled = _settingsService.pushNotificationsEnabled;
+      _biometricEnabled = _settingsService.biometricAuthEnabled;
+      _language =
+          _settingsService.currentLanguage == 'en' ? 'English' : 'English';
+      _currency = _settingsService.currentCurrency;
+      _projectNotifications = _settingsService.projectNotificationsEnabled;
+      _bookingReminders = _settingsService.bookingRemindersEnabled;
+      _serviceUpdates = _settingsService.serviceUpdatesEnabled;
+      _locationBasedServices = _settingsService.locationBasedServicesEnabled;
+      _preferredServiceRadius = _settingsService.preferredServiceRadius;
+      _showTransportCosts = _settingsService.showTransportCosts;
+      _autoCalculateQuotes = _settingsService.autoCalculateQuotes;
+    } catch (e) {
+      print('Error loading settings: $e');
+      // Use default values if settings service is not available
+    }
   }
 
   @override
