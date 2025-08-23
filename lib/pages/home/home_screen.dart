@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/user_controller.dart';
-import 'package:kronium/core/user_auth_service.dart';
 import 'package:kronium/pages/home/active_projects_section.dart';
 import 'package:kronium/pages/home/featured_services_section.dart';
 import 'package:kronium/pages/home/quick_actions_sections.dart';
 import 'package:kronium/widgets/background_switcher.dart';
-import 'dart:async';
 
 /// Keep this widget focused and readable. Extend as needed.
 class HomeScreen extends StatefulWidget {
@@ -19,117 +17,11 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late final UserController userController;
-  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
     userController = Get.find<UserController>();
-
-    // Debug logging for username and ID
-    print('HomeScreen: Initial username: ${userController.userName.value}');
-    print('HomeScreen: Initial userId: ${userController.userId.value}');
-    print(
-      'HomeScreen: Initial userProfile: ${userController.userProfile.value?.name}',
-    );
-
-    // Listen for changes in user data
-    _setupUserDataListener();
-
-    // Force refresh user data after a short delay
-    Future.delayed(const Duration(milliseconds: 100), () {
-      _refreshUserData();
-    });
-
-    // Set up periodic refresh timer
-    _refreshTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
-      if (mounted) {
-        _refreshUserData();
-      }
-    });
-  }
-
-  void _setupUserDataListener() {
-    // Listen for changes in userName and update UI
-    ever(userController.userName, (String userName) {
-      if (mounted && userName.isNotEmpty) {
-        setState(() {});
-        print('HomeScreen: Username updated to: $userName');
-      }
-    });
-
-    // Listen for changes in userId and update UI
-    ever(userController.userId, (String userId) {
-      if (mounted && userId.isNotEmpty) {
-        setState(() {});
-        print('HomeScreen: UserId updated to: $userId');
-      }
-    });
-
-    // Also listen for userProfile changes as a fallback
-    ever(userController.userProfile, (profile) {
-      if (mounted && profile != null) {
-        setState(() {});
-        print('HomeScreen: UserProfile updated to: ${profile.name}');
-      }
-    });
-  }
-
-  void _refreshUserData() {
-    if (mounted) {
-      print('HomeScreen: Refreshing user data...');
-      print('HomeScreen: Current username: ${userController.userName.value}');
-      print('HomeScreen: Current userId: ${userController.userId.value}');
-      print(
-        'HomeScreen: Current userProfile: ${userController.userProfile.value?.name}',
-      );
-
-      // Check if we need to re-find the UserController
-      try {
-        final currentUserController = Get.find<UserController>();
-        if (currentUserController != userController) {
-          print('HomeScreen: UserController changed, updating reference');
-          userController = currentUserController;
-        }
-      } catch (e) {
-        print('HomeScreen: Error finding UserController: $e');
-      }
-
-      // Try to get user data from UserAuthService if UserController is empty
-      if (userController.userName.value.isEmpty &&
-          userController.userId.value.isEmpty) {
-        print(
-          'HomeScreen: UserController is empty, trying to get data from UserAuthService',
-        );
-        try {
-          final userAuthService = Get.find<UserAuthService>();
-          if (userAuthService.currentUserProfile != null) {
-            print(
-              'HomeScreen: Found user profile in UserAuthService: ${userAuthService.currentUserProfile!.name}',
-            );
-            userController.setUserProfile(userAuthService.currentUserProfile);
-          }
-        } catch (e) {
-          print('HomeScreen: Error finding UserAuthService: $e');
-        }
-      }
-
-      // Force UI update
-      setState(() {});
-    }
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Refresh user data when dependencies change (e.g., when screen becomes visible)
-    _refreshUserData();
-  }
-
-  @override
-  void dispose() {
-    _refreshTimer?.cancel();
-    super.dispose();
   }
 
   @override
@@ -163,7 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildSliverAppBar() {
     return SliverAppBar(
-      expandedHeight: 320.0, // Increased to prevent overflow
+      expandedHeight: 280.0,
       floating: false,
       pinned: true,
       automaticallyImplyLeading: false,
@@ -185,11 +77,11 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           child: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
                   _buildHeaderRow(),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 16),
                   _buildUserInfoSection(),
                 ],
               ),
@@ -277,7 +169,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildUserInfoSection() {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(24),
@@ -296,11 +188,11 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Row(
         children: [
           Container(
-            width: 70,
-            height: 70,
+            width: 60,
+            height: 60,
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.25),
-              borderRadius: BorderRadius.circular(35),
+              borderRadius: BorderRadius.circular(30),
               border: Border.all(
                 color: Colors.white.withValues(alpha: 0.4),
                 width: 2.5,
@@ -313,9 +205,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
-            child: Icon(Icons.engineering, color: Colors.white, size: 35),
+            child: Icon(Icons.engineering, color: Colors.white, size: 30),
           ),
-          const SizedBox(width: 24),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -323,13 +215,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(
                   'Welcome back!',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 14,
                     color: Colors.white.withValues(alpha: 0.95),
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.5,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 Obx(() {
                   final userName =
                       userController.userName.value.isNotEmpty
@@ -338,7 +230,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   return Text(
                     userName,
                     style: TextStyle(
-                      fontSize: 26,
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                       letterSpacing: 0.8,
@@ -352,7 +244,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   );
                 }),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 Obx(() {
                   final userId =
                       userController.userId.value.isNotEmpty
@@ -360,12 +252,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           : userController.userProfile.value?.id ?? '';
                   return Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
+                      horizontal: 12,
+                      vertical: 6,
                     ),
                     decoration: BoxDecoration(
                       color: AppTheme.secondaryColor.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(24),
+                      borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: AppTheme.secondaryColor.withValues(alpha: 0.5),
                         width: 1.5,
@@ -374,12 +266,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.fingerprint, size: 16, color: Colors.white),
-                        const SizedBox(width: 8),
+                        Icon(Icons.fingerprint, size: 14, color: Colors.white),
+                        const SizedBox(width: 6),
                         Text(
                           'ID: ${userId.isNotEmpty ? userId : 'N/A'}',
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: 12,
                             color: Colors.white,
                             fontFamily: 'monospace',
                             fontWeight: FontWeight.w700,
@@ -394,10 +286,10 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: AppTheme.secondaryColor.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: AppTheme.secondaryColor.withValues(alpha: 0.5),
                 width: 1.5,
@@ -405,12 +297,12 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             child: Column(
               children: [
-                Icon(Icons.assignment_turned_in, color: Colors.white, size: 24),
-                const SizedBox(height: 6),
+                Icon(Icons.assignment_turned_in, color: Colors.white, size: 20),
+                const SizedBox(height: 4),
                 Text(
                   'Projects',
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 10,
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.3,
