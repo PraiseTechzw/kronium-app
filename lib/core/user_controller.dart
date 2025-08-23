@@ -9,11 +9,6 @@ class UserController extends GetxController {
   // Add more user info as needed
   Rx<User?> userProfile = Rx<User?>(null);
 
-  // New fields for user selection
-  RxList<User> availableUsers = <User>[].obs;
-  RxInt selectedUserIndex = 0.obs;
-  Rx<User?> selectedUser = Rx<User?>(null);
-
   void setRole(String newRole) {
     role.value = newRole;
   }
@@ -29,8 +24,6 @@ class UserController extends GetxController {
     userName.value = '';
     role.value = 'guest';
     userProfile.value = null;
-    selectedUser.value = null;
-    selectedUserIndex.value = 0;
   }
 
   // Optionally, add a method to update userProfile
@@ -41,43 +34,4 @@ class UserController extends GetxController {
       userName.value = profile.name;
     }
   }
-
-  // New methods for user selection
-  void setAvailableUsers(List<User> users) {
-    availableUsers.value = users;
-    if (users.isNotEmpty) {
-      selectedUserIndex.value = 0;
-      selectedUser.value = users.first;
-      _updateSelectedUser();
-    }
-  }
-
-  void selectUser(int index) {
-    if (index >= 0 && index < availableUsers.length) {
-      selectedUserIndex.value = index;
-      selectedUser.value = availableUsers[index];
-      _updateSelectedUser();
-    }
-  }
-
-  void selectUserById(String userId) {
-    final index = availableUsers.indexWhere((user) => user.id == userId);
-    if (index != -1) {
-      selectUser(index);
-    }
-  }
-
-  void _updateSelectedUser() {
-    final user = selectedUser.value;
-    if (user != null) {
-      userId.value = user.id ?? '';
-      userName.value = user.name;
-      userProfile.value = user;
-    }
-  }
-
-  // Get current selected user info
-  User? get currentUser => selectedUser.value;
-  String get currentUserId => selectedUser.value?.id ?? '';
-  String get currentUserName => selectedUser.value?.name ?? '';
 }
