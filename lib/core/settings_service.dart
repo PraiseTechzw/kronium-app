@@ -87,11 +87,65 @@ class SettingsService extends GetxService {
             key == 'notificationRadius'
                 ? value as int
                 : currentSettings.notificationRadius,
+        projectNotifications:
+            key == 'projectNotifications'
+                ? value as bool
+                : currentSettings.projectNotifications,
+        bookingReminders:
+            key == 'bookingReminders'
+                ? value as bool
+                : currentSettings.bookingReminders,
+        serviceUpdates:
+            key == 'serviceUpdates'
+                ? value as bool
+                : currentSettings.serviceUpdates,
+        locationBasedServices:
+            key == 'locationBasedServices'
+                ? value as bool
+                : currentSettings.locationBasedServices,
+        preferredServiceRadius:
+            key == 'preferredServiceRadius'
+                ? value as String
+                : currentSettings.preferredServiceRadius,
+        showTransportCosts:
+            key == 'showTransportCosts'
+                ? value as bool
+                : currentSettings.showTransportCosts,
+        autoCalculateQuotes:
+            key == 'autoCalculateQuotes'
+                ? value as bool
+                : currentSettings.autoCalculateQuotes,
       );
 
       await saveSettings(updatedSettings);
     } catch (e) {
       print('Error updating setting: $e');
+    }
+  }
+
+  Future<void> updateNotificationPreferences(
+    Map<String, bool> preferences,
+  ) async {
+    try {
+      final currentSettings = _settings.value;
+      final updatedSettings = currentSettings.copyWith(
+        notificationPreferences: preferences,
+      );
+      await saveSettings(updatedSettings);
+    } catch (e) {
+      print('Error updating notification preferences: $e');
+    }
+  }
+
+  Future<void> updateFavoriteServiceTypes(List<String> serviceTypes) async {
+    try {
+      final currentSettings = _settings.value;
+      final updatedSettings = currentSettings.copyWith(
+        favoriteServiceTypes: serviceTypes,
+      );
+      await saveSettings(updatedSettings);
+    } catch (e) {
+      print('Error updating favorite service types: $e');
     }
   }
 
@@ -104,9 +158,63 @@ class SettingsService extends GetxService {
     }
   }
 
+  // Getters for easy access to settings
   bool get isDarkMode => _settings.value.darkMode;
   bool get pushNotificationsEnabled => _settings.value.pushNotifications;
   bool get emailNotificationsEnabled => _settings.value.emailNotifications;
   String get currentLanguage => _settings.value.language;
   String get currentCurrency => _settings.value.currency;
+  bool get projectNotificationsEnabled => _settings.value.projectNotifications;
+  bool get bookingRemindersEnabled => _settings.value.bookingReminders;
+  bool get serviceUpdatesEnabled => _settings.value.serviceUpdates;
+  bool get locationBasedServicesEnabled =>
+      _settings.value.locationBasedServices;
+  String get preferredServiceRadius => _settings.value.preferredServiceRadius;
+  bool get showTransportCosts => _settings.value.showTransportCosts;
+  bool get autoCalculateQuotes => _settings.value.autoCalculateQuotes;
+  bool get biometricAuthEnabled => _settings.value.biometricAuth;
+  List<String> get favoriteServiceTypes => _settings.value.favoriteServiceTypes;
+  Map<String, bool> get notificationPreferences =>
+      _settings.value.notificationPreferences;
+
+  // Engineering-specific convenience methods
+  Future<void> toggleProjectNotifications() async {
+    await updateSetting(
+      'projectNotifications',
+      !_settings.value.projectNotifications,
+    );
+  }
+
+  Future<void> toggleBookingReminders() async {
+    await updateSetting('bookingReminders', !_settings.value.bookingReminders);
+  }
+
+  Future<void> toggleServiceUpdates() async {
+    await updateSetting('serviceUpdates', !_settings.value.serviceUpdates);
+  }
+
+  Future<void> toggleLocationBasedServices() async {
+    await updateSetting(
+      'locationBasedServices',
+      !_settings.value.locationBasedServices,
+    );
+  }
+
+  Future<void> setPreferredServiceRadius(String radius) async {
+    await updateSetting('preferredServiceRadius', radius);
+  }
+
+  Future<void> toggleTransportCosts() async {
+    await updateSetting(
+      'showTransportCosts',
+      !_settings.value.showTransportCosts,
+    );
+  }
+
+  Future<void> toggleAutoCalculateQuotes() async {
+    await updateSetting(
+      'autoCalculateQuotes',
+      !_settings.value.autoCalculateQuotes,
+    );
+  }
 }

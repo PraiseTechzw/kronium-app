@@ -5,6 +5,7 @@ import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/user_auth_service.dart';
 import 'package:kronium/core/user_controller.dart';
 import 'package:kronium/core/routes.dart';
+import 'package:kronium/core/settings_service.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -16,12 +17,44 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   final UserController _userController = Get.find<UserController>();
   final UserAuthService _userAuthService = Get.find<UserAuthService>();
+  final SettingsService _settingsService = Get.find<SettingsService>();
 
   bool _isDarkMode = false;
   bool _notificationsEnabled = true;
   bool _biometricEnabled = false;
   String _language = 'English';
   String _currency = 'USD';
+
+  // Engineering-specific settings
+  bool _projectNotifications = true;
+  bool _bookingReminders = true;
+  bool _serviceUpdates = true;
+  bool _locationBasedServices = true;
+  String _preferredServiceRadius = '50km';
+  bool _showTransportCosts = true;
+  bool _autoCalculateQuotes = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  void _loadSettings() {
+    _isDarkMode = _settingsService.isDarkMode;
+    _notificationsEnabled = _settingsService.pushNotificationsEnabled;
+    _biometricEnabled = _settingsService.biometricAuthEnabled;
+    _language =
+        _settingsService.currentLanguage == 'en' ? 'English' : 'English';
+    _currency = _settingsService.currentCurrency;
+    _projectNotifications = _settingsService.projectNotificationsEnabled;
+    _bookingReminders = _settingsService.bookingRemindersEnabled;
+    _serviceUpdates = _settingsService.serviceUpdatesEnabled;
+    _locationBasedServices = _settingsService.locationBasedServicesEnabled;
+    _preferredServiceRadius = _settingsService.preferredServiceRadius;
+    _showTransportCosts = _settingsService.showTransportCosts;
+    _autoCalculateQuotes = _settingsService.autoCalculateQuotes;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +128,13 @@ class _SettingsPageState extends State<SettingsPage> {
           children: [
             _buildProfileSection(),
             const SizedBox(height: 24),
+            _buildAppearanceSection(),
+            const SizedBox(height: 24),
             _buildPreferencesSection(),
+            const SizedBox(height: 24),
+            _buildEngineeringSection(),
+            const SizedBox(height: 24),
+            _buildSecuritySection(),
             const SizedBox(height: 24),
             _buildSupportSection(),
             const SizedBox(height: 24),
@@ -201,6 +240,45 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  Widget _buildAppearanceSection() {
+    return _buildSectionCard(
+      title: 'Appearance',
+      icon: Iconsax.colorfilter,
+      children: [
+        _buildListTile(
+          icon: Iconsax.moon,
+          title: 'Dark Mode',
+          subtitle: 'Switch between light and dark themes',
+          trailing: Switch(
+            value: _isDarkMode,
+            onChanged: (value) async {
+              setState(() {
+                _isDarkMode = value;
+              });
+              await _settingsService.updateSetting('darkMode', value);
+              // TODO: Apply theme change
+            },
+            activeColor: AppTheme.primaryColor,
+          ),
+        ),
+        const Divider(height: 1),
+        _buildListTile(
+          icon: Iconsax.global,
+          title: 'Language',
+          subtitle: _language,
+          onTap: _showLanguageDialog,
+        ),
+        const Divider(height: 1),
+        _buildListTile(
+          icon: Iconsax.dollar_circle,
+          title: 'Currency',
+          subtitle: _currency,
+          onTap: _showCurrencyDialog,
+        ),
+      ],
+    );
+  }
+
   Widget _buildPreferencesSection() {
     return _buildSectionCard(
       title: 'Preferences',
@@ -208,15 +286,158 @@ class _SettingsPageState extends State<SettingsPage> {
       children: [
         _buildListTile(
           icon: Iconsax.notification,
-          title: 'Notifications',
-          subtitle: 'Manage your notification preferences',
+          title: 'Push Notifications',
+          subtitle: 'Receive push notifications',
           trailing: Switch(
             value: _notificationsEnabled,
-            onChanged: (value) {
+            onChanged: (value) async {
               setState(() {
                 _notificationsEnabled = value;
               });
-              // TODO: Implement notification toggle
+              await _settingsService.updateSetting('pushNotifications', value);
+            },
+            activeColor: AppTheme.primaryColor,
+          ),
+        ),
+        const Divider(height: 1),
+        _buildListTile(
+          icon: Iconsax.finger_cricle,
+          title: 'Biometric Login',
+          subtitle: 'Use fingerprint or face ID to login',
+          trailing: Switch(
+            value: _biometricEnabled,
+            onChanged: (value) async {
+              setState(() {
+                _biometricEnabled = value;
+              });
+              await _settingsService.updateSetting('biometricAuth', value);
+            },
+            activeColor: AppTheme.primaryColor,
+          ),
+        ),
+        const Divider(height: 1),
+        _buildListTile(
+          icon: Iconsax.location,
+          title: 'Location Services',
+          subtitle: 'Allow access to your location',
+          onTap: _showLocationSettings,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEngineeringSection() {
+    return _buildSectionCard(
+      title: 'Engineering Preferences',
+      icon: Iconsax.setting_2,
+      children: [
+        _buildListTile(
+          icon: Iconsax.notification,
+          title: 'Project Notifications',
+          subtitle: 'Get notified about project updates',
+          trailing: Switch(
+            value: _projectNotifications,
+            onChanged: (value) async {
+              setState(() {
+                _projectNotifications = value;
+              });
+              await _settingsService.updateSetting(
+                'projectNotifications',
+                value,
+              );
+            },
+            activeColor: AppTheme.primaryColor,
+          ),
+        ),
+        const Divider(height: 1),
+        _buildListTile(
+          icon: Iconsax.calendar,
+          title: 'Booking Reminders',
+          subtitle: 'Receive reminders for upcoming bookings',
+          trailing: Switch(
+            value: _bookingReminders,
+            onChanged: (value) async {
+              setState(() {
+                _bookingReminders = value;
+              });
+              await _settingsService.updateSetting('bookingReminders', value);
+            },
+            activeColor: AppTheme.primaryColor,
+          ),
+        ),
+        const Divider(height: 1),
+        _buildListTile(
+          icon: Iconsax.refresh,
+          title: 'Service Updates',
+          subtitle: 'Get notified about new services',
+          trailing: Switch(
+            value: _serviceUpdates,
+            onChanged: (value) async {
+              setState(() {
+                _serviceUpdates = value;
+              });
+              await _settingsService.updateSetting('serviceUpdates', value);
+            },
+            activeColor: AppTheme.primaryColor,
+          ),
+        ),
+        const Divider(height: 1),
+        _buildListTile(
+          icon: Iconsax.location,
+          title: 'Location-Based Services',
+          subtitle: 'Show services near your location',
+          trailing: Switch(
+            value: _locationBasedServices,
+            onChanged: (value) async {
+              setState(() {
+                _locationBasedServices = value;
+              });
+              await _settingsService.updateSetting(
+                'locationBasedServices',
+                value,
+              );
+            },
+            activeColor: AppTheme.primaryColor,
+          ),
+        ),
+        const Divider(height: 1),
+        _buildListTile(
+          icon: Iconsax.ruler,
+          title: 'Service Radius',
+          subtitle: _preferredServiceRadius,
+          onTap: _showServiceRadiusDialog,
+        ),
+        const Divider(height: 1),
+        _buildListTile(
+          icon: Iconsax.truck,
+          title: 'Show Transport Costs',
+          subtitle: 'Display transportation costs in quotes',
+          trailing: Switch(
+            value: _showTransportCosts,
+            onChanged: (value) async {
+              setState(() {
+                _showTransportCosts = value;
+              });
+              await _settingsService.updateSetting('showTransportCosts', value);
+            },
+            activeColor: AppTheme.primaryColor,
+          ),
+        ),
+        const Divider(height: 1),
+        _buildListTile(
+          icon: Iconsax.calculator,
+          title: 'Auto-Calculate Quotes',
+          subtitle: 'Automatically calculate project quotes',
+          trailing: Switch(
+            value: _autoCalculateQuotes,
+            onChanged: (value) async {
+              setState(() {
+                _autoCalculateQuotes = value;
+              });
+              await _settingsService.updateSetting(
+                'autoCalculateQuotes',
+                value,
+              );
             },
             activeColor: AppTheme.primaryColor,
           ),
@@ -417,84 +638,202 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-  // Dialog methods
+  // Dialog methods with enhanced functionality
   void _showChangePasswordDialog() {
-    // TODO: Implement change password dialog
-    Get.snackbar(
-      'Coming Soon',
-      'Change password functionality will be available soon',
-      backgroundColor: AppTheme.primaryColor,
-      colorText: Colors.white,
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Change Password'),
+        content: const Text(
+          'Password change functionality will be available in the next update. For now, please contact support if you need to reset your password.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Get.back(), child: const Text('OK')),
+        ],
+      ),
     );
   }
 
   void _showLanguageDialog() {
-    // TODO: Implement language selection dialog
-    Get.snackbar(
-      'Coming Soon',
-      'Language selection will be available soon',
-      backgroundColor: AppTheme.primaryColor,
-      colorText: Colors.white,
+    final languages = ['English', 'Spanish', 'French', 'German', 'Chinese'];
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Select Language'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: languages.length,
+            itemBuilder: (context, index) {
+              final language = languages[index];
+              return ListTile(
+                title: Text(language),
+                trailing:
+                    _language == language
+                        ? Icon(Icons.check, color: AppTheme.primaryColor)
+                        : null,
+                onTap: () async {
+                  setState(() {
+                    _language = language;
+                  });
+                  await _settingsService.updateSetting(
+                    'language',
+                    language.toLowerCase(),
+                  );
+                  Get.back();
+                },
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
+        ],
+      ),
     );
   }
 
   void _showCurrencyDialog() {
-    // TODO: Implement currency selection dialog
-    Get.snackbar(
-      'Coming Soon',
-      'Currency selection will be available soon',
-      backgroundColor: AppTheme.primaryColor,
-      colorText: Colors.white,
+    final currencies = ['USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD'];
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Select Currency'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: currencies.length,
+            itemBuilder: (context, index) {
+              final currency = currencies[index];
+              return ListTile(
+                title: Text(currency),
+                trailing:
+                    _currency == currency
+                        ? Icon(Icons.check, color: AppTheme.primaryColor)
+                        : null,
+                onTap: () async {
+                  setState(() {
+                    _currency = currency;
+                  });
+                  await _settingsService.updateSetting('currency', currency);
+                  Get.back();
+                },
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
+        ],
+      ),
+    );
+  }
+
+  void _showServiceRadiusDialog() {
+    final radii = ['25km', '50km', '100km', '200km', '500km'];
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Select Service Radius'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: radii.length,
+            itemBuilder: (context, index) {
+              final radius = radii[index];
+              return ListTile(
+                title: Text(radius),
+                trailing:
+                    _preferredServiceRadius == radius
+                        ? Icon(Icons.check, color: AppTheme.primaryColor)
+                        : null,
+                onTap: () async {
+                  setState(() {
+                    _preferredServiceRadius = radius;
+                  });
+                  await _settingsService.updateSetting(
+                    'preferredServiceRadius',
+                    radius,
+                  );
+                  Get.back();
+                },
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
+        ],
+      ),
     );
   }
 
   void _showLocationSettings() {
-    // TODO: Implement location settings
-    Get.snackbar(
-      'Coming Soon',
-      'Location settings will be available soon',
-      backgroundColor: AppTheme.primaryColor,
-      colorText: Colors.white,
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Location Services'),
+        content: const Text(
+          'Location services help us provide you with nearby engineering services and accurate project quotes. You can manage location permissions in your device settings.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Get.back(), child: const Text('OK')),
+        ],
+      ),
     );
   }
 
   void _showTwoFactorDialog() {
-    // TODO: Implement 2FA dialog
-    Get.snackbar(
-      'Coming Soon',
-      'Two-factor authentication will be available soon',
-      backgroundColor: AppTheme.primaryColor,
-      colorText: Colors.white,
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Two-Factor Authentication'),
+        content: const Text(
+          'Two-factor authentication adds an extra layer of security to your account. This feature will be available in the next update.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Get.back(), child: const Text('OK')),
+        ],
+      ),
     );
   }
 
   void _showAppLockDialog() {
-    // TODO: Implement app lock dialog
-    Get.snackbar(
-      'Coming Soon',
-      'App lock settings will be available soon',
-      backgroundColor: AppTheme.primaryColor,
-      colorText: Colors.white,
+    Get.dialog(
+      AlertDialog(
+        title: const Text('App Lock'),
+        content: const Text(
+          'App lock allows you to secure the app with a PIN or biometric authentication. This feature will be available in the next update.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Get.back(), child: const Text('OK')),
+        ],
+      ),
     );
   }
 
   void _showPrivacySettings() {
-    // TODO: Implement privacy settings
-    Get.snackbar(
-      'Coming Soon',
-      'Privacy settings will be available soon',
-      backgroundColor: AppTheme.primaryColor,
-      colorText: Colors.white,
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Privacy Settings'),
+        content: const Text(
+          'Privacy settings allow you to control how your data is used and shared. This feature will be available in the next update.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Get.back(), child: const Text('OK')),
+        ],
+      ),
     );
   }
 
   void _showHelpCenter() {
-    // TODO: Implement help center
-    Get.snackbar(
-      'Coming Soon',
-      'Help center will be available soon',
-      backgroundColor: AppTheme.primaryColor,
-      colorText: Colors.white,
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Help Center'),
+        content: const Text(
+          'Our help center contains articles, FAQs, and tutorials to help you use the app effectively. This feature will be available in the next update.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Get.back(), child: const Text('OK')),
+        ],
+      ),
     );
   }
 
@@ -511,6 +850,11 @@ class _SettingsPageState extends State<SettingsPage> {
             Text('Build: 2024.12.01'),
             SizedBox(height: 8),
             Text('© 2024 Kronium. All rights reserved.'),
+            SizedBox(height: 16),
+            Text(
+              'Kronium is a comprehensive engineering service booking platform for construction, renewable energy, and agricultural services.',
+              style: TextStyle(fontSize: 12),
+            ),
           ],
         ),
         actions: [
@@ -521,12 +865,16 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _exportData() {
-    // TODO: Implement data export
-    Get.snackbar(
-      'Coming Soon',
-      'Data export will be available soon',
-      backgroundColor: AppTheme.primaryColor,
-      colorText: Colors.white,
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Export Data'),
+        content: const Text(
+          'Data export allows you to download your personal information, booking history, and preferences. This feature will be available in the next update.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Get.back(), child: const Text('OK')),
+        ],
+      ),
     );
   }
 
@@ -535,17 +883,16 @@ class _SettingsPageState extends State<SettingsPage> {
       AlertDialog(
         title: const Text('Delete Account'),
         content: const Text(
-          'Are you sure you want to delete your account? This action cannot be undone.',
+          'Are you sure you want to delete your account? This action cannot be undone and will permanently remove all your data.',
         ),
         actions: [
           TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
           TextButton(
             onPressed: () {
               Get.back();
-              // TODO: Implement account deletion
               Get.snackbar(
                 'Coming Soon',
-                'Account deletion will be available soon',
+                'Account deletion will be available in the next update',
                 backgroundColor: AppTheme.primaryColor,
                 colorText: Colors.white,
               );

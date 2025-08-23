@@ -16,6 +16,17 @@ class UserSettings {
   final List<String> preferredCategories;
   final Map<String, dynamic> customPreferences;
 
+  // Engineering-specific preferences
+  final bool projectNotifications;
+  final bool bookingReminders;
+  final bool serviceUpdates;
+  final bool locationBasedServices;
+  final String preferredServiceRadius;
+  final bool showTransportCosts;
+  final bool autoCalculateQuotes;
+  final List<String> favoriteServiceTypes;
+  final Map<String, bool> notificationPreferences;
+
   UserSettings({
     required this.userId,
     this.pushNotifications = true,
@@ -33,6 +44,15 @@ class UserSettings {
     this.notificationRadius = 50,
     this.preferredCategories = const [],
     this.customPreferences = const {},
+    this.projectNotifications = true,
+    this.bookingReminders = true,
+    this.serviceUpdates = true,
+    this.locationBasedServices = true,
+    this.preferredServiceRadius = '50km',
+    this.showTransportCosts = true,
+    this.autoCalculateQuotes = false,
+    this.favoriteServiceTypes = const [],
+    this.notificationPreferences = const {},
   });
 
   factory UserSettings.fromMap(Map<String, dynamic> map) {
@@ -55,6 +75,19 @@ class UserSettings {
       customPreferences: Map<String, dynamic>.from(
         map['customPreferences'] ?? {},
       ),
+      projectNotifications: map['projectNotifications'] ?? true,
+      bookingReminders: map['bookingReminders'] ?? true,
+      serviceUpdates: map['serviceUpdates'] ?? true,
+      locationBasedServices: map['locationBasedServices'] ?? true,
+      preferredServiceRadius: map['preferredServiceRadius'] ?? '50km',
+      showTransportCosts: map['showTransportCosts'] ?? true,
+      autoCalculateQuotes: map['autoCalculateQuotes'] ?? false,
+      favoriteServiceTypes: List<String>.from(
+        map['favoriteServiceTypes'] ?? [],
+      ),
+      notificationPreferences: Map<String, bool>.from(
+        map['notificationPreferences'] ?? {},
+      ),
     );
   }
 
@@ -76,6 +109,15 @@ class UserSettings {
       'notificationRadius': notificationRadius,
       'preferredCategories': preferredCategories,
       'customPreferences': customPreferences,
+      'projectNotifications': projectNotifications,
+      'bookingReminders': bookingReminders,
+      'serviceUpdates': serviceUpdates,
+      'locationBasedServices': locationBasedServices,
+      'preferredServiceRadius': preferredServiceRadius,
+      'showTransportCosts': showTransportCosts,
+      'autoCalculateQuotes': autoCalculateQuotes,
+      'favoriteServiceTypes': favoriteServiceTypes,
+      'notificationPreferences': notificationPreferences,
     };
   }
 
@@ -96,6 +138,15 @@ class UserSettings {
     int? notificationRadius,
     List<String>? preferredCategories,
     Map<String, dynamic>? customPreferences,
+    bool? projectNotifications,
+    bool? bookingReminders,
+    bool? serviceUpdates,
+    bool? locationBasedServices,
+    String? preferredServiceRadius,
+    bool? showTransportCosts,
+    bool? autoCalculateQuotes,
+    List<String>? favoriteServiceTypes,
+    Map<String, bool>? notificationPreferences,
   }) {
     return UserSettings(
       userId: userId ?? this.userId,
@@ -114,6 +165,18 @@ class UserSettings {
       notificationRadius: notificationRadius ?? this.notificationRadius,
       preferredCategories: preferredCategories ?? this.preferredCategories,
       customPreferences: customPreferences ?? this.customPreferences,
+      projectNotifications: projectNotifications ?? this.projectNotifications,
+      bookingReminders: bookingReminders ?? this.bookingReminders,
+      serviceUpdates: serviceUpdates ?? this.serviceUpdates,
+      locationBasedServices:
+          locationBasedServices ?? this.locationBasedServices,
+      preferredServiceRadius:
+          preferredServiceRadius ?? this.preferredServiceRadius,
+      showTransportCosts: showTransportCosts ?? this.showTransportCosts,
+      autoCalculateQuotes: autoCalculateQuotes ?? this.autoCalculateQuotes,
+      favoriteServiceTypes: favoriteServiceTypes ?? this.favoriteServiceTypes,
+      notificationPreferences:
+          notificationPreferences ?? this.notificationPreferences,
     );
   }
 }
