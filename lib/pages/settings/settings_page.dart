@@ -260,8 +260,12 @@ class _SettingsPageState extends State<SettingsPage> {
               setState(() {
                 _isDarkMode = value;
               });
-              await _settingsService.updateSetting('darkMode', value);
-              // TODO: Apply theme change
+              try {
+                await _settingsService.updateSetting('darkMode', value);
+                // TODO: Apply theme change
+              } catch (e) {
+                print('Error updating dark mode setting: $e');
+              }
             },
             activeColor: AppTheme.primaryColor,
           ),
