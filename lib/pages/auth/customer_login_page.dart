@@ -43,8 +43,8 @@ class _CustomerLoginPageState extends State<CustomerLoginPage> {
     setState(() => _isLoading = false);
 
     if (success) {
-      // Go to Home first; dashboard is accessible under Projects tab
-      Get.offAllNamed(AppRoutes.home);
+      // Go to welcome screen to show personalized greeting
+      Get.offAllNamed(AppRoutes.welcome);
     }
   }
 

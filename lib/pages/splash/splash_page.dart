@@ -29,23 +29,38 @@ class _SplashPageState extends State<SplashPage> {
     final userAuthService = Get.find<UserAuthService>();
     final adminAuthService = Get.find<AdminAuthService>();
 
-    // Wait for both services to be initialized
-    await Future.wait([
-      userAuthService.isInitialized.stream.firstWhere((value) => value == true),
-      adminAuthService.isInitialized.stream.firstWhere(
-        (value) => value == true,
-      ),
-    ]);
+    print('Splash: Waiting for auth services to initialize...');
+
+    try {
+      // Wait for both services to be initialized with timeout
+      await Future.wait([
+        userAuthService.isInitialized.stream.firstWhere(
+          (value) => value == true,
+        ),
+        adminAuthService.isInitialized.stream.firstWhere(
+          (value) => value == true,
+        ),
+      ]).timeout(const Duration(seconds: 10));
+    } catch (e) {
+      print('Splash: Timeout waiting for auth services, proceeding anyway...');
+    }
+
+    print('Splash: Auth services initialized');
+    print('Splash: User logged in: ${userAuthService.isLoggedIn}');
+    print('Splash: Admin logged in: ${adminAuthService.isAdmin}');
 
     // Add a small delay for better UX
     await Future.delayed(const Duration(seconds: 2));
 
     // Navigate based on authentication status
     if (userAuthService.isLoggedIn) {
-      Get.offAllNamed(AppRoutes.customerDashboard);
+      print('Splash: Navigating to welcome screen');
+      Get.offAllNamed(AppRoutes.welcome);
     } else if (adminAuthService.isAdmin) {
+      print('Splash: Navigating to admin dashboard');
       Get.offAllNamed(AppRoutes.adminDashboard);
     } else {
+      print('Splash: Navigating to customer register');
       Get.offAllNamed(AppRoutes.customerRegister);
     }
   }

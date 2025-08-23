@@ -357,6 +357,7 @@ class _AdminSetupPageState extends State<AdminSetupPage> {
                     ),
                   ),
       bottomNavigationBar: Obx(() {
+        final userController = Get.find<UserController>();
         final role = userController.role.value;
         final isAdmin = role == 'admin';
         final List<BottomNavigationBarItem> items = [

@@ -5,12 +5,14 @@ import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/routes.dart';
 import 'package:kronium/core/user_auth_service.dart';
+import 'package:kronium/core/user_controller.dart';
 
 class ActiveProjectsSection extends StatelessWidget {
   const ActiveProjectsSection({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final userController = Get.find<UserController>();
     return Obx(() {
       final isLoggedIn = UserAuthService.instance.isUserLoggedIn.value;
       if (!isLoggedIn) return const SizedBox.shrink();

@@ -7,7 +7,7 @@ import 'package:kronium/core/firebase_service.dart';
 import 'package:kronium/models/project_model.dart';
 import 'package:kronium/pages/projects/mock_project_booking_data.dart';
 import 'package:kronium/widgets/login_bottom_sheet.dart';
-
+import 'package:kronium/core/user_controller.dart'; 
 // Add controllers and saved fields for booking form
 final TextEditingController _nameController = TextEditingController();
 final TextEditingController _emailController = TextEditingController();
@@ -47,6 +47,7 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
   }
 
   List<Project> _filterUserProjects(List<Project> allProjects) {
+    final userController = Get.find<UserController>();
     final userId =
         userController.userProfile.value?.id ?? userController.userId.value;
     if (userId.isEmpty) return [];
@@ -70,6 +71,7 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
+    final userController = Get.find<UserController>();
     return Scaffold(
       backgroundColor: AppTheme.backgroundLight,
       appBar: AppBar(
@@ -764,6 +766,7 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
   }
 
   void _showProjectDetailsBottomSheet(Project project, String status) {
+    final userController = Get.find<UserController>();
     final userId =
         userController.userProfile.value?.id ?? userController.userId.value;
     final userBooking = project.bookedDates.firstWhere(

@@ -8,15 +8,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class UserAuthService extends GetxController {
   static UserAuthService get instance => Get.find();
-  
+
   final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  
+
   final RxBool isUserLoggedIn = false.obs;
   final Rx<firebase_auth.User?> currentUser = Rx<firebase_auth.User?>(null);
   final Rx<User?> userProfile = Rx<User?>(null);
   final RxBool isInitialized = false.obs;
-  
+
   UserController get userController => Get.find<UserController>();
 
   @override
@@ -24,51 +24,63 @@ class UserAuthService extends GetxController {
     super.onInit();
     _setupAuthStateListener();
   }
-  
+
   void _setupAuthStateListener() {
-    _auth.authStateChanges().listen((firebase_auth.User? user) async {
-      if (user != null) {
-        // User is signed in
-        await _loadUserProfile(user);
+    // Add a small delay to ensure Firebase is fully initialized
+    Future.delayed(const Duration(milliseconds: 500), () {
+      _auth.authStateChanges().listen((firebase_auth.User? user) async {
+        print('Auth state changed: ${user?.email ?? "null"}');
+        if (user != null) {
+          // User is signed in
+          await _loadUserProfile(user);
+        } else {
+          // User is signed out - only clear if we were previously logged in
+          // Add a small delay to avoid race conditions with rapid auth changes
+          await Future.delayed(const Duration(milliseconds: 100));
+          final currentAuthUser = _auth.currentUser;
+          if (currentAuthUser == null && isUserLoggedIn.value) {
+            print('Clearing user session due to auth state change');
+            await _clearUserSession();
+          }
+        }
+        isInitialized.value = true;
+      });
+
+      // Also check current state immediately in case user is already signed in
+      final currentUser = _auth.currentUser;
+      if (currentUser != null) {
+        _loadUserProfile(currentUser);
       } else {
-        // User is signed out
-        await _clearUserSession();
+        isInitialized.value = true;
       }
-      isInitialized.value = true;
     });
-    
-    // Also check current state immediately in case user is already signed in
-    final currentUser = _auth.currentUser;
-    if (currentUser != null) {
-      _loadUserProfile(currentUser);
-    } else {
-      isInitialized.value = true;
-    }
   }
-  
+
   Future<void> _loadUserProfile(firebase_auth.User user) async {
     try {
       // Check if user profile exists in Firestore
-      final userDoc = await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .get();
-          
+      final userDoc = await _firestore.collection('users').doc(user.uid).get();
+
       if (userDoc.exists) {
         currentUser.value = user;
         userProfile.value = User.fromFirestore(userDoc);
         isUserLoggedIn.value = true;
-        
+
         // Set role in userController from Firestore, default to 'customer'
         final role = userDoc.data()?['role'] ?? 'customer';
         userController.role.value = role;
         userController.setUserProfile(User.fromFirestore(userDoc));
-        
+
         // Save user session
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('user_email', user.email ?? '');
-        
+
         print('User session restored: ${user.email}');
+        print('User profile loaded: ${userProfile.value?.name}');
+        print('UserController userName: ${userController.userName.value}');
+        print(
+          'UserController userProfile: ${userController.userProfile.value?.name}',
+        );
       } else {
         // User profile doesn't exist, sign out
         await _auth.signOut();
@@ -80,42 +92,32 @@ class UserAuthService extends GetxController {
       await _clearUserSession();
     }
   }
-  
+
   Future<void> _clearUserSession() async {
     currentUser.value = null;
     userProfile.value = null;
     isUserLoggedIn.value = false;
     userController.logout();
-    
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('user_email');
-    
+
     print('User session cleared');
   }
-  
-  Future<void> _checkUserSession() async {
-    // This method is now deprecated in favor of auth state listener
-    // Keeping for backward compatibility
-    final prefs = await SharedPreferences.getInstance();
-    final userEmail = prefs.getString('user_email');
-    
-    if (userEmail != null) {
-      final user = _auth.currentUser;
-      if (user != null && user.email == userEmail) {
-        await _loadUserProfile(user);
-      }
-    }
-    isInitialized.value = true;
-  }
-  
-  Future<bool> registerUser(String name, String email, String phone, String password) async {
+
+  Future<bool> registerUser(
+    String name,
+    String email,
+    String phone,
+    String password,
+  ) async {
     try {
       // Create Firebase Auth user
       final userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
-      
+
       // Create user profile in Firestore with role 'customer'
       final user = User(
         name: name,
@@ -128,24 +130,32 @@ class UserAuthService extends GetxController {
       );
       final userData = user.toFirestore();
       userData['role'] = 'customer';
-      
+
       await _firestore
           .collection('users')
           .doc(userCredential.user!.uid)
           .set(userData);
-      
+
       // Set current user
       currentUser.value = userCredential.user;
       userProfile.value = user.copyWith(id: userCredential.user!.uid);
       isUserLoggedIn.value = true;
       // Set role in userController
       userController.role.value = 'customer';
-      userController.setUserProfile(user.copyWith(id: userCredential.user!.uid));
-      
+      userController.setUserProfile(
+        user.copyWith(id: userCredential.user!.uid),
+      );
+
+      print('Registration successful: ${user.name}');
+      print('UserController userName: ${userController.userName.value}');
+      print(
+        'UserController userProfile: ${userController.userProfile.value?.name}',
+      );
+
       // Save user session
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('user_email', email);
-      
+
       Get.snackbar(
         'Success',
         'Account created successfully!',
@@ -153,7 +163,7 @@ class UserAuthService extends GetxController {
         backgroundColor: Colors.green,
         colorText: Colors.white,
       );
-      
+
       return true;
     } catch (e) {
       String errorMessage = 'Registration failed';
@@ -162,7 +172,7 @@ class UserAuthService extends GetxController {
       } else if (e.toString().contains('weak-password')) {
         errorMessage = 'Password is too weak';
       }
-      
+
       Get.snackbar(
         'Registration Failed',
         errorMessage,
@@ -173,20 +183,21 @@ class UserAuthService extends GetxController {
       return false;
     }
   }
-  
+
   Future<bool> loginUser(String email, String password) async {
     try {
       final userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-      
+
       // Get user profile from Firestore
-      final userDoc = await _firestore
-          .collection('users')
-          .doc(userCredential.user!.uid)
-          .get();
-          
+      final userDoc =
+          await _firestore
+              .collection('users')
+              .doc(userCredential.user!.uid)
+              .get();
+
       if (userDoc.exists) {
         currentUser.value = userCredential.user;
         userProfile.value = User.fromFirestore(userDoc);
@@ -195,11 +206,17 @@ class UserAuthService extends GetxController {
         final role = userDoc.data()?['role'] ?? 'customer';
         userController.role.value = role;
         userController.setUserProfile(User.fromFirestore(userDoc));
-        
+
         // Save user session
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('user_email', email);
-        
+
+        print('Login successful: ${User.fromFirestore(userDoc).name}');
+        print('UserController userName: ${userController.userName.value}');
+        print(
+          'UserController userProfile: ${userController.userProfile.value?.name}',
+        );
+
         Get.snackbar(
           'Success',
           'Welcome back!',
@@ -207,7 +224,7 @@ class UserAuthService extends GetxController {
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );
-        
+
         return true;
       } else {
         await _auth.signOut();
@@ -227,7 +244,7 @@ class UserAuthService extends GetxController {
       } else if (e.toString().contains('wrong-password')) {
         errorMessage = 'Incorrect password';
       }
-      
+
       Get.snackbar(
         'Login Failed',
         errorMessage,
@@ -238,33 +255,30 @@ class UserAuthService extends GetxController {
       return false;
     }
   }
-  
+
   Future<void> logout() async {
     await _logout();
   }
-  
+
   Future<void> _logout() async {
     await _auth.signOut();
     currentUser.value = null;
     userProfile.value = null;
     isUserLoggedIn.value = false;
-    
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('user_email');
   }
-  
+
   Future<void> updateUserProfile(Map<String, dynamic> data) async {
     try {
       final user = currentUser.value;
       if (user != null) {
-        await _firestore
-            .collection('users')
-            .doc(user.uid)
-            .update({
+        await _firestore.collection('users').doc(user.uid).update({
           ...data,
           'updatedAt': FieldValue.serverTimestamp(),
         });
-        
+
         // Update local profile
         if (userProfile.value != null) {
           userProfile.value = userProfile.value!.copyWith(
@@ -274,7 +288,7 @@ class UserAuthService extends GetxController {
             updatedAt: DateTime.now(),
           );
         }
-        
+
         Get.snackbar(
           'Success',
           'Profile updated successfully!',
@@ -293,7 +307,91 @@ class UserAuthService extends GetxController {
       );
     }
   }
-  
+
+  // New method to load available users for selection
+  Future<void> loadAvailableUsers() async {
+    try {
+      // For demo purposes, we'll create some sample users
+      // In a real app, you might fetch these from Firestore or another source
+      final sampleUsers = [
+        User(
+          id: 'user_001',
+          name: 'Praise Masunga',
+          email: 'praise@example.com',
+          phone: '+1234567890',
+          address: '123 Main St, City',
+          isActive: true,
+        ),
+        User(
+          id: 'user_002',
+          name: 'John Doe',
+          email: 'john@example.com',
+          phone: '+0987654321',
+          address: '456 Oak Ave, Town',
+          isActive: true,
+        ),
+        User(
+          id: 'user_003',
+          name: 'Jane Smith',
+          email: 'jane@example.com',
+          phone: '+1122334455',
+          address: '789 Pine Rd, Village',
+          isActive: true,
+        ),
+      ];
+
+      // Set available users in the controller
+      userController.setAvailableUsers(sampleUsers);
+
+      print('Loaded ${sampleUsers.length} available users');
+    } catch (e) {
+      print('Error loading available users: $e');
+    }
+  }
+
+  // Method to load users from Firestore (alternative to sample data)
+  Future<void> loadUsersFromFirestore() async {
+    try {
+      final querySnapshot = await _firestore.collection('users').get();
+      final users =
+          querySnapshot.docs
+              .map((doc) => User.fromFirestore(doc))
+              .where((user) => user.isActive)
+              .toList();
+
+      userController.setAvailableUsers(users);
+      print('Loaded ${users.length} users from Firestore');
+    } catch (e) {
+      print('Error loading users from Firestore: $e');
+      // Fallback to sample data
+      await loadAvailableUsers();
+    }
+  }
+
+  // Method to manually add a user for testing
+  Future<void> addTestUser(User user) async {
+    try {
+      final currentUsers = userController.availableUsers.toList();
+      currentUsers.add(user);
+      userController.setAvailableUsers(currentUsers);
+      print('Added test user: ${user.name}');
+    } catch (e) {
+      print('Error adding test user: $e');
+    }
+  }
+
+  // Method to remove a user by ID
+  Future<void> removeUser(String userId) async {
+    try {
+      final currentUsers = userController.availableUsers.toList();
+      currentUsers.removeWhere((user) => user.id == userId);
+      userController.setAvailableUsers(currentUsers);
+      print('Removed user with ID: $userId');
+    } catch (e) {
+      print('Error removing user: $e');
+    }
+  }
+
   /// Changes the current user's password. Returns true if successful.
   Future<bool> changePassword(String newPassword) async {
     try {
@@ -333,8 +431,8 @@ class UserAuthService extends GetxController {
       return false;
     }
   }
-  
+
   bool get isLoggedIn => isUserLoggedIn.value;
   User? get currentUserProfile => userProfile.value;
   firebase_auth.FirebaseAuth get auth => _auth;
-} 
+}

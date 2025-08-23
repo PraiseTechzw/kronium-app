@@ -5,6 +5,7 @@ import 'package:iconsax/iconsax.dart';
 import 'package:kronium/core/admin_auth_service.dart';
 import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/user_auth_service.dart';
+import 'package:kronium/core/user_controller.dart';
 import 'package:kronium/pages/services/services_page.dart';
 import 'package:kronium/pages/home/home_screen.dart';
 import 'package:kronium/pages/projects/projects_page.dart';
@@ -26,6 +27,7 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final userController = Get.find<UserController>();
     return Obx(() {
       final isDarkMode = _isDarkMode.value;
       final role = userController.role.value;
@@ -77,23 +79,7 @@ class HomePage extends StatelessWidget {
       return BackgroundSwitcher(
         child: Scaffold(
           backgroundColor: Colors.transparent,
-          appBar:
-              _currentIndex.value == 0
-                  ? AppBar(
-                    title: FadeInLeft(
-                      child: const Text(
-                        'KRONIUM',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    actions: [],
-                    elevation: 0,
-                    backgroundColor: AppTheme.primaryColor,
-                    iconTheme: IconThemeData(
-                      color: isDarkMode ? Colors.white : Colors.black,
-                    ),
-                  )
-                  : null,
+          appBar: null, // Remove duplicate app bar - HomeScreen has SliverAppBar
           drawer: AppDrawer(
             isDarkMode: isDarkMode,
             userAuthService: Get.find<UserAuthService>(),

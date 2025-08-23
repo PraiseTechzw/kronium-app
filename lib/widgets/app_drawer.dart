@@ -5,6 +5,7 @@ import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/routes.dart';
 import 'package:kronium/core/user_auth_service.dart';
 import 'package:kronium/core/admin_auth_service.dart';
+import 'package:kronium/core/user_controller.dart';
 
 /// AppDrawer is a beautiful, modular drawer for Kronium.
 /// Place all drawer logic and UI here for clean code.
@@ -30,6 +31,7 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final userController = Get.find<UserController>();
     final isAdmin = userController.role.value == 'admin';
     return Drawer(
       child: Container(

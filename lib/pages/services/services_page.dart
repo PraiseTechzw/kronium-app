@@ -4,10 +4,11 @@ import 'package:iconsax/iconsax.dart';
 import 'package:kronium/core/app_theme.dart';
 
 import 'package:kronium/core/user_auth_service.dart'
-    show userController, UserAuthService;
+    show UserAuthService;
 import 'package:kronium/models/service_model.dart';
 import 'package:kronium/core/firebase_service.dart' show FirebaseService;
 import 'package:kronium/models/booking_model.dart';
+import 'package:kronium/core/user_controller.dart';
 
 class ServicesPage extends StatefulWidget {
   const ServicesPage({super.key});
@@ -142,6 +143,7 @@ class ServicesPageState extends State<ServicesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final userController = Get.find<UserController>();
     final isAdmin = userController.role.value == 'admin';
     return Scaffold(
       backgroundColor: AppTheme.backgroundLight,

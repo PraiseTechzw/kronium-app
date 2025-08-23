@@ -3,7 +3,8 @@ import 'package:get/get.dart';
 import 'package:kronium/core/constants.dart';
 import 'package:kronium/core/routes.dart';
 import 'package:kronium/core/app_theme.dart';
-import 'package:kronium/core/user_auth_service.dart';
+import 'package:kronium/core/user_controller.dart';
+import 'package:kronium/models/user_model.dart';
 
 class WelcomePage extends StatefulWidget {
   const WelcomePage({super.key});
@@ -29,6 +30,9 @@ class _WelcomePageState extends State<WelcomePage>
     _initializeAnimations();
     _getUserInfo();
     _startAnimations();
+
+    // Listen for changes in user data
+    _setupUserDataListener();
   }
 
   void _initializeAnimations() {
@@ -54,16 +58,47 @@ class _WelcomePageState extends State<WelcomePage>
     );
   }
 
+  void _setupUserDataListener() {
+    final userController = Get.find<UserController>();
+
+    // Listen for changes in userName and update UI
+    ever(userController.userName, (String userName) {
+      if (mounted && userName.isNotEmpty) {
+        setState(() {
+          _userName = userName;
+          _userRole = userController.role.value;
+        });
+        print('Welcome page: Username updated to: $userName');
+      }
+    });
+
+    // Also listen for userProfile changes as a fallback
+    ever(userController.userProfile, (User? profile) {
+      if (mounted && profile != null && userController.userName.value.isEmpty) {
+        setState(() {
+          _userName = profile.name;
+          _userRole = userController.role.value;
+        });
+        print('Welcome page: Username updated from profile: ${profile.name}');
+      }
+    });
+  }
+
   void _getUserInfo() {
     // Get user data from userController
-    final userProfile = userController.userProfile.value;
-    if (userProfile != null) {
-      _userName = userProfile.name;
+    final userController = Get.find<UserController>();
+    if (userController.userName.value.isNotEmpty) {
+      _userName = userController.userName.value;
+      _userRole = userController.role.value;
+    } else if (userController.userProfile.value != null) {
+      _userName = userController.userProfile.value!.name;
       _userRole = userController.role.value;
     } else {
       _userName = 'User';
       _userRole = 'customer';
     }
+
+    print('Welcome page: Initial username: $_userName');
 
     // Set greeting based on time of day
     final hour = DateTime.now().hour;

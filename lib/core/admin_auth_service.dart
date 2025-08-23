@@ -20,24 +20,34 @@ class AdminAuthService extends GetxController {
   }
 
   void _setupAuthStateListener() {
-    _auth.authStateChanges().listen((User? user) async {
-      if (user != null) {
-        // Check if user is admin
-        await _checkAdminStatus(user);
-      } else {
-        // User is signed out
-        await _clearAdminSession();
-      }
-      isInitialized.value = true;
-    });
+    // Add a small delay to ensure Firebase is fully initialized
+    Future.delayed(const Duration(milliseconds: 500), () {
+      _auth.authStateChanges().listen((User? user) async {
+        print('Admin auth state changed: ${user?.email ?? "null"}');
+        if (user != null) {
+          // Check if user is admin
+          await _checkAdminStatus(user);
+        } else {
+          // User is signed out - only clear if we were previously logged in
+          // Add a small delay to avoid race conditions with rapid auth changes
+          await Future.delayed(const Duration(milliseconds: 100));
+          final currentAuthUser = _auth.currentUser;
+          if (currentAuthUser == null && isAdminLoggedIn.value) {
+            print('Clearing admin session due to auth state change');
+            await _clearAdminSession();
+          }
+        }
+        isInitialized.value = true;
+      });
 
-    // Also check current state immediately in case user is already signed in
-    final currentUser = _auth.currentUser;
-    if (currentUser != null) {
-      _checkAdminStatus(currentUser);
-    } else {
-      isInitialized.value = true;
-    }
+      // Also check current state immediately in case user is already signed in
+      final currentUser = _auth.currentUser;
+      if (currentUser != null) {
+        _checkAdminStatus(currentUser);
+      } else {
+        isInitialized.value = true;
+      }
+    });
   }
 
   Future<void> _checkAdminStatus(User user) async {
@@ -75,21 +85,6 @@ class AdminAuthService extends GetxController {
     await prefs.remove('admin_email');
 
     print('Admin session cleared');
-  }
-
-  Future<void> _checkAdminSession() async {
-    // This method is now deprecated in favor of auth state listener
-    // Keeping for backward compatibility
-    final prefs = await SharedPreferences.getInstance();
-    final adminEmail = prefs.getString('admin_email');
-
-    if (adminEmail != null) {
-      final user = _auth.currentUser;
-      if (user != null && user.email == adminEmail) {
-        await _checkAdminStatus(user);
-      }
-    }
-    isInitialized.value = true;
   }
 
   // Future<bool> loginAsAdmin(String email, String password) async {
