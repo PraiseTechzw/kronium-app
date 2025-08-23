@@ -194,8 +194,9 @@ class AppRoutes {
 
   // Helper to get initial route based on user role
   static String getInitialRoute() {
-    // Always start with splash page to allow auth services to initialize
-    return splash;
+    // Skip splash screen and go directly to home
+    // The app will handle authentication state after initialization
+    return home;
   }
 
   // Helper to get the appropriate route after authentication check

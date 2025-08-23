@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/user_controller.dart';
+import 'package:kronium/core/user_auth_service.dart';
 import 'package:kronium/pages/home/active_projects_section.dart';
 import 'package:kronium/pages/home/featured_services_section.dart';
 import 'package:kronium/pages/home/quick_actions_sections.dart';
@@ -17,11 +18,104 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late final UserController userController;
+  late final UserAuthService userAuthService;
 
   @override
   void initState() {
     super.initState();
     userController = Get.find<UserController>();
+    userAuthService = Get.find<UserAuthService>();
+
+    // Debug logging to see current state
+    print('HomeScreen: initState called');
+    print(
+      'HomeScreen: UserAuthService isInitialized: ${userAuthService.isInitialized.value}',
+    );
+    print(
+      'HomeScreen: UserAuthService isUserLoggedIn: ${userAuthService.isUserLoggedIn.value}',
+    );
+    print(
+      'HomeScreen: UserAuthService userProfile: ${userAuthService.userProfile.value?.name ?? "null"}',
+    );
+    print(
+      'HomeScreen: UserController userName: ${userController.userName.value}',
+    );
+    print('HomeScreen: UserController userId: ${userController.userId.value}');
+    print(
+      'HomeScreen: UserController userProfile: ${userController.userProfile.value?.name ?? "null"}',
+    );
+
+    // Ensure UserController is synchronized with UserAuthService
+    _syncUserData();
+
+    // Force a refresh of user data if the service is already initialized
+    if (userAuthService.isInitialized.value) {
+      _refreshUserData();
+    }
+
+    // Validate and refresh the current session to ensure everything is synchronized
+    print('HomeScreen: Validating and refreshing session...');
+    userAuthService.validateAndRefreshSession();
+  }
+
+  void _syncUserData() {
+    print('HomeScreen: Setting up data synchronization...');
+
+    // Listen for changes in UserAuthService and sync with UserController
+    ever(userAuthService.userProfile, (profile) {
+      print(
+        'HomeScreen: UserAuthService userProfile changed: ${profile?.name ?? "null"}',
+      );
+      if (profile != null && mounted) {
+        // Update UserController with the latest profile data
+        userController.setUserProfile(profile);
+        setState(() {});
+      }
+    });
+
+    // Listen for UserAuthService initialization
+    ever(userAuthService.isInitialized, (initialized) {
+      print('HomeScreen: UserAuthService isInitialized changed: $initialized');
+      if (initialized && mounted) {
+        _refreshUserData();
+      }
+    });
+
+    // Also listen for UserController changes
+    ever(userController.userProfile, (profile) {
+      print(
+        'HomeScreen: UserController userProfile changed: ${profile?.name ?? "null"}',
+      );
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
+  void _refreshUserData() {
+    print('HomeScreen: Refreshing user data...');
+
+    // If UserAuthService has user data but UserController doesn't, sync them
+    if (userAuthService.userProfile.value != null &&
+        userController.userProfile.value == null) {
+      print('HomeScreen: Syncing UserController with UserAuthService data');
+      userController.setUserProfile(userAuthService.userProfile.value);
+    }
+
+    // If UserController has user data but UserAuthService doesn't, sync them
+    if (userController.userProfile.value != null &&
+        userAuthService.userProfile.value == null) {
+      print('HomeScreen: Syncing UserAuthService with UserController data');
+      userAuthService.userProfile.value = userController.userProfile.value;
+    }
+
+    // Print current state after refresh
+    print(
+      'HomeScreen: After refresh - UserAuthService: ${userAuthService.userProfile.value?.name ?? "null"}',
+    );
+    print(
+      'HomeScreen: After refresh - UserController: ${userController.userProfile.value?.name ?? "null"}',
+    );
   }
 
   @override
@@ -32,7 +126,43 @@ class _HomeScreenState extends State<HomeScreen> {
         body: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
-            _buildSliverAppBar(),
+            // Sliver App Bar with original design
+            SliverAppBar(
+              expandedHeight: 280.0,
+              floating: false,
+              pinned: true,
+              automaticallyImplyLeading: false,
+              backgroundColor: AppTheme.primaryColor,
+              collapsedHeight: 80.0,
+              stretch: true,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppTheme.primaryColor,
+                        AppTheme.secondaryColor,
+                        AppTheme.primaryColor.withValues(alpha: 0.9),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                  child: SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        children: [
+                          _buildHeaderRow(),
+                          const SizedBox(height: 16),
+                          _buildUserInfoSection(),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
             SliverPadding(
               padding: const EdgeInsets.all(16),
               sliver: SliverList(
@@ -53,48 +183,24 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSliverAppBar() {
-    return SliverAppBar(
-      expandedHeight: 280.0,
-      floating: false,
-      pinned: true,
-      automaticallyImplyLeading: false,
-      backgroundColor: AppTheme.primaryColor,
-      collapsedHeight: 80.0,
-      stretch: true,
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                AppTheme.primaryColor,
-                AppTheme.secondaryColor,
-                AppTheme.primaryColor.withValues(alpha: 0.9),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  _buildHeaderRow(),
-                  const SizedBox(height: 16),
-                  _buildUserInfoSection(),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
+  // Add a method to force restore from preferences
+  void _forceRestoreFromPreferences() async {
+    print('HomeScreen: Force restoring from preferences...');
+    await userAuthService.forceRestoreFromPreferences();
+    Get.snackbar(
+      'Session Restored',
+      'User session restored from saved data',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: AppTheme.secondaryColor,
+      colorText: Colors.white,
+      duration: const Duration(seconds: 2),
     );
   }
 
   Widget _buildHeaderRow() {
     return Row(
       children: [
+        // Logo and Branding
         Container(
           width: 60,
           height: 60,
@@ -131,9 +237,11 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         const SizedBox(width: 20),
+        // Brand Text
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
                 'KRONIUM',
@@ -223,10 +331,27 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 4),
                 Obx(() {
-                  final userName =
-                      userController.userName.value.isNotEmpty
-                          ? userController.userName.value
-                          : userController.userProfile.value?.name ?? 'User';
+                  // Get user name from multiple sources with priority
+                  String userName = '';
+
+                  // First try UserAuthService directly (most reliable)
+                  if (userAuthService.userProfile.value?.name != null) {
+                    userName = userAuthService.userProfile.value!.name;
+                  }
+                  // Then try UserController
+                  else if (userController.userName.value.isNotEmpty) {
+                    userName = userController.userName.value;
+                  }
+                  // Then try UserController userProfile
+                  else if (userController.userProfile.value?.name != null) {
+                    userName = userController.userProfile.value!.name;
+                  }
+
+                  // Fallback to 'User' if still empty
+                  if (userName.isEmpty) {
+                    userName = 'User';
+                  }
+
                   return Text(
                     userName,
                     style: TextStyle(
@@ -246,11 +371,27 @@ class _HomeScreenState extends State<HomeScreen> {
                 }),
                 const SizedBox(height: 8),
                 Obx(() {
-                  final userId =
-                      userController.userId.value.isNotEmpty
-                          ? userController.userId.value
-                          : userController.userProfile.value?.id ?? '';
+                  // Get user ID from multiple sources with priority
+                  String userId = '';
+
+                  // First try UserAuthService directly (most reliable)
+                  if (userAuthService.userProfile.value?.id != null) {
+                    userId = userAuthService.userProfile.value!.id!;
+                  }
+                  // Then try UserController
+                  else if (userController.userId.value.isNotEmpty) {
+                    userId = userController.userId.value;
+                  }
+                  // Then try UserController userProfile
+                  else if (userController.userProfile.value?.id != null) {
+                    userId = userController.userProfile.value!.id!;
+                  }
+
                   return Container(
+                    constraints: const BoxConstraints(
+                      maxWidth: double.infinity,
+                      minHeight: 32,
+                    ),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 6,
@@ -268,14 +409,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Icon(Icons.fingerprint, size: 14, color: Colors.white),
                         const SizedBox(width: 6),
-                        Text(
-                          'ID: ${userId.isNotEmpty ? userId : 'N/A'}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.white,
-                            fontFamily: 'monospace',
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.5,
+                        Expanded(
+                          child: Text(
+                            'ID: ${userId.isNotEmpty ? userId : 'N/A'}',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.white,
+                              fontFamily: 'monospace',
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.3,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
                         ),
                       ],

@@ -5,6 +5,7 @@ import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/user_auth_service.dart';
 import 'package:kronium/core/firebase_service.dart';
 import 'package:kronium/models/chat_model.dart';
+import 'package:kronium/widgets/chat_message_bubble.dart';
 
 class CustomerChatPage extends StatefulWidget {
   const CustomerChatPage({super.key});
@@ -52,7 +53,10 @@ class _CustomerChatPageState extends State<CustomerChatPage> {
 
   Future<void> _sendMessage() async {
     final user = UserAuthService.instance.userProfile.value;
-    if (_messageController.text.trim().isEmpty || user == null || _chatRoomId == null) return;
+    if (_messageController.text.trim().isEmpty ||
+        user == null ||
+        _chatRoomId == null)
+      return;
     final firebaseService = Get.find<FirebaseService>();
     final message = ChatMessage(
       senderId: user.id!,
@@ -77,28 +81,120 @@ class _CustomerChatPageState extends State<CustomerChatPage> {
   void _showSupportInfo() {
     Get.bottomSheet(
       Container(
-        padding: const EdgeInsets.all(30),
         decoration: const BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Iconsax.info_circle, color: Colors.blue, size: 60),
-            const SizedBox(height: 20),
-            const Text('Support Info', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22)),
-            const SizedBox(height: 10),
-            const Text('Our support team typically responds within 24 hours during business days.'),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () => Get.back(),
-              child: const Text('Close'),
+            // Handle bar
+            Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(30),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppTheme.primaryColor.withOpacity(0.1),
+                          AppTheme.secondaryColor.withOpacity(0.1),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: AppTheme.primaryColor.withOpacity(0.2),
+                        width: 1,
+                      ),
+                    ),
+                    child: Icon(
+                      Iconsax.info_circle,
+                      color: AppTheme.primaryColor,
+                      size: 60,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Support Information',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 24,
+                      color: AppTheme.primaryColor,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Our dedicated support team is here to help you with any questions or concerns. We typically respond within 24 hours during business days.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[700],
+                      height: 1.5,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppTheme.primaryColor,
+                          AppTheme.secondaryColor,
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.primaryColor.withOpacity(0.3),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: () => Get.back(),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          child: const Text(
+                            'Got it!',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
       ),
       isScrollControlled: true,
+      backgroundColor: Colors.transparent,
     );
   }
 
@@ -108,50 +204,113 @@ class _CustomerChatPageState extends State<CustomerChatPage> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('Chat with Support'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.primaryColor.withOpacity(0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Iconsax.message_question,
+                color: Colors.white,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              'Chat with Support',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        ),
         actions: [
-          IconButton(
-            icon: const Icon(Iconsax.info_circle),
-            onPressed: _showSupportInfo,
-            tooltip: 'Support Info',
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              icon: const Icon(Iconsax.info_circle, color: Colors.white),
+              onPressed: _showSupportInfo,
+              tooltip: 'Support Info',
+            ),
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : user == null
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : user == null
               ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Iconsax.login, size: 60, color: Colors.orange),
-                        const SizedBox(height: 20),
-                        const Text('Please log in to chat with support.', style: TextStyle(fontSize: 18)),
-                        const SizedBox(height: 20),
-                        ElevatedButton(
-                          onPressed: () => Get.toNamed('/customer-login'),
-                          child: const Text('Log In'),
-                        ),
-                      ],
-                    ),
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Iconsax.login, size: 60, color: Colors.orange),
+                      const SizedBox(height: 20),
+                      const Text(
+                        'Please log in to chat with support.',
+                        style: TextStyle(fontSize: 18),
+                      ),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: () => Get.toNamed('/customer-login'),
+                        child: const Text('Log In'),
+                      ),
+                    ],
                   ),
-                )
+                ),
+              )
               : Column(
-                  children: [
-                    Expanded(
-                      child: _chatRoomId == null
-                          ? const Center(child: Text('Unable to connect to chat.'))
-                          : StreamBuilder<List<ChatMessage>>(
-                              stream: Get.find<FirebaseService>().getChatMessages(_chatRoomId!),
+                children: [
+                  Expanded(
+                    child:
+                        _chatRoomId == null
+                            ? const Center(
+                              child: Text('Unable to connect to chat.'),
+                            )
+                            : StreamBuilder<List<ChatMessage>>(
+                              stream: Get.find<FirebaseService>()
+                                  .getChatMessages(_chatRoomId!),
                               builder: (context, snapshot) {
-                                if (snapshot.connectionState == ConnectionState.waiting) {
-                                  return const Center(child: CircularProgressIndicator());
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const Center(
+                                    child: CircularProgressIndicator(),
+                                  );
                                 }
                                 final messages = snapshot.data ?? [];
                                 if (messages.isEmpty) {
-                                  return const Center(child: Text('No messages yet. Say hello!'));
+                                  return const Center(
+                                    child: Text('No messages yet. Say hello!'),
+                                  );
                                 }
                                 return ListView.builder(
                                   controller: _scrollController,
@@ -159,93 +318,109 @@ class _CustomerChatPageState extends State<CustomerChatPage> {
                                   itemCount: messages.length,
                                   itemBuilder: (context, index) {
                                     final msg = messages[index];
-                                    final isCustomer = msg.senderType == 'customer';
-                                    return Align(
-                                      alignment: isCustomer ? Alignment.centerRight : Alignment.centerLeft,
-                                      child: Container(
-                                        margin: const EdgeInsets.symmetric(vertical: 6),
-                                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-                                        decoration: BoxDecoration(
-                                          color: isCustomer ? AppTheme.primaryColor : Colors.white,
-                                          borderRadius: BorderRadius.only(
-                                            topLeft: const Radius.circular(16),
-                                            topRight: const Radius.circular(16),
-                                            bottomLeft: Radius.circular(isCustomer ? 16 : 4),
-                                            bottomRight: Radius.circular(isCustomer ? 4 : 16),
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black.withOpacity(0.04),
-                                              blurRadius: 6,
-                                              offset: const Offset(0, 2),
-                                            ),
-                                          ],
-                                        ),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              msg.message,
-                                              style: TextStyle(
-                                                color: isCustomer ? Colors.white : Colors.black87,
-                                                fontSize: 15,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              _formatTimestamp(msg.timestamp),
-                                              style: TextStyle(
-                                                color: isCustomer ? Colors.white70 : Colors.black54,
-                                                fontSize: 11,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
+                                    final isCustomer =
+                                        msg.senderType == 'customer';
+                                    return ChatMessageBubble(
+                                      message: msg,
+                                      isCustomer: isCustomer,
+                                      formatTimestamp: _formatTimestamp,
                                     );
                                   },
                                 );
                               },
                             ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
                       color: Colors.white,
-                      child: Row(
-                        children: [
-                          Expanded(
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, -2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey[50],
+                              borderRadius: BorderRadius.circular(25),
+                              border: Border.all(
+                                color: Colors.grey[200]!,
+                                width: 1,
+                              ),
+                            ),
                             child: TextField(
                               controller: _messageController,
                               decoration: InputDecoration(
                                 hintText: 'Type your message...',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(25),
-                                  borderSide: BorderSide.none,
+                                hintStyle: TextStyle(
+                                  color: Colors.grey[500],
+                                  fontSize: 15,
                                 ),
-                                filled: true,
-                                fillColor: Colors.grey[100],
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                border: InputBorder.none,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 16,
+                                ),
                               ),
                               minLines: 1,
                               maxLines: 4,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                color: Colors.black87,
+                              ),
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: AppTheme.primaryColor,
+                        ),
+                        const SizedBox(width: 12),
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                AppTheme.primaryColor,
+                                AppTheme.secondaryColor,
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(25),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppTheme.primaryColor.withOpacity(0.3),
+                                blurRadius: 15,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
                               borderRadius: BorderRadius.circular(25),
-                            ),
-                            child: IconButton(
-                              icon: const Icon(Iconsax.send_2, color: Colors.white),
-                              onPressed: _sendMessage,
+                              onTap: _sendMessage,
+                              child: Container(
+                                padding: const EdgeInsets.all(16),
+                                child: const Icon(
+                                  Iconsax.send_2,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ),
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
+              ),
     );
   }
 
@@ -259,4 +434,4 @@ class _CustomerChatPageState extends State<CustomerChatPage> {
       return '${timestamp.day}/${timestamp.month}/${timestamp.year}';
     }
   }
-} 
+}

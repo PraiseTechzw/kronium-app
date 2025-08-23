@@ -16,93 +16,364 @@ class UserAuthService extends GetxController {
   final Rx<firebase_auth.User?> currentUser = Rx<firebase_auth.User?>(null);
   final Rx<User?> userProfile = Rx<User?>(null);
   final RxBool isInitialized = false.obs;
+  final RxBool isLoading = false.obs;
+  bool _isRestoringSession =
+      false; // Flag to prevent interference during restoration
 
   UserController get userController => Get.find<UserController>();
 
   @override
   void onInit() {
     super.onInit();
-    _setupAuthStateListener();
+    print('UserAuthService: Initializing...');
+    _initializeAuth();
+  }
+
+  Future<void> _initializeAuth() async {
+    try {
+      print('UserAuthService: Starting authentication initialization...');
+
+      // Wait for Firebase to be fully ready
+      await Future.delayed(const Duration(milliseconds: 1000));
+
+      // Check if user is already signed in
+      final firebaseUser = _auth.currentUser;
+      if (firebaseUser != null) {
+        print(
+          'UserAuthService: Found existing Firebase user: ${firebaseUser.email}',
+        );
+        await _loadUserProfile(firebaseUser);
+      } else {
+        print(
+          'UserAuthService: No Firebase user found, trying to restore from preferences...',
+        );
+        // Try to restore from preferences even if no Firebase user
+        await _restoreSessionFromPreferences();
+      }
+
+      // Set up auth state listener
+      _setupAuthStateListener();
+
+      isInitialized.value = true;
+      print('UserAuthService: Initialization complete');
+    } catch (e) {
+      print('UserAuthService: Error during initialization: $e');
+      isInitialized.value = true;
+    }
   }
 
   void _setupAuthStateListener() {
-    // Add a small delay to ensure Firebase is fully initialized
-    Future.delayed(const Duration(milliseconds: 500), () {
-      _auth.authStateChanges().listen((firebase_auth.User? user) async {
-        print('Auth state changed: ${user?.email ?? "null"}');
-        if (user != null) {
-          // User is signed in
-          await _loadUserProfile(user);
-        } else {
-          // User is signed out - only clear if we were previously logged in
-          // Add a small delay to avoid race conditions with rapid auth changes
-          await Future.delayed(const Duration(milliseconds: 100));
-          final currentAuthUser = _auth.currentUser;
-          if (currentAuthUser == null && isUserLoggedIn.value) {
-            print('Clearing user session due to auth state change');
+    print('UserAuthService: Setting up auth state listener...');
+
+    _auth.authStateChanges().listen((firebase_auth.User? user) async {
+      // Skip if we're in the middle of restoring a session
+      if (_isRestoringSession) {
+        print(
+          'UserAuthService: Skipping auth state change during session restoration',
+        );
+        return;
+      }
+
+      print('UserAuthService: Auth state changed: ${user?.email ?? "null"}');
+
+      if (user != null) {
+        // User signed in
+        print('UserAuthService: User signed in, loading profile...');
+        await _loadUserProfile(user);
+      } else {
+        // User signed out - but be more careful about clearing
+        print(
+          'UserAuthService: Auth state shows no user, checking carefully...',
+        );
+
+        // Wait longer to see if this is just a temporary Firebase issue
+        await Future.delayed(const Duration(milliseconds: 3000));
+
+        // Check multiple times with longer delays
+        bool shouldClear = true;
+        for (int i = 0; i < 5; i++) {
+          final currentFirebaseUser = _auth.currentUser;
+          if (currentFirebaseUser != null) {
+            print(
+              'UserAuthService: Firebase user found on check $i, not clearing',
+            );
+            shouldClear = false;
+            break;
+          }
+          await Future.delayed(const Duration(milliseconds: 1000));
+        }
+
+        // Only clear if we're absolutely sure and we have a session to clear
+        // AND we haven't just restored a session from preferences
+        if (shouldClear && isUserLoggedIn.value && userProfile.value != null) {
+          // Check if we have a valid session from preferences before clearing
+          final prefs = await SharedPreferences.getInstance();
+          final savedEmail = prefs.getString('user_email');
+          final savedUserId = prefs.getString('user_id');
+          final savedUserName = prefs.getString('user_name');
+
+          if (savedEmail != null &&
+              savedUserId != null &&
+              savedUserName != null) {
+            print(
+              'UserAuthService: Found saved session in preferences, not clearing current session',
+            );
+            // Try to restore the session instead of clearing it
+            await _tryRestoreSession(
+              savedEmail,
+              savedUserId,
+              savedUserName,
+              'customer',
+            );
+            return;
+          } else {
+            print(
+              'UserAuthService: No saved preferences found, clearing session',
+            );
             await _clearUserSession();
           }
+        } else if (shouldClear) {
+          print('UserAuthService: No active session to clear');
         }
-        isInitialized.value = true;
-      });
-
-      // Also check current state immediately in case user is already signed in
-      final currentUser = _auth.currentUser;
-      if (currentUser != null) {
-        _loadUserProfile(currentUser);
-      } else {
-        isInitialized.value = true;
       }
     });
   }
 
   Future<void> _loadUserProfile(firebase_auth.User user) async {
     try {
-      // Check if user profile exists in Firestore
+      print('UserAuthService: Loading profile for: ${user.email}');
+
+      // Get user document from Firestore
       final userDoc = await _firestore.collection('users').doc(user.uid).get();
 
       if (userDoc.exists) {
+        final userData = userDoc.data()!;
+        final userModel = User.fromFirestore(userDoc);
+
+        print(
+          'UserAuthService: Profile loaded from Firestore: ${userModel.name}',
+        );
+
+        // Update service state
         currentUser.value = user;
-        userProfile.value = User.fromFirestore(userDoc);
+        userProfile.value = userModel;
         isUserLoggedIn.value = true;
 
-        // Set role in userController from Firestore, default to 'customer'
-        final role = userDoc.data()?['role'] ?? 'customer';
+        // Update UserController with all necessary data
+        final role = userData['role'] ?? 'customer';
         userController.role.value = role;
-        userController.setUserProfile(User.fromFirestore(userDoc));
+        userController.setUserProfile(userModel);
 
-        // Save user session
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('user_email', user.email ?? '');
+        // Ensure UserController has the correct user data
+        if (userController.userName.value.isEmpty ||
+            userController.userId.value.isEmpty) {
+          print('UserAuthService: Forcing UserController synchronization...');
+          userController.setUserProfile(userModel);
+        }
 
-        print('User session restored: ${user.email}');
-        print('User profile loaded: ${userProfile.value?.name}');
-        print('UserController userName: ${userController.userName.value}');
+        // Save to preferences
+        await _saveSessionToPreferences(user, userModel);
+
+        print('UserAuthService: Session fully restored for: ${userModel.name}');
         print(
-          'UserController userProfile: ${userController.userProfile.value?.name}',
+          'UserAuthService: UserController updated - Name: ${userController.userName.value}, ID: ${userController.userId.value}',
         );
+        print('UserAuthService: isUserLoggedIn: ${isUserLoggedIn.value}');
       } else {
-        // User profile doesn't exist, sign out
+        print('UserAuthService: User profile not found in Firestore');
         await _auth.signOut();
         await _clearUserSession();
       }
     } catch (e) {
-      print('Error loading user profile: $e');
+      print('UserAuthService: Error loading profile: $e');
       await _auth.signOut();
       await _clearUserSession();
     }
   }
 
+  Future<void> _saveSessionToPreferences(
+    firebase_auth.User user,
+    User profile,
+  ) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user_email', user.email ?? '');
+      await prefs.setString('user_id', user.uid);
+      await prefs.setString('user_name', profile.name);
+      // Note: role is stored separately in UserController, not in User model
+      print('UserAuthService: Session saved to preferences');
+    } catch (e) {
+      print('UserAuthService: Error saving to preferences: $e');
+    }
+  }
+
+  Future<void> _restoreSessionFromPreferences() async {
+    try {
+      print('UserAuthService: Attempting to restore from preferences...');
+
+      final prefs = await SharedPreferences.getInstance();
+      final savedEmail = prefs.getString('user_email');
+      final savedUserId = prefs.getString('user_id');
+      final savedUserName = prefs.getString('user_name');
+      final savedRole = prefs.getString('user_role') ?? 'customer';
+
+      if (savedEmail != null && savedUserId != null && savedUserName != null) {
+        print('UserAuthService: Found saved session: $savedEmail');
+
+        // Check if Firebase has this user
+        final firebaseUser = _auth.currentUser;
+
+        if (firebaseUser != null && firebaseUser.email == savedEmail) {
+          print(
+            'UserAuthService: Firebase user matches saved session, loading profile...',
+          );
+          await _loadUserProfile(firebaseUser);
+        } else if (firebaseUser != null && firebaseUser.email != savedEmail) {
+          print(
+            'UserAuthService: Firebase user exists but email mismatch, updating preferences...',
+          );
+          // Update preferences with current Firebase user
+          await prefs.setString('user_email', firebaseUser.email ?? '');
+          await prefs.setString('user_id', firebaseUser.uid);
+          await _loadUserProfile(firebaseUser);
+        } else {
+          print(
+            'UserAuthService: No Firebase user found, but we have saved preferences',
+          );
+          print(
+            'UserAuthService: This might indicate a session restoration issue',
+          );
+
+          // Try to restore the session manually from saved data
+          await _tryRestoreSession(
+            savedEmail,
+            savedUserId,
+            savedUserName,
+            savedRole,
+          );
+        }
+      } else {
+        print('UserAuthService: No saved session found in preferences');
+      }
+    } catch (e) {
+      print('UserAuthService: Error restoring from preferences: $e');
+    }
+  }
+
+  Future<void> _tryRestoreSession(
+    String email,
+    String userId,
+    String userName,
+    String role,
+  ) async {
+    try {
+      print('UserAuthService: Attempting to restore session manually...');
+      _isRestoringSession = true; // Set flag to prevent interference
+
+      // Create a temporary user profile from saved data
+      final tempUser = User(
+        id: userId,
+        name: userName,
+        email: email,
+        phone: '',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      // Set the profile in our service
+      userProfile.value = tempUser;
+      isUserLoggedIn.value = true;
+      currentUser.value = null; // No Firebase user yet
+
+      // Update UserController
+      userController.role.value = role;
+      userController.setUserProfile(tempUser);
+
+      print('UserAuthService: Session restored manually from preferences');
+      print(
+        'UserAuthService: User: ${tempUser.name}, Email: ${tempUser.email}',
+      );
+      print('UserAuthService: isUserLoggedIn: ${isUserLoggedIn.value}');
+      print(
+        'UserAuthService: UserController - Name: ${userController.userName.value}, ID: ${userController.userId.value}',
+      );
+
+      // Clear the flag after a delay to allow the session to stabilize
+      Future.delayed(const Duration(milliseconds: 2000), () {
+        _isRestoringSession = false;
+        print('UserAuthService: Session restoration flag cleared');
+      });
+    } catch (e) {
+      print('UserAuthService: Error in manual session restoration: $e');
+      _isRestoringSession = false;
+    }
+  }
+
+  Future<void> _clearPreferences() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('user_email');
+      await prefs.remove('user_id');
+      await prefs.remove('user_name');
+      await prefs.remove('user_role');
+      print('UserAuthService: Old preferences cleared');
+    } catch (e) {
+      print('UserAuthService: Error clearing preferences: $e');
+    }
+  }
+
   Future<void> _clearUserSession() async {
+    print('UserAuthService: Clearing user session...');
+
     currentUser.value = null;
     userProfile.value = null;
     isUserLoggedIn.value = false;
     userController.logout();
 
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('user_email');
+    // Clear preferences
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('user_email');
+      await prefs.remove('user_id');
+      await prefs.remove('user_name');
+      await prefs.remove('user_role');
+    } catch (e) {
+      print('UserAuthService: Error clearing preferences: $e');
+    }
 
-    print('User session cleared');
+    print('UserAuthService: User session cleared');
+  }
+
+  // Public methods
+  Future<bool> loginUser(String email, String password) async {
+    try {
+      if (isLoading.value) {
+        print('UserAuthService: Login already in progress, skipping...');
+        return false;
+      }
+
+      isLoading.value = true;
+      print('UserAuthService: Attempting login for: $email');
+
+      final userCredential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      final user = userCredential.user;
+
+      if (user != null) {
+        print('UserAuthService: Login successful, loading profile...');
+        await _loadUserProfile(user);
+        return true;
+      }
+
+      return false;
+    } catch (e) {
+      print('UserAuthService: Login error: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   Future<bool> registerUser(
@@ -112,168 +383,60 @@ class UserAuthService extends GetxController {
     String password,
   ) async {
     try {
-      // Create Firebase Auth user
+      isLoading.value = true;
+      print('UserAuthService: Attempting registration for: $email');
+
       final userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
+      final user = userCredential.user;
 
-      // Create user profile in Firestore with role 'customer'
-      final user = User(
-        name: name,
-        email: email,
-        phone: phone,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-        // Add role field if your User model supports it
-        // role: 'customer',
-      );
-      final userData = user.toFirestore();
-      userData['role'] = 'customer';
-
-      await _firestore
-          .collection('users')
-          .doc(userCredential.user!.uid)
-          .set(userData);
-
-      // Set current user
-      currentUser.value = userCredential.user;
-      userProfile.value = user.copyWith(id: userCredential.user!.uid);
-      isUserLoggedIn.value = true;
-      // Set role in userController
-      userController.role.value = 'customer';
-      userController.setUserProfile(
-        user.copyWith(id: userCredential.user!.uid),
-      );
-
-      print('Registration successful: ${user.name}');
-      print('UserController userName: ${userController.userName.value}');
-      print(
-        'UserController userProfile: ${userController.userProfile.value?.name}',
-      );
-
-      // Save user session
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('user_email', email);
-
-      Get.snackbar(
-        'Success',
-        'Account created successfully!',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
-
-      return true;
-    } catch (e) {
-      String errorMessage = 'Registration failed';
-      if (e.toString().contains('email-already-in-use')) {
-        errorMessage = 'Email is already registered';
-      } else if (e.toString().contains('weak-password')) {
-        errorMessage = 'Password is too weak';
-      }
-
-      Get.snackbar(
-        'Registration Failed',
-        errorMessage,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-      return false;
-    }
-  }
-
-  Future<bool> loginUser(String email, String password) async {
-    try {
-      final userCredential = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      // Get user profile from Firestore
-      final userDoc =
-          await _firestore
-              .collection('users')
-              .doc(userCredential.user!.uid)
-              .get();
-
-      if (userDoc.exists) {
-        currentUser.value = userCredential.user;
-        userProfile.value = User.fromFirestore(userDoc);
-        isUserLoggedIn.value = true;
-        // Set role in userController from Firestore, default to 'customer'
-        final role = userDoc.data()?['role'] ?? 'customer';
-        userController.role.value = role;
-        userController.setUserProfile(User.fromFirestore(userDoc));
-
-        // Save user session
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('user_email', email);
-
-        print('Login successful: ${User.fromFirestore(userDoc).name}');
-        print('UserController userName: ${userController.userName.value}');
-        print(
-          'UserController userProfile: ${userController.userProfile.value?.name}',
+      if (user != null) {
+        // Create user profile
+        final userModel = User(
+          id: user.uid,
+          name: name,
+          email: email,
+          phone: phone,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
         );
 
-        Get.snackbar(
-          'Success',
-          'Welcome back!',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
+        // Save to Firestore with role
+        final userData = userModel.toFirestore();
+        userData['role'] = 'customer'; // Add role to Firestore data
 
+        await _firestore.collection('users').doc(user.uid).set(userData);
+
+        print('UserAuthService: Registration successful, setting profile...');
+        await _loadUserProfile(user);
         return true;
-      } else {
-        await _auth.signOut();
-        Get.snackbar(
-          'Error',
-          'User profile not found',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
-        return false;
-      }
-    } catch (e) {
-      String errorMessage = 'Login failed';
-      if (e.toString().contains('user-not-found')) {
-        errorMessage = 'No account found with this email';
-      } else if (e.toString().contains('wrong-password')) {
-        errorMessage = 'Incorrect password';
       }
 
-      Get.snackbar(
-        'Login Failed',
-        errorMessage,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
       return false;
+    } catch (e) {
+      print('UserAuthService: Registration error: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
     }
   }
 
   Future<void> logout() async {
-    await _logout();
-  }
-
-  Future<void> _logout() async {
+    print('UserAuthService: Logging out user...');
     await _auth.signOut();
-    currentUser.value = null;
-    userProfile.value = null;
-    isUserLoggedIn.value = false;
-
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('user_email');
+    await _clearUserSession();
   }
 
+  // Profile update methods
   Future<void> updateUserProfile(Map<String, dynamic> data) async {
     try {
       final user = currentUser.value;
       if (user != null) {
+        print('UserAuthService: Updating user profile...');
+
+        // Update in Firestore
         await _firestore.collection('users').doc(user.uid).update({
           ...data,
           'updatedAt': FieldValue.serverTimestamp(),
@@ -281,74 +444,107 @@ class UserAuthService extends GetxController {
 
         // Update local profile
         if (userProfile.value != null) {
-          userProfile.value = userProfile.value!.copyWith(
+          final updatedProfile = userProfile.value!.copyWith(
             name: data['name'] ?? userProfile.value!.name,
             phone: data['phone'] ?? userProfile.value!.phone,
             address: data['address'] ?? userProfile.value!.address,
             updatedAt: DateTime.now(),
           );
+          userProfile.value = updatedProfile;
+
+          // Update UserController
+          userController.setUserProfile(updatedProfile);
         }
 
-        Get.snackbar(
-          'Success',
-          'Profile updated successfully!',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
+        // Update preferences
+        if (data['name'] != null) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('user_name', data['name']);
+        }
+
+        print('UserAuthService: Profile updated successfully');
       }
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to update profile',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      print('UserAuthService: Error updating profile: $e');
+      rethrow;
     }
   }
 
-  /// Changes the current user's password. Returns true if successful.
   Future<bool> changePassword(String newPassword) async {
     try {
       final user = _auth.currentUser;
       if (user != null) {
+        print('UserAuthService: Changing password...');
         await user.updatePassword(newPassword);
-        Get.snackbar(
-          'Success',
-          'Password updated successfully!',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
+        print('UserAuthService: Password changed successfully');
         return true;
-      } else {
-        Get.snackbar(
-          'Error',
-          'No user is currently logged in.',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
-        return false;
       }
+      return false;
     } catch (e) {
-      String errorMessage = 'Failed to update password.';
-      if (e.toString().contains('requires-recent-login')) {
-        errorMessage = 'Please re-login and try again.';
-      }
-      Get.snackbar(
-        'Error',
-        errorMessage,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      print('UserAuthService: Error changing password: $e');
       return false;
     }
   }
 
+  // Getters
   bool get isLoggedIn => isUserLoggedIn.value;
   User? get currentUserProfile => userProfile.value;
   firebase_auth.FirebaseAuth get auth => _auth;
+
+  // Force refresh methods
+  Future<void> forceRefreshSession() async {
+    print('UserAuthService: Force refreshing session...');
+    final firebaseUser = _auth.currentUser;
+    if (firebaseUser != null) {
+      await _loadUserProfile(firebaseUser);
+    } else {
+      print('UserAuthService: No Firebase user found, cannot refresh session');
+    }
+  }
+
+  Future<void> forceRestoreFromPreferences() async {
+    print('UserAuthService: Force restoring from preferences...');
+    await _restoreSessionFromPreferences();
+  }
+
+  // Active session validation
+  Future<void> validateAndRefreshSession() async {
+    print('UserAuthService: Validating current session...');
+
+    // Check if we have a valid session
+    if (isUserLoggedIn.value && userProfile.value != null) {
+      print('UserAuthService: Session appears valid, checking Firebase...');
+
+      final firebaseUser = _auth.currentUser;
+      if (firebaseUser != null) {
+        print('UserAuthService: Firebase user found, refreshing profile...');
+        await _loadUserProfile(firebaseUser);
+      } else {
+        print(
+          'UserAuthService: No Firebase user but session exists, trying to restore...',
+        );
+        await _restoreSessionFromPreferences();
+      }
+    } else {
+      print('UserAuthService: No valid session found, checking Firebase...');
+      final firebaseUser = _auth.currentUser;
+      if (firebaseUser != null) {
+        print('UserAuthService: Firebase user found, loading profile...');
+        await _loadUserProfile(firebaseUser);
+      } else {
+        print('UserAuthService: No Firebase user and no session');
+      }
+    }
+  }
+
+  bool get isSessionValid {
+    final hasUser = currentUser.value != null;
+    final hasProfile = userProfile.value != null;
+    final isLoggedIn = isUserLoggedIn.value;
+
+    print(
+      'UserAuthService: Session validation - Firebase: $hasUser, Profile: $hasProfile, LoggedIn: $isLoggedIn',
+    );
+    return hasUser && hasProfile && isLoggedIn;
+  }
 }

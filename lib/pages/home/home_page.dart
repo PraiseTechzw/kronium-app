@@ -28,17 +28,36 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final userController = Get.find<UserController>();
+    final userAuthService = Get.find<UserAuthService>();
+
+    // Check authentication status and redirect if needed
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // Give services time to initialize and load user profile
+      await Future.delayed(const Duration(milliseconds: 2000));
+
+      if (!userAuthService.isUserLoggedIn.value &&
+          userController.role.value == 'guest') {
+        print(
+          'HomePage: User not logged in, redirecting to customer register...',
+        );
+        Get.offAllNamed('/customer-register');
+        return;
+      }
+    });
+
     return Obx(() {
       final isDarkMode = _isDarkMode.value;
       final role = userController.role.value;
       final isAdmin = role == 'admin';
       final viewAsAdmin = !isAdmin || _viewAsAdmin.value;
+
       // Build tab list dynamically
       final List<Widget> pages = [
         const HomeScreen(),
         const ServicesPage(),
         const ProjectsPage(),
       ];
+
       final List<BottomNavigationBarItem> items = [
         const BottomNavigationBarItem(
           icon: Icon(Iconsax.home_2),
@@ -53,6 +72,7 @@ class HomePage extends StatelessWidget {
           label: 'Projects',
         ),
       ];
+
       if (role == 'customer' || (isAdmin && viewAsAdmin)) {
         pages.add(const CustomerChatPage());
         items.add(
@@ -62,24 +82,20 @@ class HomePage extends StatelessWidget {
           ),
         );
       }
+
       // Always add Profile/Login as last tab
       items.add(
         BottomNavigationBarItem(
           icon: const Icon(Iconsax.user),
-          label:
-              role == 'guest'
-                  ? 'Login'
-                  : (isAdmin
-                      ? (viewAsAdmin ? 'Admin Profile' : 'Profile')
-                      : 'Profile'),
+          label: role == 'guest' ? 'Login' : 'Profile',
         ),
       );
-      pages.add(const CustomerProfilePage()); // Show actual profile page
+      pages.add(const CustomerProfilePage());
 
       return BackgroundSwitcher(
         child: Scaffold(
           backgroundColor: Colors.transparent,
-          appBar: null, // Remove duplicate app bar - HomeScreen has SliverAppBar
+          appBar: null, // HomeScreen has SliverAppBar
           drawer: AppDrawer(
             isDarkMode: isDarkMode,
             userAuthService: Get.find<UserAuthService>(),
@@ -93,9 +109,7 @@ class HomePage extends StatelessWidget {
                       Obx(
                         () => SwitchListTile(
                           title: Text(
-                            _viewAsAdmin.value
-                                ? 'View as Admin'
-                                : 'View as Customer',
+                            _viewAsAdmin.value ? 'Admin View' : 'Customer View',
                           ),
                           value: _viewAsAdmin.value,
                           onChanged: (val) => _viewAsAdmin.value = val,
@@ -130,83 +144,14 @@ class HomePage extends StatelessWidget {
                   ? FloatingActionButton(
                     backgroundColor: AppTheme.primaryColor,
                     child: const Icon(Iconsax.setting_2, color: Colors.white),
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.vertical(
-                            top: Radius.circular(24),
-                          ),
-                        ),
-                        builder:
-                            (context) => Padding(
-                              padding: const EdgeInsets.all(24),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Text(
-                                    'Admin Quick Actions',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  ListTile(
-                                    leading: const Icon(
-                                      Iconsax.shield_tick,
-                                      color: AppTheme.primaryColor,
-                                    ),
-                                    title: const Text('Admin Dashboard'),
-                                    onTap: () {
-                                      Get.toNamed('/admin-dashboard');
-                                      Navigator.pop(context);
-                                    },
-                                  ),
-                                  ListTile(
-                                    leading: const Icon(
-                                      Iconsax.box,
-                                      color: AppTheme.primaryColor,
-                                    ),
-                                    title: const Text('Manage Services'),
-                                    onTap: () {
-                                      Get.toNamed('/admin-services');
-                                      Navigator.pop(context);
-                                    },
-                                  ),
-                                  ListTile(
-                                    leading: const Icon(
-                                      Iconsax.calendar,
-                                      color: AppTheme.primaryColor,
-                                    ),
-                                    title: const Text('Bookings'),
-                                    onTap: () {
-                                      Get.toNamed('/admin-bookings');
-                                      Navigator.pop(context);
-                                    },
-                                  ),
-                                  ListTile(
-                                    leading: const Icon(
-                                      Iconsax.message,
-                                      color: AppTheme.primaryColor,
-                                    ),
-                                    title: const Text('Admin Chat'),
-                                    onTap: () {
-                                      Get.toNamed('/admin-chat');
-                                      Navigator.pop(context);
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                      );
-                    },
+                    onPressed: () => _showAdminQuickActions(context),
                   )
                   : null,
           bottomNavigationBar: Obx(() {
             final role = userController.role.value;
             final isAdmin = role == 'admin';
             final viewAsAdmin = !isAdmin || _viewAsAdmin.value;
+
             final List<BottomNavigationBarItem> items = [
               const BottomNavigationBarItem(
                 icon: Icon(Iconsax.home_2),
@@ -221,6 +166,7 @@ class HomePage extends StatelessWidget {
                 label: 'Projects',
               ),
             ];
+
             if (role == 'customer' || (isAdmin && viewAsAdmin)) {
               items.add(
                 const BottomNavigationBarItem(
@@ -229,27 +175,26 @@ class HomePage extends StatelessWidget {
                 ),
               );
             }
+
             items.add(
               BottomNavigationBarItem(
                 icon: const Icon(Iconsax.user),
-                label:
-                    role == 'guest'
-                        ? 'Login'
-                        : (isAdmin
-                            ? (viewAsAdmin ? 'Admin Profile' : 'Profile')
-                            : 'Profile'),
+                label: role == 'guest' ? 'Login' : 'Profile',
               ),
             );
+
             return FadeInUp(
               child: BottomNavigationBar(
                 currentIndex: _currentIndex.value,
                 onTap: (index) async {
                   final isProfileTab = index == items.length - 1;
                   final isLoggedIn = userController.role.value != 'guest';
+
                   if (isProfileTab && !isLoggedIn) {
                     Get.toNamed('/customer-login');
                     return;
                   }
+
                   _currentIndex.value = index;
                   _pageController.animateToPage(
                     index,
@@ -271,16 +216,73 @@ class HomePage extends StatelessWidget {
     });
   }
 
-  /// Show notifications (placeholder)
-  void _showNotifications() {
-    Get.snackbar(
-      'Notifications',
-      'No new notifications',
-      snackPosition: SnackPosition.BOTTOM,
+  void _showAdminQuickActions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder:
+          (context) => Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Admin Quick Actions',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+                const SizedBox(height: 16),
+                ListTile(
+                  leading: const Icon(
+                    Iconsax.shield_tick,
+                    color: AppTheme.primaryColor,
+                  ),
+                  title: const Text('Admin Dashboard'),
+                  onTap: () {
+                    Get.toNamed('/admin-dashboard');
+                    Navigator.pop(context);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(
+                    Iconsax.box,
+                    color: AppTheme.primaryColor,
+                  ),
+                  title: const Text('Manage Services'),
+                  onTap: () {
+                    Get.toNamed('/admin-services');
+                    Navigator.pop(context);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(
+                    Iconsax.calendar,
+                    color: AppTheme.primaryColor,
+                  ),
+                  title: const Text('Bookings'),
+                  onTap: () {
+                    Get.toNamed('/admin-bookings');
+                    Navigator.pop(context);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(
+                    Iconsax.message,
+                    color: AppTheme.primaryColor,
+                  ),
+                  title: const Text('Admin Chat'),
+                  onTap: () {
+                    Get.toNamed('/admin-chat');
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            ),
+          ),
     );
   }
 
-  /// Show about dialog
   void _showAboutPage() {
     Get.dialog(
       AlertDialog(
@@ -342,7 +344,6 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  /// Show contact info dialog
   void _showContactInfo() {
     Get.dialog(
       AlertDialog(
@@ -369,7 +370,6 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  /// Helper for about dialog values
   Widget _buildValueItem(String title, String description) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -389,7 +389,6 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  /// Helper for contact info dialog
   Widget _buildContactItem(IconData icon, String label, String value) {
     return Row(
       children: [
