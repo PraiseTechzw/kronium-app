@@ -303,7 +303,14 @@ class _SettingsPageState extends State<SettingsPage> {
               setState(() {
                 _notificationsEnabled = value;
               });
-              await _settingsService.updateSetting('pushNotifications', value);
+              try {
+                await _settingsService.updateSetting(
+                  'pushNotifications',
+                  value,
+                );
+              } catch (e) {
+                print('Error updating notifications setting: $e');
+              }
             },
             activeColor: AppTheme.primaryColor,
           ),
