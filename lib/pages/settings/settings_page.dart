@@ -95,11 +95,7 @@ class _SettingsPageState extends State<SettingsPage> {
           children: [
             _buildProfileSection(),
             const SizedBox(height: 24),
-            _buildAppearanceSection(),
-            const SizedBox(height: 24),
             _buildPreferencesSection(),
-            const SizedBox(height: 24),
-            _buildSecuritySection(),
             const SizedBox(height: 24),
             _buildSupportSection(),
             const SizedBox(height: 24),
@@ -205,43 +201,6 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _buildAppearanceSection() {
-    return _buildSectionCard(
-      title: 'Appearance',
-      icon: Iconsax.colorfilter,
-      children: [
-        _buildListTile(
-          icon: Iconsax.moon,
-          title: 'Dark Mode',
-          subtitle: 'Switch between light and dark themes',
-          trailing: Switch(
-            value: _isDarkMode,
-            onChanged: (value) {
-              setState(() {
-                _isDarkMode = value;
-              });
-              // TODO: Implement dark mode toggle
-            },
-            activeColor: AppTheme.primaryColor,
-          ),
-        ),
-        const Divider(height: 1),
-        _buildListTile(
-          icon: Iconsax.global,
-          title: 'Language',
-          subtitle: _language,
-          onTap: _showLanguageDialog,
-        ),
-        const Divider(height: 1),
-        _buildListTile(
-          icon: Iconsax.dollar_circle,
-          title: 'Currency',
-          subtitle: _currency,
-          onTap: _showCurrencyDialog,
-        ),
-      ],
-    );
-  }
 
   Widget _buildPreferencesSection() {
     return _buildSectionCard(
@@ -262,29 +221,6 @@ class _SettingsPageState extends State<SettingsPage> {
             },
             activeColor: AppTheme.primaryColor,
           ),
-        ),
-        const Divider(height: 1),
-        _buildListTile(
-          icon: Iconsax.finger_cricle,
-          title: 'Biometric Login',
-          subtitle: 'Use fingerprint or face ID to login',
-          trailing: Switch(
-            value: _biometricEnabled,
-            onChanged: (value) {
-              setState(() {
-                _biometricEnabled = value;
-              });
-              // TODO: Implement biometric toggle
-            },
-            activeColor: AppTheme.primaryColor,
-          ),
-        ),
-        const Divider(height: 1),
-        _buildListTile(
-          icon: Iconsax.location,
-          title: 'Location Services',
-          subtitle: 'Allow access to your location',
-          onTap: _showLocationSettings,
         ),
       ],
     );

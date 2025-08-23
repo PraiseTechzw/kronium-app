@@ -19,7 +19,7 @@ class ProfilePageState extends State<ProfilePage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
-  
+
   bool _isEditing = false;
   bool _isDarkMode = false;
   bool _notificationsEnabled = true;
@@ -162,28 +162,28 @@ class ProfilePageState extends State<ProfilePage> {
   ) {
     final user = userAuthService.currentUserProfile;
     return Center(
-              child: Stack(
-                children: [
-                  Hero(
-                    tag: 'profile-pic',
-                    child: Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: const LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
+      child: Stack(
+        children: [
+          Hero(
+            tag: 'profile-pic',
+            child: Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                   colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppTheme.primaryColor.withOpacity(0.3),
-                            blurRadius: 10,
-                            spreadRadius: 2,
-                          ),
-                        ],
-                      ),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.primaryColor.withOpacity(0.3),
+                    blurRadius: 10,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
               child:
                   user?.name.isNotEmpty == true
                       ? Center(
@@ -192,34 +192,34 @@ class ProfilePageState extends State<ProfilePage> {
                           style: const TextStyle(
                             fontSize: 48,
                             fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                            color: Colors.white,
+                          ),
                         ),
                       )
                       : const Icon(Iconsax.user, size: 50, color: Colors.white),
-                    ),
-                  ),
-                  if (_isEditing)
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: const BoxDecoration(
-                          color: AppTheme.surfaceLight,
-                          shape: BoxShape.circle,
+            ),
+          ),
+          if (_isEditing)
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: const BoxDecoration(
+                  color: AppTheme.surfaceLight,
+                  shape: BoxShape.circle,
                   boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8)],
-                        ),
-                        child: const Icon(
-                          Iconsax.camera,
-                          color: AppTheme.primaryColor,
-                          size: 20,
-                        ),
-                      ),
-                    ),
-                ],
+                ),
+                child: const Icon(
+                  Iconsax.camera,
+                  color: AppTheme.primaryColor,
+                  size: 20,
+                ),
               ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -228,8 +228,8 @@ class ProfilePageState extends State<ProfilePage> {
       child: _buildSectionCard(
         title: 'Personal Information',
         icon: Iconsax.user,
-                children: [
-                  _profileField('Full Name', _nameController, Iconsax.user, _isEditing),
+        children: [
+          _profileField('Full Name', _nameController, Iconsax.user, _isEditing),
           _profileField('Email Address', _emailController, Iconsax.sms, false),
           _profileField(
             'Phone Number',
@@ -403,9 +403,9 @@ class ProfilePageState extends State<ProfilePage> {
                     color: AppTheme.primaryColor,
                   ),
                 ),
-                ],
-              ),
+              ],
             ),
+          ),
           ...children,
         ],
       ),
@@ -455,28 +455,28 @@ class ProfilePageState extends State<ProfilePage> {
     int maxLines = 1,
   }) {
     return Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
             label,
-                        style: TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.w600,
               color: Colors.grey[700],
               fontSize: 14,
             ),
           ),
           const SizedBox(height: 8),
-                      TextFormField(
+          TextFormField(
             controller: controller,
             enabled: enabled,
             maxLines: maxLines,
-                        decoration: InputDecoration(
+            decoration: InputDecoration(
               prefixIcon: Icon(icon, color: AppTheme.primaryColor),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               filled: !enabled,
               fillColor: enabled ? null : Colors.grey[100],
             ),
@@ -608,9 +608,9 @@ class _ChangePasswordBottomSheetState
               decoration: BoxDecoration(
                 color: Colors.grey[300],
                 borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ),
+              ),
+            ),
+          ),
           // Content
           Padding(
             padding: EdgeInsets.only(
@@ -673,9 +673,9 @@ class _ChangePasswordBottomSheetState
                     height: 56,
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _changePassword,
-                          style: ElevatedButton.styleFrom(
+                      style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.primaryColor,
-                            shape: RoundedRectangleBorder(
+                        shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
                       ),
@@ -697,20 +697,20 @@ class _ChangePasswordBottomSheetState
                                   color: Colors.white,
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                    ),
                   ),
-                ),
-              ),
-            ),
                   const SizedBox(height: 16),
-          ],
-        ),
+                ],
+              ),
             ),
           ),
         ],
       ),
     );
   }
-  
+
   Widget _buildPasswordField({
     required TextEditingController controller,
     required String label,
@@ -737,8 +737,8 @@ class _ChangePasswordBottomSheetState
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: AppTheme.primaryColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Icon(icon, color: AppTheme.primaryColor, size: 20),
           ),
           filled: true,
