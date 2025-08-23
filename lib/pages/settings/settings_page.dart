@@ -201,7 +201,6 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-
   Widget _buildPreferencesSection() {
     return _buildSectionCard(
       title: 'Preferences',
