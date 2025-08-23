@@ -326,7 +326,11 @@ class _SettingsPageState extends State<SettingsPage> {
               setState(() {
                 _biometricEnabled = value;
               });
-              await _settingsService.updateSetting('biometricAuth', value);
+              try {
+                await _settingsService.updateSetting('biometricAuth', value);
+              } catch (e) {
+                print('Error updating biometric setting: $e');
+              }
             },
             activeColor: AppTheme.primaryColor,
           ),
@@ -357,10 +361,14 @@ class _SettingsPageState extends State<SettingsPage> {
               setState(() {
                 _projectNotifications = value;
               });
-              await _settingsService.updateSetting(
-                'projectNotifications',
-                value,
-              );
+              try {
+                await _settingsService.updateSetting(
+                  'projectNotifications',
+                  value,
+                );
+              } catch (e) {
+                print('Error updating project notifications setting: $e');
+              }
             },
             activeColor: AppTheme.primaryColor,
           ),
@@ -687,16 +695,20 @@ class _SettingsPageState extends State<SettingsPage> {
                     _language == language
                         ? Icon(Icons.check, color: AppTheme.primaryColor)
                         : null,
-                onTap: () async {
-                  setState(() {
-                    _language = language;
-                  });
-                  await _settingsService.updateSetting(
-                    'language',
-                    language.toLowerCase(),
-                  );
-                  Get.back();
-                },
+                                  onTap: () async {
+                    setState(() {
+                      _language = language;
+                    });
+                    try {
+                      await _settingsService.updateSetting(
+                        'language',
+                        language.toLowerCase(),
+                      );
+                    } catch (e) {
+                      print('Error updating language setting: $e');
+                    }
+                    Get.back();
+                  },
               );
             },
           ),
@@ -726,13 +738,17 @@ class _SettingsPageState extends State<SettingsPage> {
                     _currency == currency
                         ? Icon(Icons.check, color: AppTheme.primaryColor)
                         : null,
-                onTap: () async {
-                  setState(() {
-                    _currency = currency;
-                  });
-                  await _settingsService.updateSetting('currency', currency);
-                  Get.back();
-                },
+                                  onTap: () async {
+                    setState(() {
+                      _currency = currency;
+                    });
+                    try {
+                      await _settingsService.updateSetting('currency', currency);
+                    } catch (e) {
+                      print('Error updating currency setting: $e');
+                    }
+                    Get.back();
+                  },
               );
             },
           ),
@@ -762,16 +778,20 @@ class _SettingsPageState extends State<SettingsPage> {
                     _preferredServiceRadius == radius
                         ? Icon(Icons.check, color: AppTheme.primaryColor)
                         : null,
-                onTap: () async {
-                  setState(() {
-                    _preferredServiceRadius = radius;
-                  });
-                  await _settingsService.updateSetting(
-                    'preferredServiceRadius',
-                    radius,
-                  );
-                  Get.back();
-                },
+                                  onTap: () async {
+                    setState(() {
+                      _preferredServiceRadius = radius;
+                    });
+                    try {
+                      await _settingsService.updateSetting(
+                        'preferredServiceRadius',
+                        radius,
+                      );
+                    } catch (e) {
+                      print('Error updating service radius setting: $e');
+                    }
+                    Get.back();
+                  },
               );
             },
           ),
