@@ -695,20 +695,20 @@ class _SettingsPageState extends State<SettingsPage> {
                     _language == language
                         ? Icon(Icons.check, color: AppTheme.primaryColor)
                         : null,
-                                  onTap: () async {
-                    setState(() {
-                      _language = language;
-                    });
-                    try {
-                      await _settingsService.updateSetting(
-                        'language',
-                        language.toLowerCase(),
-                      );
-                    } catch (e) {
-                      print('Error updating language setting: $e');
-                    }
-                    Get.back();
-                  },
+                onTap: () async {
+                  setState(() {
+                    _language = language;
+                  });
+                  try {
+                    await _settingsService.updateSetting(
+                      'language',
+                      language.toLowerCase(),
+                    );
+                  } catch (e) {
+                    print('Error updating language setting: $e');
+                  }
+                  Get.back();
+                },
               );
             },
           ),
@@ -738,17 +738,17 @@ class _SettingsPageState extends State<SettingsPage> {
                     _currency == currency
                         ? Icon(Icons.check, color: AppTheme.primaryColor)
                         : null,
-                                  onTap: () async {
-                    setState(() {
-                      _currency = currency;
-                    });
-                    try {
-                      await _settingsService.updateSetting('currency', currency);
-                    } catch (e) {
-                      print('Error updating currency setting: $e');
-                    }
-                    Get.back();
-                  },
+                onTap: () async {
+                  setState(() {
+                    _currency = currency;
+                  });
+                  try {
+                    await _settingsService.updateSetting('currency', currency);
+                  } catch (e) {
+                    print('Error updating currency setting: $e');
+                  }
+                  Get.back();
+                },
               );
             },
           ),
@@ -778,20 +778,20 @@ class _SettingsPageState extends State<SettingsPage> {
                     _preferredServiceRadius == radius
                         ? Icon(Icons.check, color: AppTheme.primaryColor)
                         : null,
-                                  onTap: () async {
-                    setState(() {
-                      _preferredServiceRadius = radius;
-                    });
-                    try {
-                      await _settingsService.updateSetting(
-                        'preferredServiceRadius',
-                        radius,
-                      );
-                    } catch (e) {
-                      print('Error updating service radius setting: $e');
-                    }
-                    Get.back();
-                  },
+                onTap: () async {
+                  setState(() {
+                    _preferredServiceRadius = radius;
+                  });
+                  try {
+                    await _settingsService.updateSetting(
+                      'preferredServiceRadius',
+                      radius,
+                    );
+                  } catch (e) {
+                    print('Error updating service radius setting: $e');
+                  }
+                  Get.back();
+                },
               );
             },
           ),
