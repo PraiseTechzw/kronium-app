@@ -7,7 +7,9 @@ import 'package:kronium/core/firebase_service.dart';
 import 'package:kronium/models/project_model.dart';
 import 'package:kronium/pages/projects/mock_project_booking_data.dart';
 import 'package:kronium/widgets/login_bottom_sheet.dart';
-import 'package:kronium/core/user_controller.dart'; 
+import 'package:kronium/core/user_controller.dart';
+import 'package:kronium/pages/customer/customer_project_details_page.dart';
+
 // Add controllers and saved fields for booking form
 final TextEditingController _nameController = TextEditingController();
 final TextEditingController _emailController = TextEditingController();
@@ -159,15 +161,15 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
             final filteredProjects = _filterUserProjects(allProjects);
 
             return Column(
-        children: [
-          // Status filter chips
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
+              children: [
+                // Status filter chips
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
                     vertical: 10,
                   ),
-            child: Row(
+                  child: Row(
                     children:
                         _statusFilters
                             .map(
@@ -175,16 +177,16 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 4,
                                 ),
-                child: ChoiceChip(
-                  label: Text(status),
-                  selected: _selectedStatus == status,
-                  onSelected: (selected) {
+                                child: ChoiceChip(
+                                  label: Text(status),
+                                  selected: _selectedStatus == status,
+                                  onSelected: (selected) {
                                     if (selected) {
                                       setState(() => _selectedStatus = status);
                                     }
-                  },
-                  selectedColor: AppTheme.primaryColor,
-                  labelStyle: TextStyle(
+                                  },
+                                  selectedColor: AppTheme.primaryColor,
+                                  labelStyle: TextStyle(
                                     color:
                                         _selectedStatus == status
                                             ? Colors.white
@@ -194,13 +196,13 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                               ),
                             )
                             .toList(),
-              ),
-            ),
-          // Project list
-          Expanded(
+                  ),
+                ),
+                // Project list
+                Expanded(
                   child:
                       filteredProjects.isEmpty
-                ? Center(
+                          ? Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -235,12 +237,12 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                                 ),
                               ],
                             ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: filteredProjects.length,
-                    itemBuilder: (context, index) {
-                      final project = filteredProjects[index];
+                          )
+                          : ListView.builder(
+                            padding: const EdgeInsets.all(16),
+                            itemCount: filteredProjects.length,
+                            itemBuilder: (context, index) {
+                              final project = filteredProjects[index];
                               final status = _getProjectStatus(project);
                               final userBooking = project.bookedDates
                                   .firstWhere(
@@ -250,37 +252,38 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                                             userController.userId.value),
                                   );
 
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 16),
+                              return Card(
+                                margin: const EdgeInsets.only(bottom: 16),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
                                 ),
-                        elevation: 4,
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(16),
+                                elevation: 4,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(16),
                                   onTap:
-                                      () => _showProjectDetailsBottomSheet(
-                                        project,
-                                        status,
+                                      () => Get.to(
+                                        () => CustomerProjectDetailsPage(
+                                          project: project,
+                                        ),
                                       ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(
                                                 project.title,
                                                 style: const TextStyle(
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 18,
                                                 ),
-                                      ),
-                                    ),
-                                    Chip(
+                                              ),
+                                            ),
+                                            Chip(
                                               label: Text(status),
                                               backgroundColor: _statusColor(
                                                 status,
@@ -289,10 +292,10 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                                                 color: Colors.white,
                                                 fontWeight: FontWeight.bold,
                                               ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 8),
                                         Text(
                                           project.description,
                                           style: const TextStyle(
@@ -300,15 +303,15 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                                             color: Colors.black87,
                                           ),
                                         ),
-                                const SizedBox(height: 8),
-                                Row(
-                                  children: [
+                                        const SizedBox(height: 8),
+                                        Row(
+                                          children: [
                                             const Icon(
                                               Iconsax.location,
                                               size: 16,
                                               color: Colors.grey,
                                             ),
-                                    const SizedBox(width: 4),
+                                            const SizedBox(width: 4),
                                             Text(
                                               project.location,
                                               style: const TextStyle(
@@ -316,7 +319,7 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                                                 color: Colors.grey,
                                               ),
                                             ),
-                                    const Spacer(),
+                                            const Spacer(),
                                             Text(
                                               'Booked: ${userBooking.date.toLocal().toString().split(' ')[0]}',
                                               style: const TextStyle(
@@ -326,7 +329,7 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                                             ),
                                           ],
                                         ),
-                                  Padding(
+                                        Padding(
                                           padding: const EdgeInsets.only(
                                             top: 8,
                                           ),
@@ -365,22 +368,22 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                                                     AlwaysStoppedAnimation<
                                                       Color
                                                     >(_statusColor(status)),
-                                      minHeight: 6,
+                                                minHeight: 6,
                                                 borderRadius:
                                                     BorderRadius.circular(3),
                                               ),
                                             ],
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                              ],
-                            ),
+                                ),
+                              );
+                            },
                           ),
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ],
+                ),
+              ],
             );
           },
         );
@@ -509,12 +512,12 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                         projectTypes
                             .map(
                               (type) => ChoiceChip(
-                      label: Text(type),
-                      selected: selectedType == type,
-                      onSelected: (selected) {
-                        setModalState(() => selectedType = type);
-                      },
-                      selectedColor: AppTheme.primaryColor,
+                                label: Text(type),
+                                selected: selectedType == type,
+                                onSelected: (selected) {
+                                  setModalState(() => selectedType = type);
+                                },
+                                selectedColor: AppTheme.primaryColor,
                                 labelStyle: TextStyle(
                                   color:
                                       selectedType == type
@@ -581,7 +584,7 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                             Expanded(
                               child: Text(
                                 selectedDate == null
-                                ? 'No date selected'
+                                    ? 'No date selected'
                                     : 'Date: ${selectedDate!.toLocal().toString().split(' ')[0]}',
                               ),
                             ),
@@ -704,31 +707,31 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                       ElevatedButton(
                         onPressed:
                             location.isNotEmpty && size.isNotEmpty
-                          ? () {
-                              // Save user info for next time (mock)
-                              _savedName = _nameController.text;
-                              _savedEmail = _emailController.text;
-                              _savedPhone = _phoneController.text;
-                              // Mock booking submission
-                              Get.back();
-                              Get.bottomSheet(
-                                Container(
-                                  padding: const EdgeInsets.all(30),
-                                  decoration: const BoxDecoration(
-                                    color: Colors.white,
+                                ? () {
+                                  // Save user info for next time (mock)
+                                  _savedName = _nameController.text;
+                                  _savedEmail = _emailController.text;
+                                  _savedPhone = _phoneController.text;
+                                  // Mock booking submission
+                                  Get.back();
+                                  Get.bottomSheet(
+                                    Container(
+                                      padding: const EdgeInsets.all(30),
+                                      decoration: const BoxDecoration(
+                                        color: Colors.white,
                                         borderRadius: BorderRadius.vertical(
                                           top: Radius.circular(20),
                                         ),
-                                  ),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
+                                      ),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
                                           const Icon(
                                             Icons.check_circle,
                                             color: Colors.green,
                                             size: 60,
                                           ),
-                                      const SizedBox(height: 20),
+                                          const SizedBox(height: 20),
                                           const Text(
                                             'Request Submitted!',
                                             style: TextStyle(
@@ -736,21 +739,21 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                                               fontSize: 22,
                                             ),
                                           ),
-                                      const SizedBox(height: 10),
+                                          const SizedBox(height: 10),
                                           Text(
                                             'We have received your request for a $selectedType project on ${selectedDate!.toLocal().toString().split(' ')[0]}. Our team will contact you soon.',
                                           ),
-                                      const SizedBox(height: 20),
-                                      ElevatedButton(
-                                        onPressed: () => Get.back(),
-                                        child: const Text('Close'),
+                                          const SizedBox(height: 20),
+                                          ElevatedButton(
+                                            onPressed: () => Get.back(),
+                                            child: const Text('Close'),
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            }
-                          : null,
+                                    ),
+                                  );
+                                }
+                                : null,
                         child: const Text('Submit'),
                       ),
                     ],
@@ -852,7 +855,7 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
               const SizedBox(height: 8),
               LinearProgressIndicator(
                 value: project.progress / 100,
-                    backgroundColor: AppTheme.surfaceLight,
+                backgroundColor: AppTheme.surfaceLight,
                 valueColor: AlwaysStoppedAnimation<Color>(_statusColor(status)),
                 minHeight: 10,
                 borderRadius: BorderRadius.circular(5),
@@ -891,15 +894,15 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
                       project.approved ? 'Yes' : 'Pending',
                     ),
                   ],
-                  ),
                 ),
+              ),
               const SizedBox(height: 24),
               Row(
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                onPressed: () => Get.back(),
-                child: const Text('Close'),
+                      onPressed: () => Get.back(),
+                      child: const Text('Close'),
                     ),
                   ),
                   const SizedBox(width: 12),
