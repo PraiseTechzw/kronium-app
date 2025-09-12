@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get/get.dart';
 import '../models/settings_model.dart';
@@ -20,9 +21,9 @@ class SettingsService extends GetxService {
       final settingsData = prefs.getString('user_settings');
 
       if (settingsData != null) {
-        // Parse settings from JSON
+        // Parse settings from JSON string
         final Map<String, dynamic> settingsMap = Map<String, dynamic>.from(
-          settingsData as Map<String, dynamic>,
+          jsonDecode(settingsData) as Map<String, dynamic>,
         );
         _settings.value = UserSettings.fromMap(settingsMap);
       }
@@ -34,7 +35,7 @@ class SettingsService extends GetxService {
   Future<void> saveSettings(UserSettings newSettings) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('user_settings', newSettings.toMap().toString());
+      await prefs.setString('user_settings', jsonEncode(newSettings.toMap()));
       _settings.value = newSettings;
     } catch (e) {
       print('Error saving settings: $e');

@@ -23,25 +23,13 @@ class DefaultFirebaseOptions {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for linux - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return linux;
       default:
         throw UnsupportedError(
           'DefaultFirebaseOptions are not supported for this platform.',
@@ -64,6 +52,42 @@ class DefaultFirebaseOptions {
     appId: '1:499888969163:android:6dd63995f90cd08313d24e',
     messagingSenderId: '499888969163',
     projectId: 'kromium-f338e',
+    storageBucket: 'kromium-f338e.firebasestorage.app',
+  );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyC2FD7k_Sr8QeHbRUvHyOXivSiLtC33uVU',
+    appId: '1:499888969163:ios:6dd63995f90cd08313d24e',
+    messagingSenderId: '499888969163',
+    projectId: 'kromium-f338e',
+    storageBucket: 'kromium-f338e.firebasestorage.app',
+    iosBundleId: 'com.kronium.app',
+  );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyC2FD7k_Sr8QeHbRUvHyOXivSiLtC33uVU',
+    appId: '1:499888969163:ios:6dd63995f90cd08313d24e',
+    messagingSenderId: '499888969163',
+    projectId: 'kromium-f338e',
+    storageBucket: 'kromium-f338e.firebasestorage.app',
+    iosBundleId: 'com.kronium.app',
+  );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyC2FD7k_Sr8QeHbRUvHyOXivSiLtC33uVU',
+    appId: '1:499888969163:web:e8ae4252d171d78213d24e',
+    messagingSenderId: '499888969163',
+    projectId: 'kromium-f338e',
+    authDomain: 'kromium-f338e.firebaseapp.com',
+    storageBucket: 'kromium-f338e.firebasestorage.app',
+  );
+
+  static const FirebaseOptions linux = FirebaseOptions(
+    apiKey: 'AIzaSyC2FD7k_Sr8QeHbRUvHyOXivSiLtC33uVU',
+    appId: '1:499888969163:web:e8ae4252d171d78213d24e',
+    messagingSenderId: '499888969163',
+    projectId: 'kromium-f338e',
+    authDomain: 'kromium-f338e.firebaseapp.com',
     storageBucket: 'kromium-f338e.firebasestorage.app',
   );
 

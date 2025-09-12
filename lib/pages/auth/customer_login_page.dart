@@ -6,6 +6,7 @@ import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/routes.dart';
 import 'package:kronium/core/user_auth_service.dart';
 import 'package:kronium/core/constants.dart';
+import 'package:kronium/core/toast_utils.dart';
 
 class CustomerLoginPage extends StatefulWidget {
   const CustomerLoginPage({super.key});
@@ -38,13 +39,19 @@ class _CustomerLoginPageState extends State<CustomerLoginPage> {
     final password = _passwordController.text;
 
     final userAuthService = Get.find<UserAuthService>();
-    final success = await userAuthService.loginUser(email, password);
+    final result = await userAuthService.loginUser(email, password);
 
     setState(() => _isLoading = false);
 
-    if (success) {
+    if (result['success']) {
+      // Show success message
+      ToastUtils.showSuccess(result['message'], title: 'Login Successful');
+      
       // Go to welcome screen to show personalized greeting
       Get.offAllNamed(AppRoutes.welcome);
+    } else {
+      // Show error message
+      ToastUtils.showError(result['message'], title: 'Login Failed');
     }
   }
 

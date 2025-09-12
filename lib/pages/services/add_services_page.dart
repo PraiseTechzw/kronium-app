@@ -53,7 +53,7 @@ class AddServicePageState extends State<AddServicePage> {
     FontAwesomeIcons.tractor,
     FontAwesomeIcons.laptopCode,
     FontAwesomeIcons.warehouse,
-    FontAwesomeIcons.hardHat,
+    FontAwesomeIcons.helmetSafety,
     FontAwesomeIcons.bolt,
     FontAwesomeIcons.leaf,
   ];
@@ -247,7 +247,7 @@ class AddServicePageState extends State<AddServicePage> {
     IconData? icon,
   }) {
     return DropdownButtonFormField<String>(
-      value: value,
+      initialValue: value,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: icon != null ? Icon(icon) : null,
@@ -321,8 +321,9 @@ class AddServicePageState extends State<AddServicePage> {
                   'Service Title',
                   Icons.title,
                   validator: (value) {
-                    if (value == null || value.isEmpty)
+                    if (value == null || value.isEmpty) {
                       return 'Please enter a title';
+                    }
                     return null;
                   },
                 ),
@@ -333,8 +334,9 @@ class AddServicePageState extends State<AddServicePage> {
                   Icons.description,
                   maxLines: 3,
                   validator: (value) {
-                    if (value == null || value.isEmpty)
+                    if (value == null || value.isEmpty) {
                       return 'Please enter a description';
+                    }
                     return null;
                   },
                 ),
@@ -354,8 +356,9 @@ class AddServicePageState extends State<AddServicePage> {
                   'Image Path',
                   FontAwesomeIcons.image,
                   validator: (value) {
-                    if (value == null || value.isEmpty)
+                    if (value == null || value.isEmpty) {
                       return 'Please enter an image path';
+                    }
                     return null;
                   },
                 ),

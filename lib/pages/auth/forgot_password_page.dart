@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/routes.dart';
 import 'package:kronium/core/constants.dart';
+import 'package:kronium/core/toast_utils.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -42,13 +43,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         _isLoading = false;
       });
 
-      Get.snackbar(
-        'Success',
-        'Password reset email sent successfully!',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppTheme.successColor,
-        colorText: Colors.white,
-      );
+      ToastUtils.showSuccess('Password reset email sent successfully!', title: 'Email Sent');
     } catch (e) {
       setState(() => _isLoading = false);
 
@@ -59,13 +54,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         errorMessage = 'Please enter a valid email address';
       }
 
-      Get.snackbar(
-        'Error',
-        errorMessage,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppTheme.errorColor,
-        colorText: Colors.white,
-      );
+      ToastUtils.showError(errorMessage, title: 'Reset Failed');
     }
   }
 

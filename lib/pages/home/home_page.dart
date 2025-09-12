@@ -17,16 +17,22 @@ import 'package:kronium/widgets/background_switcher.dart';
 
 /// HomePage is the main shell for the app's tabbed navigation.
 /// It manages the app bar, drawer, bottom navigation, and tab switching.
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
   final RxInt _currentIndex = 0.obs;
   final PageController _pageController = PageController();
   final RxBool _isDarkMode = false.obs;
   final RxBool _viewAsAdmin = true.obs; // Admins can toggle this
 
-  HomePage({super.key});
-
   @override
-  Widget build(BuildContext context) {
+  void initState() {
+    super.initState();
     final userController = Get.find<UserController>();
     final userAuthService = Get.find<UserAuthService>();
 
@@ -44,6 +50,11 @@ class HomePage extends StatelessWidget {
         return;
       }
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final userController = Get.find<UserController>();
 
     return Obx(() {
       final isDarkMode = _isDarkMode.value;
@@ -106,18 +117,16 @@ class HomePage extends StatelessWidget {
             extraItems:
                 isAdmin
                     ? [
-                      Obx(
-                        () => SwitchListTile(
-                          title: Text(
-                            _viewAsAdmin.value ? 'Admin View' : 'Customer View',
-                          ),
-                          value: _viewAsAdmin.value,
-                          onChanged: (val) => _viewAsAdmin.value = val,
-                          secondary: Icon(
-                            _viewAsAdmin.value
-                                ? Iconsax.shield_tick
-                                : Iconsax.user,
-                          ),
+                      SwitchListTile(
+                        title: Text(
+                          viewAsAdmin ? 'Admin View' : 'Customer View',
+                        ),
+                        value: viewAsAdmin,
+                        onChanged: (val) => _viewAsAdmin.value = val,
+                        secondary: Icon(
+                          viewAsAdmin
+                              ? Iconsax.shield_tick
+                              : Iconsax.user,
                         ),
                       ),
                     ]
@@ -147,73 +156,76 @@ class HomePage extends StatelessWidget {
                     onPressed: () => _showAdminQuickActions(context),
                   )
                   : null,
-          bottomNavigationBar: Obx(() {
-            final role = userController.role.value;
-            final isAdmin = role == 'admin';
-            final viewAsAdmin = !isAdmin || _viewAsAdmin.value;
+          bottomNavigationBar: FadeInUp(
+            child: BottomNavigationBar(
+              currentIndex: _currentIndex.value,
+              onTap: (index) async {
+                final isProfileTab = index == _getBottomNavItems().length - 1;
+                final isLoggedIn = role != 'guest';
 
-            final List<BottomNavigationBarItem> items = [
-              const BottomNavigationBarItem(
-                icon: Icon(Iconsax.home_2),
-                label: 'Home',
-              ),
-              const BottomNavigationBarItem(
-                icon: Icon(Iconsax.box),
-                label: 'Services',
-              ),
-              const BottomNavigationBarItem(
-                icon: Icon(Iconsax.document_text),
-                label: 'Projects',
-              ),
-            ];
+                if (isProfileTab && !isLoggedIn) {
+                  Get.toNamed('/customer-login');
+                  return;
+                }
 
-            if (role == 'customer' || (isAdmin && viewAsAdmin)) {
-              items.add(
-                const BottomNavigationBarItem(
-                  icon: Icon(Iconsax.message),
-                  label: 'Chat',
-                ),
-              );
-            }
-
-            items.add(
-              BottomNavigationBarItem(
-                icon: const Icon(Iconsax.user),
-                label: role == 'guest' ? 'Login' : 'Profile',
-              ),
-            );
-
-            return FadeInUp(
-              child: BottomNavigationBar(
-                currentIndex: _currentIndex.value,
-                onTap: (index) async {
-                  final isProfileTab = index == items.length - 1;
-                  final isLoggedIn = userController.role.value != 'guest';
-
-                  if (isProfileTab && !isLoggedIn) {
-                    Get.toNamed('/customer-login');
-                    return;
-                  }
-
-                  _currentIndex.value = index;
-                  _pageController.animateToPage(
-                    index,
-                    duration: const Duration(milliseconds: 500),
-                    curve: Curves.easeInOut,
-                  );
-                },
-                backgroundColor: AppTheme.surfaceLight,
-                selectedItemColor: AppTheme.primaryColor,
-                unselectedItemColor: AppTheme.secondaryColor,
-                showUnselectedLabels: true,
-                type: BottomNavigationBarType.fixed,
-                items: items,
-              ),
-            );
-          }),
+                _currentIndex.value = index;
+                _pageController.animateToPage(
+                  index,
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeInOut,
+                );
+              },
+              backgroundColor: AppTheme.surfaceLight,
+              selectedItemColor: AppTheme.primaryColor,
+              unselectedItemColor: AppTheme.secondaryColor,
+              showUnselectedLabels: true,
+              type: BottomNavigationBarType.fixed,
+              items: _getBottomNavItems(),
+            ),
+          ),
         ),
       );
     });
+  }
+
+  List<BottomNavigationBarItem> _getBottomNavItems() {
+    final userController = Get.find<UserController>();
+    final role = userController.role.value;
+    final isAdmin = role == 'admin';
+    final viewAsAdmin = !isAdmin || _viewAsAdmin.value;
+
+    final List<BottomNavigationBarItem> items = [
+      const BottomNavigationBarItem(
+        icon: Icon(Iconsax.home_2),
+        label: 'Home',
+      ),
+      const BottomNavigationBarItem(
+        icon: Icon(Iconsax.box),
+        label: 'Services',
+      ),
+      const BottomNavigationBarItem(
+        icon: Icon(Iconsax.document_text),
+        label: 'Projects',
+      ),
+    ];
+
+    if (role == 'customer' || (isAdmin && viewAsAdmin)) {
+      items.add(
+        const BottomNavigationBarItem(
+          icon: Icon(Iconsax.message),
+          label: 'Chat',
+        ),
+      );
+    }
+
+    items.add(
+      BottomNavigationBarItem(
+        icon: const Icon(Iconsax.user),
+        label: role == 'guest' ? 'Login' : 'Profile',
+      ),
+    );
+
+    return items;
   }
 
   void _showAdminQuickActions(BuildContext context) {

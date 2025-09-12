@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:get/get.dart';
-import 'package:flutter/material.dart';
 import 'package:kronium/models/user_model.dart';
 import 'package:kronium/core/user_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -345,11 +344,11 @@ class UserAuthService extends GetxController {
   }
 
   // Public methods
-  Future<bool> loginUser(String email, String password) async {
+  Future<Map<String, dynamic>> loginUser(String email, String password) async {
     try {
       if (isLoading.value) {
         print('UserAuthService: Login already in progress, skipping...');
-        return false;
+        return {'success': false, 'message': 'Login already in progress'};
       }
 
       isLoading.value = true;
@@ -364,19 +363,20 @@ class UserAuthService extends GetxController {
       if (user != null) {
         print('UserAuthService: Login successful, loading profile...');
         await _loadUserProfile(user);
-        return true;
+        return {'success': true, 'message': 'Login successful'};
       }
 
-      return false;
+      return {'success': false, 'message': 'Login failed - no user returned'};
     } catch (e) {
       print('UserAuthService: Login error: $e');
-      return false;
+      String errorMessage = _getFirebaseErrorMessage(e.toString());
+      return {'success': false, 'message': errorMessage};
     } finally {
       isLoading.value = false;
     }
   }
 
-  Future<bool> registerUser(
+  Future<Map<String, dynamic>> registerUser(
     String name,
     String email,
     String phone,
@@ -411,13 +411,14 @@ class UserAuthService extends GetxController {
 
         print('UserAuthService: Registration successful, setting profile...');
         await _loadUserProfile(user);
-        return true;
+        return {'success': true, 'message': 'Account created successfully'};
       }
 
-      return false;
+      return {'success': false, 'message': 'Registration failed - no user returned'};
     } catch (e) {
       print('UserAuthService: Registration error: $e');
-      return false;
+      String errorMessage = _getFirebaseErrorMessage(e.toString());
+      return {'success': false, 'message': errorMessage};
     } finally {
       isLoading.value = false;
     }
@@ -546,5 +547,32 @@ class UserAuthService extends GetxController {
       'UserAuthService: Session validation - Firebase: $hasUser, Profile: $hasProfile, LoggedIn: $isLoggedIn',
     );
     return hasUser && hasProfile && isLoggedIn;
+  }
+
+  // Helper method to convert Firebase error codes to user-friendly messages
+  String _getFirebaseErrorMessage(String error) {
+    if (error.contains('user-not-found')) {
+      return 'No account found with this email address';
+    } else if (error.contains('wrong-password')) {
+      return 'Incorrect password. Please try again';
+    } else if (error.contains('invalid-email')) {
+      return 'Invalid email address format';
+    } else if (error.contains('user-disabled')) {
+      return 'This account has been disabled. Please contact support';
+    } else if (error.contains('too-many-requests')) {
+      return 'Too many failed attempts. Please try again later';
+    } else if (error.contains('email-already-in-use')) {
+      return 'An account with this email already exists';
+    } else if (error.contains('weak-password')) {
+      return 'Password is too weak. Please choose a stronger password';
+    } else if (error.contains('network-request-failed')) {
+      return 'Network error. Please check your internet connection';
+    } else if (error.contains('invalid-credential')) {
+      return 'Invalid email or password';
+    } else if (error.contains('operation-not-allowed')) {
+      return 'Email/password accounts are not enabled. Please contact support';
+    } else {
+      return 'An error occurred. Please try again';
+    }
   }
 }

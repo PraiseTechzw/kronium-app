@@ -8,7 +8,7 @@ class AppwriteService {
   static void init() {
     client
       .setEndpoint('https://cloud.appwrite.io/v1')
-      .setProject('6867ce160037a5704b1d');
+      .setProject('6867ce2e001b592626ae');
     _storage = Storage(client);
   }
 

@@ -7,6 +7,7 @@ import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/firebase_service.dart';
 import 'package:kronium/core/routes.dart';
 import 'package:kronium/core/user_controller.dart';
+import 'package:kronium/core/toast_utils.dart';
 
 class AdminSetupPage extends StatefulWidget {
   const AdminSetupPage({super.key});
@@ -62,18 +63,10 @@ class _AdminSetupPageState extends State<AdminSetupPage> {
         );
 
         Get.offAllNamed(AppRoutes.adminDashboard);
-        Get.snackbar(
-          'Setup Complete!',
-          'Admin account created successfully',
-          snackPosition: SnackPosition.BOTTOM,
-        );
+        ToastUtils.showSuccess('Admin account created successfully', title: 'Setup Complete!');
       }
     } catch (e) {
-      Get.snackbar(
-        'Setup Failed',
-        'An error occurred during setup: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      ToastUtils.showError('An error occurred during setup: ${e.toString()}', title: 'Setup Failed');
     } finally {
       setState(() => _isLoading = false);
     }

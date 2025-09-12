@@ -7,7 +7,6 @@ import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/firebase_service.dart';
 import 'package:kronium/core/user_controller.dart';
 import 'package:kronium/models/service_model.dart';
-import 'package:kronium/core/user_auth_service.dart' show UserController;
 import 'package:kronium/core/routes.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:kronium/core/appwrite_client.dart';
@@ -53,8 +52,8 @@ class AdminServicesPage extends StatelessWidget {
       }),
       bottomNavigationBar: Obx(() {
         final role = userController.role.value;
-        final isAdmin = role == 'admin';
-        final viewAsAdmin = true; // Or use a toggle if you want
+        // final isAdmin = role == 'admin';
+        // final viewAsAdmin = true; // Or use a toggle if you want
         return BottomNavigationBar(
           currentIndex: 1, // Services tab
           onTap: (index) {

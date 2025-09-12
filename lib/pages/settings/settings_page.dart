@@ -267,7 +267,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 print('Error updating dark mode setting: $e');
               }
             },
-            activeColor: AppTheme.primaryColor,
+            activeThumbColor: AppTheme.primaryColor,
           ),
         ),
         const Divider(height: 1),
@@ -312,7 +312,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 print('Error updating notifications setting: $e');
               }
             },
-            activeColor: AppTheme.primaryColor,
+            activeThumbColor: AppTheme.primaryColor,
           ),
         ),
         const Divider(height: 1),
@@ -332,7 +332,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 print('Error updating biometric setting: $e');
               }
             },
-            activeColor: AppTheme.primaryColor,
+            activeThumbColor: AppTheme.primaryColor,
           ),
         ),
         const Divider(height: 1),
@@ -370,7 +370,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 print('Error updating project notifications setting: $e');
               }
             },
-            activeColor: AppTheme.primaryColor,
+            activeThumbColor: AppTheme.primaryColor,
           ),
         ),
         const Divider(height: 1),
@@ -386,7 +386,7 @@ class _SettingsPageState extends State<SettingsPage> {
               });
               await _settingsService.updateSetting('bookingReminders', value);
             },
-            activeColor: AppTheme.primaryColor,
+            activeThumbColor: AppTheme.primaryColor,
           ),
         ),
         const Divider(height: 1),
@@ -402,7 +402,7 @@ class _SettingsPageState extends State<SettingsPage> {
               });
               await _settingsService.updateSetting('serviceUpdates', value);
             },
-            activeColor: AppTheme.primaryColor,
+            activeThumbColor: AppTheme.primaryColor,
           ),
         ),
         const Divider(height: 1),
@@ -421,7 +421,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 value,
               );
             },
-            activeColor: AppTheme.primaryColor,
+            activeThumbColor: AppTheme.primaryColor,
           ),
         ),
         const Divider(height: 1),
@@ -444,7 +444,7 @@ class _SettingsPageState extends State<SettingsPage> {
               });
               await _settingsService.updateSetting('showTransportCosts', value);
             },
-            activeColor: AppTheme.primaryColor,
+            activeThumbColor: AppTheme.primaryColor,
           ),
         ),
         const Divider(height: 1),
@@ -463,7 +463,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 value,
               );
             },
-            activeColor: AppTheme.primaryColor,
+            activeThumbColor: AppTheme.primaryColor,
           ),
         ),
       ],

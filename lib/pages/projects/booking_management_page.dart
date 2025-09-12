@@ -326,7 +326,7 @@ class _BookingsManagementPageState extends State<BookingsManagementPage> {
                   children: [
                     Expanded(
                       child: DropdownButtonFormField<String>(
-                        value: _selectedFilter,
+                        initialValue: _selectedFilter,
                         items: _filterOptions.map((String value) {
                           return DropdownMenuItem<String>(
                             value: value,
@@ -345,7 +345,7 @@ class _BookingsManagementPageState extends State<BookingsManagementPage> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: DropdownButtonFormField<String>(
-                        value: _selectedSort,
+                        initialValue: _selectedSort,
                         items: _sortOptions.map((String value) {
                           return DropdownMenuItem<String>(
                             value: value,

@@ -10,15 +10,16 @@ Future<void> showLoginBottomSheet(BuildContext context) async {
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
-    builder: (context) => Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-        left: 24,
-        right: 24,
-        top: 32,
-      ),
-      child: _LoginForm(),
-    ),
+    builder:
+        (context) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 24,
+            right: 24,
+            top: 32,
+          ),
+          child: _LoginForm(),
+        ),
   );
 }
 
@@ -45,14 +46,24 @@ class _LoginFormState extends State<_LoginForm> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
     final userAuthService = Get.find<UserAuthService>();
-    final success = await userAuthService.loginUser(
+    final result = await userAuthService.loginUser(
       _emailController.text.trim(),
       _passwordController.text,
     );
     setState(() => _isLoading = false);
-    if (success) {
+    if (result['success']) {
       Navigator.of(context).pop();
-      Get.snackbar('Login Successful', 'Welcome back!', snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        'Login Successful',
+        result['message'],
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } else {
+      Get.snackbar(
+        'Login Failed',
+        result['message'],
+        snackPosition: SnackPosition.BOTTOM,
+      );
     }
   }
 
@@ -102,8 +113,13 @@ class _LoginFormState extends State<_LoginForm> {
                   labelText: 'Password',
                   prefixIcon: const Icon(Iconsax.lock),
                   suffixIcon: IconButton(
-                    icon: Icon(_obscurePassword ? Iconsax.eye_slash : Iconsax.eye),
-                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                    icon: Icon(
+                      _obscurePassword ? Iconsax.eye_slash : Iconsax.eye,
+                    ),
+                    onPressed:
+                        () => setState(
+                          () => _obscurePassword = !_obscurePassword,
+                        ),
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -124,9 +140,16 @@ class _LoginFormState extends State<_LoginForm> {
                 height: 48,
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _login,
-                  child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text('Login', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  child:
+                      _isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text(
+                            'Login',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -136,4 +159,4 @@ class _LoginFormState extends State<_LoginForm> {
       ],
     );
   }
-} 
+}

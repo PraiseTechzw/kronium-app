@@ -87,41 +87,32 @@ class AdminAuthService extends GetxController {
     print('Admin session cleared');
   }
 
-  // Future<bool> loginAsAdmin(String email, String password) async {
-  //   try {
-  //     final userCredential = await _auth.signInWithEmailAndPassword(
-  //       email: email,
-  //       password: password,
-  //     );
-  //     // Check if user is admin in Firestore
-  //     final adminDoc = await _firestore
-  //         .collection('admins')
-  //         .doc(userCredential.user!.uid)
-  //         .get();
-  //     if (adminDoc.exists) {
-  //       adminUser.value = userCredential.user;
-  //       isAdminLoggedIn.value = true;
-  //       final prefs = await SharedPreferences.getInstance();
-  //       await prefs.setString('admin_email', email);
-  //       return true;
-  //     } else {
-  //       await _auth.signOut();
-  //       Get.snackbar(
-  //         'Access Denied',
-  //         'This account is not authorized as admin',
-  //         snackPosition: SnackPosition.BOTTOM,
-  //       );
-  //       return false;
-  //     }
-  //   } catch (e) {
-  //     Get.snackbar(
-  //       'Login Failed',
-  //       'Invalid email or password',
-  //       snackPosition: SnackPosition.BOTTOM,
-  //     );
-  //     return false;
-  //   }
-  // }
+  Future<Map<String, dynamic>> loginAsAdmin(String email, String password) async {
+    try {
+      final userCredential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      // Check if user is admin in Firestore
+      final adminDoc = await _firestore
+          .collection('admins')
+          .doc(userCredential.user!.uid)
+          .get();
+      if (adminDoc.exists) {
+        adminUser.value = userCredential.user;
+        isAdminLoggedIn.value = true;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('admin_email', email);
+        return {'success': true, 'message': 'Admin login successful'};
+      } else {
+        await _auth.signOut();
+        return {'success': false, 'message': 'This account is not authorized as admin'};
+      }
+    } catch (e) {
+      String errorMessage = _getFirebaseErrorMessage(e.toString());
+      return {'success': false, 'message': errorMessage};
+    }
+  }
 
   Future<void> logout() async {
     await _logout();
@@ -138,6 +129,29 @@ class AdminAuthService extends GetxController {
 
   bool get isAdmin => isAdminLoggedIn.value;
   User? get currentAdmin => adminUser.value;
+
+  // Helper method to convert Firebase error codes to user-friendly messages
+  String _getFirebaseErrorMessage(String error) {
+    if (error.contains('user-not-found')) {
+      return 'No admin account found with this email address';
+    } else if (error.contains('wrong-password')) {
+      return 'Incorrect password. Please try again';
+    } else if (error.contains('invalid-email')) {
+      return 'Invalid email address format';
+    } else if (error.contains('user-disabled')) {
+      return 'This admin account has been disabled. Please contact support';
+    } else if (error.contains('too-many-requests')) {
+      return 'Too many failed attempts. Please try again later';
+    } else if (error.contains('network-request-failed')) {
+      return 'Network error. Please check your internet connection';
+    } else if (error.contains('invalid-credential')) {
+      return 'Invalid email or password';
+    } else if (error.contains('operation-not-allowed')) {
+      return 'Email/password accounts are not enabled. Please contact support';
+    } else {
+      return 'An error occurred. Please try again';
+    }
+  }
 
   // Create admin account
   Future<UserCredential?> createAdminAccount(

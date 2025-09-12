@@ -177,7 +177,7 @@ class _AdminAddServicePageState extends State<AdminAddServicePage> {
               child: Column(
                 children: [
                   DropdownButtonFormField<String>(
-                    value: _selectedCategory,
+                    initialValue: _selectedCategory,
                     decoration: const InputDecoration(labelText: 'Category'),
                     items: _categories.map((cat) => DropdownMenuItem(
                       value: cat,
@@ -193,7 +193,7 @@ class _AdminAddServicePageState extends State<AdminAddServicePage> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    value: _selectedServiceTitle,
+                    initialValue: _selectedServiceTitle,
                     decoration: const InputDecoration(labelText: 'Service Title'),
                     items: _filteredServiceTitles.map((title) => DropdownMenuItem(
                       value: title,

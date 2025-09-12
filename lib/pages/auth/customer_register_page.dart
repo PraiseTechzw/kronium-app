@@ -6,6 +6,7 @@ import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/routes.dart';
 import 'package:kronium/core/user_auth_service.dart';
 import 'package:kronium/core/constants.dart';
+import 'package:kronium/core/toast_utils.dart';
 
 class CustomerRegisterPage extends StatefulWidget {
   const CustomerRegisterPage({super.key});
@@ -42,7 +43,7 @@ class _CustomerRegisterPageState extends State<CustomerRegisterPage> {
     setState(() => _isLoading = true);
 
     final userAuthService = Get.find<UserAuthService>();
-    final success = await userAuthService.registerUser(
+    final result = await userAuthService.registerUser(
       _nameController.text.trim(),
       _emailController.text.trim(),
       _phoneController.text.trim(),
@@ -51,9 +52,15 @@ class _CustomerRegisterPageState extends State<CustomerRegisterPage> {
 
     setState(() => _isLoading = false);
 
-    if (success) {
+    if (result['success']) {
+      // Show success message
+      ToastUtils.showSuccess(result['message'], title: 'Registration Successful');
+      
       // Go to welcome screen to show personalized greeting
       Get.offAllNamed(AppRoutes.welcome);
+    } else {
+      // Show error message
+      ToastUtils.showError(result['message'], title: 'Registration Failed');
     }
   }
 

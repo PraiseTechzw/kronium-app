@@ -170,7 +170,7 @@ class AppDrawer extends StatelessWidget {
               trailing: Switch(
                 value: isDarkMode,
                 onChanged: onDarkModeChanged,
-                activeColor: AppTheme.primaryColor,
+                activeThumbColor: AppTheme.primaryColor,
               ),
             ),
             Divider(color: AppTheme.divider),

@@ -19,6 +19,8 @@ class _CustomerChatPageState extends State<CustomerChatPage> {
   final ScrollController _scrollController = ScrollController();
   String? _chatRoomId;
   bool _isLoading = true;
+  bool _isTyping = false;
+  bool _isSending = false;
 
   @override
   void initState() {
@@ -55,27 +57,53 @@ class _CustomerChatPageState extends State<CustomerChatPage> {
     final user = UserAuthService.instance.userProfile.value;
     if (_messageController.text.trim().isEmpty ||
         user == null ||
-        _chatRoomId == null)
+        _chatRoomId == null ||
+        _isSending) {
       return;
-    final firebaseService = Get.find<FirebaseService>();
-    final message = ChatMessage(
-      senderId: user.id!,
-      senderName: user.name,
-      senderType: 'customer',
-      message: _messageController.text.trim(),
-      timestamp: DateTime.now(),
-    );
-    await firebaseService.sendMessage(_chatRoomId!, message);
-    _messageController.clear();
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
+    }
+
+    setState(() {
+      _isSending = true;
     });
+
+    try {
+      final firebaseService = Get.find<FirebaseService>();
+      final message = ChatMessage(
+        senderId: user.id!,
+        senderName: user.name,
+        senderType: 'customer',
+        message: _messageController.text.trim(),
+        timestamp: DateTime.now(),
+        chatRoomId: _chatRoomId!,
+      );
+
+      await firebaseService.sendMessage(_chatRoomId!, message);
+      _messageController.clear();
+
+      // Auto-scroll to bottom
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    } catch (e) {
+      // Show error message
+      Get.snackbar(
+        'Error',
+        'Failed to send message. Please try again.',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+      );
+    } finally {
+      setState(() {
+        _isSending = false;
+      });
+    }
   }
 
   void _showSupportInfo() {
@@ -308,8 +336,94 @@ class _CustomerChatPageState extends State<CustomerChatPage> {
                                 }
                                 final messages = snapshot.data ?? [];
                                 if (messages.isEmpty) {
-                                  return const Center(
-                                    child: Text('No messages yet. Say hello!'),
+                                  return Center(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(32),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Container(
+                                            width: 120,
+                                            height: 120,
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                colors: [
+                                                  AppTheme.primaryColor
+                                                      .withOpacity(0.1),
+                                                  AppTheme.secondaryColor
+                                                      .withOpacity(0.1),
+                                                ],
+                                                begin: Alignment.topLeft,
+                                                end: Alignment.bottomRight,
+                                              ),
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(
+                                              Iconsax.message_question,
+                                              size: 48,
+                                              color: AppTheme.primaryColor,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 24),
+                                          Text(
+                                            'Start a Conversation',
+                                            style: TextStyle(
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.grey[800],
+                                            ),
+                                          ),
+                                          const SizedBox(height: 12),
+                                          Text(
+                                            'Our support team is here to help you with any questions or concerns. Send a message to get started!',
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              color: Colors.grey[600],
+                                              height: 1.5,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 32),
+                                          Wrap(
+                                            spacing: 12,
+                                            runSpacing: 12,
+                                            children: [
+                                              _buildQuickActionChip(
+                                                'Hello! I need help',
+                                                () {
+                                                  _messageController.text =
+                                                      'Hello! I need help';
+                                                  setState(() {
+                                                    _isTyping = true;
+                                                  });
+                                                },
+                                              ),
+                                              _buildQuickActionChip(
+                                                'I have a question about my project',
+                                                () {
+                                                  _messageController.text =
+                                                      'I have a question about my project';
+                                                  setState(() {
+                                                    _isTyping = true;
+                                                  });
+                                                },
+                                              ),
+                                              _buildQuickActionChip(
+                                                'I need technical support',
+                                                () {
+                                                  _messageController.text =
+                                                      'I need technical support';
+                                                  setState(() {
+                                                    _isTyping = true;
+                                                  });
+                                                },
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                   );
                                 }
                                 return ListView.builder(
@@ -320,10 +434,15 @@ class _CustomerChatPageState extends State<CustomerChatPage> {
                                     final msg = messages[index];
                                     final isCustomer =
                                         msg.senderType == 'customer';
+                                    final isLastMessage =
+                                        index == messages.length - 1;
+
                                     return ChatMessageBubble(
                                       message: msg,
                                       isCustomer: isCustomer,
                                       formatTimestamp: _formatTimestamp,
+                                      isLastMessage: isLastMessage,
+                                      showAvatar: true,
                                     );
                                   },
                                 );
@@ -345,82 +464,202 @@ class _CustomerChatPageState extends State<CustomerChatPage> {
                         ),
                       ],
                     ),
-                    child: Row(
+                    child: Column(
                       children: [
-                        Expanded(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.grey[50],
-                              borderRadius: BorderRadius.circular(25),
-                              border: Border.all(
-                                color: Colors.grey[200]!,
-                                width: 1,
-                              ),
+                        // Typing indicator
+                        if (_isTyping)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
                             ),
-                            child: TextField(
-                              controller: _messageController,
-                              decoration: InputDecoration(
-                                hintText: 'Type your message...',
-                                hintStyle: TextStyle(
-                                  color: Colors.grey[500],
-                                  fontSize: 15,
+                            child: Row(
+                              children: [
+                                SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      AppTheme.primaryColor.withOpacity(0.7),
+                                    ),
+                                  ),
                                 ),
-                                border: InputBorder.none,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                  vertical: 16,
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Support is typing...',
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 12,
+                                    fontStyle: FontStyle.italic,
+                                  ),
                                 ),
-                              ),
-                              minLines: 1,
-                              maxLines: 4,
-                              style: const TextStyle(
-                                fontSize: 15,
-                                color: Colors.black87,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                AppTheme.primaryColor,
-                                AppTheme.secondaryColor,
                               ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
                             ),
-                            borderRadius: BorderRadius.circular(25),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppTheme.primaryColor.withOpacity(0.3),
-                                blurRadius: 15,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
                           ),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(25),
-                              onTap: _sendMessage,
+                        Row(
+                          children: [
+                            Expanded(
                               child: Container(
-                                padding: const EdgeInsets.all(16),
-                                child: const Icon(
-                                  Iconsax.send_2,
-                                  color: Colors.white,
-                                  size: 20,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[50],
+                                  borderRadius: BorderRadius.circular(25),
+                                  border: Border.all(
+                                    color:
+                                        _isSending
+                                            ? Colors.grey[300]!
+                                            : Colors.grey[200]!,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: TextField(
+                                  controller: _messageController,
+                                  enabled: !_isSending,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _isTyping = value.isNotEmpty;
+                                    });
+                                  },
+                                  decoration: InputDecoration(
+                                    hintText:
+                                        _isSending
+                                            ? 'Sending...'
+                                            : 'Type your message...',
+                                    hintStyle: TextStyle(
+                                      color:
+                                          _isSending
+                                              ? Colors.grey[400]
+                                              : Colors.grey[500],
+                                      fontSize: 15,
+                                    ),
+                                    border: InputBorder.none,
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                      vertical: 16,
+                                    ),
+                                    suffixIcon:
+                                        _messageController.text.isNotEmpty
+                                            ? IconButton(
+                                              icon: const Icon(
+                                                Iconsax.close_circle,
+                                                size: 20,
+                                              ),
+                                              onPressed: () {
+                                                _messageController.clear();
+                                                setState(() {
+                                                  _isTyping = false;
+                                                });
+                                              },
+                                              color: Colors.grey[500],
+                                            )
+                                            : null,
+                                  ),
+                                  minLines: 1,
+                                  maxLines: 4,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    color: Colors.black87,
+                                  ),
+                                  onSubmitted: (value) {
+                                    if (value.trim().isNotEmpty &&
+                                        !_isSending) {
+                                      _sendMessage();
+                                    }
+                                  },
                                 ),
                               ),
                             ),
-                          ),
+                            const SizedBox(width: 12),
+                            Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors:
+                                      _isSending
+                                          ? [
+                                            Colors.grey[400]!,
+                                            Colors.grey[500]!,
+                                          ]
+                                          : [
+                                            AppTheme.primaryColor,
+                                            AppTheme.secondaryColor,
+                                          ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(25),
+                                boxShadow:
+                                    _isSending
+                                        ? null
+                                        : [
+                                          BoxShadow(
+                                            color: AppTheme.primaryColor
+                                                .withOpacity(0.3),
+                                            blurRadius: 15,
+                                            offset: const Offset(0, 4),
+                                          ),
+                                        ],
+                              ),
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(25),
+                                  onTap: _isSending ? null : _sendMessage,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(16),
+                                    child:
+                                        _isSending
+                                            ? SizedBox(
+                                              width: 20,
+                                              height: 20,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                valueColor:
+                                                    const AlwaysStoppedAnimation<
+                                                      Color
+                                                    >(Colors.white),
+                                              ),
+                                            )
+                                            : const Icon(
+                                              Iconsax.send_2,
+                                              color: Colors.white,
+                                              size: 20,
+                                            ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
                 ],
               ),
+    );
+  }
+
+  Widget _buildQuickActionChip(String text, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: AppTheme.primaryColor.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: AppTheme.primaryColor.withOpacity(0.3),
+            width: 1,
+          ),
+        ),
+        child: Text(
+          text,
+          style: TextStyle(
+            color: AppTheme.primaryColor,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
     );
   }
 

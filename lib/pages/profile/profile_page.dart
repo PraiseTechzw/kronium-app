@@ -24,8 +24,8 @@ class ProfilePageState extends State<ProfilePage> {
   bool _isDarkMode = false;
   bool _notificationsEnabled = true;
   bool _biometricEnabled = false;
-  String _language = 'English';
-  String _currency = 'USD';
+  final String _language = 'English';
+  final String _currency = 'USD';
 
   @override
   void initState() {
@@ -268,7 +268,7 @@ class ProfilePageState extends State<ProfilePage> {
                 });
                 // TODO: Implement dark mode toggle
               },
-              activeColor: AppTheme.primaryColor,
+              activeThumbColor: AppTheme.primaryColor,
             ),
           ),
           const Divider(height: 1),
@@ -284,7 +284,7 @@ class ProfilePageState extends State<ProfilePage> {
                 });
                 // TODO: Implement notification toggle
               },
-              activeColor: AppTheme.primaryColor,
+              activeThumbColor: AppTheme.primaryColor,
             ),
           ),
           const Divider(height: 1),
@@ -300,7 +300,7 @@ class ProfilePageState extends State<ProfilePage> {
                 });
                 // TODO: Implement biometric toggle
               },
-              activeColor: AppTheme.primaryColor,
+              activeThumbColor: AppTheme.primaryColor,
             ),
           ),
           const Divider(height: 1),

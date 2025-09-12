@@ -7,7 +7,6 @@ import 'package:intl/intl.dart';
 import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/firebase_service.dart';
 import 'package:kronium/models/booking_model.dart';
-import 'package:kronium/core/user_auth_service.dart' show userController;
 import 'package:kronium/core/user_controller.dart';
 
 class AdminBookingsPage extends StatelessWidget {

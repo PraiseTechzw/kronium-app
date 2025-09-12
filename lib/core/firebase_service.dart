@@ -11,40 +11,45 @@ import 'package:kronium/models/project_model.dart';
 
 class FirebaseService extends GetxController {
   static FirebaseService get instance => Get.find();
-  
+
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  
+
   // Services Collection
-  CollectionReference get servicesCollection => _firestore.collection('services');
-  
+  CollectionReference get servicesCollection =>
+      _firestore.collection('services');
+
   // Bookings Collection
-  CollectionReference get bookingsCollection => _firestore.collection('bookings');
-  
+  CollectionReference get bookingsCollection =>
+      _firestore.collection('bookings');
+
   // Admins Collection
   CollectionReference get adminsCollection => _firestore.collection('admins');
-  
+
   // Users Collection
   CollectionReference get usersCollection => _firestore.collection('users');
-  
+
   // Chat Collections
-  CollectionReference get chatRoomsCollection => _firestore.collection('chat_rooms');
-  CollectionReference get chatMessagesCollection => _firestore.collection('chat_messages');
-  
+  CollectionReference get chatRoomsCollection =>
+      _firestore.collection('chat_rooms');
+  CollectionReference get chatMessagesCollection =>
+      _firestore.collection('chat_messages');
+
   // Projects Collection
-  CollectionReference get projectsCollection => _firestore.collection('projects');
-  
+  CollectionReference get projectsCollection =>
+      _firestore.collection('projects');
+
   // Get all services
   Stream<List<Service>> getServices() {
     return servicesCollection
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        return Service.fromFirestore(doc);
-      }).toList();
-    });
+          return snapshot.docs.map((doc) {
+            return Service.fromFirestore(doc);
+          }).toList();
+        });
   }
-  
+
   // Get service by ID
   Future<Service?> getServiceById(String id) async {
     final doc = await servicesCollection.doc(id).get();
@@ -53,7 +58,7 @@ class FirebaseService extends GetxController {
     }
     return null;
   }
-  
+
   // Add new service (Admin only)
   Future<void> addService(Service service) async {
     await servicesCollection.add({
@@ -69,7 +74,7 @@ class FirebaseService extends GetxController {
       'updatedAt': FieldValue.serverTimestamp(),
     });
   }
-  
+
   // Update service (Admin only)
   Future<void> updateService(String id, Map<String, dynamic> data) async {
     await servicesCollection.doc(id).update({
@@ -77,24 +82,23 @@ class FirebaseService extends GetxController {
       'updatedAt': FieldValue.serverTimestamp(),
     });
   }
-  
+
   // Delete service (Admin only)
   Future<void> deleteService(String id) async {
     await servicesCollection.doc(id).delete();
   }
-  
+
   // Get all bookings
   Stream<List<Booking>> getBookings() {
-    return bookingsCollection
-        .orderBy('date', descending: true)
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        return Booking.fromFirestore(doc);
-      }).toList();
-    });
+    return bookingsCollection.orderBy('date', descending: true).snapshots().map(
+      (snapshot) {
+        return snapshot.docs.map((doc) {
+          return Booking.fromFirestore(doc);
+        }).toList();
+      },
+    );
   }
-  
+
   // Add new booking
   Future<void> addBooking(Booking booking) async {
     await bookingsCollection.add({
@@ -115,7 +119,7 @@ class FirebaseService extends GetxController {
   Future<void> deleteBooking(String bookingId) async {
     await bookingsCollection.doc(bookingId).delete();
   }
-  
+
   // Update booking status (Admin only)
   Future<void> updateBookingStatus(String id, BookingStatus status) async {
     await bookingsCollection.doc(id).update({
@@ -123,7 +127,7 @@ class FirebaseService extends GetxController {
       'updatedAt': FieldValue.serverTimestamp(),
     });
   }
-  
+
   // Upload image to Appwrite Storage using helper
   Future<String> uploadImage(File file, String path) async {
     try {
@@ -159,25 +163,31 @@ class FirebaseService extends GetxController {
       throw Exception('Failed to upload video: $e');
     }
   }
-  
+
   // Get admin statistics
   Future<Map<String, dynamic>> getAdminStats() async {
     final servicesSnapshot = await servicesCollection.count().get();
     final bookingsSnapshot = await bookingsCollection.count().get();
-    final pendingBookingsSnapshot = await bookingsCollection
-        .where('status', isEqualTo: BookingStatus.pending.name)
-        .count()
-        .get();
-    
+    final pendingBookingsSnapshot =
+        await bookingsCollection
+            .where('status', isEqualTo: BookingStatus.pending.name)
+            .count()
+            .get();
+
     return {
       'totalServices': servicesSnapshot.count,
       'totalBookings': bookingsSnapshot.count,
       'pendingBookings': pendingBookingsSnapshot.count,
     };
   }
-  
+
   // Add admin to Firestore
-  Future<void> addAdminToFirestore(String uid, String name, String email, String companyName) async {
+  Future<void> addAdminToFirestore(
+    String uid,
+    String name,
+    String email,
+    String companyName,
+  ) async {
     await adminsCollection.doc(uid).set({
       'name': name,
       'email': email,
@@ -186,20 +196,25 @@ class FirebaseService extends GetxController {
       'createdAt': FieldValue.serverTimestamp(),
     });
   }
-  
+
   // Chat Methods
   // Get or create chat room for customer
-  Future<String> getOrCreateChatRoom(String customerId, String customerName, String customerEmail) async {
+  Future<String> getOrCreateChatRoom(
+    String customerId,
+    String customerName,
+    String customerEmail,
+  ) async {
     // Check if chat room already exists
-    final existingRooms = await chatRoomsCollection
-        .where('customerId', isEqualTo: customerId)
-        .where('isActive', isEqualTo: true)
-        .get();
-    
+    final existingRooms =
+        await chatRoomsCollection
+            .where('customerId', isEqualTo: customerId)
+            .where('isActive', isEqualTo: true)
+            .get();
+
     if (existingRooms.docs.isNotEmpty) {
       return existingRooms.docs.first.id;
     }
-    
+
     // Create new chat room
     final chatRoom = ChatRoom(
       customerId: customerId,
@@ -207,23 +222,23 @@ class FirebaseService extends GetxController {
       customerEmail: customerEmail,
       createdAt: DateTime.now(),
     );
-    
+
     final docRef = await chatRoomsCollection.add(chatRoom.toFirestore());
     return docRef.id;
   }
-  
+
   // Send message
   Future<void> sendMessage(String chatRoomId, ChatMessage message) async {
     final messageMap = message.toFirestore();
     messageMap['chatRoomId'] = chatRoomId;
     await chatMessagesCollection.add(messageMap);
-    
+
     // Update last message time in chat room
     await chatRoomsCollection.doc(chatRoomId).update({
       'lastMessageAt': FieldValue.serverTimestamp(),
     });
   }
-  
+
   // Get messages for a chat room
   Stream<List<ChatMessage>> getChatMessages(String chatRoomId) {
     // Fallback: also show messages missing chatRoomId but with matching senderId/customerId
@@ -232,13 +247,16 @@ class FirebaseService extends GetxController {
         .orderBy('timestamp', descending: false)
         .snapshots()
         .map((snapshot) {
-      final messages = snapshot.docs.map((doc) => ChatMessage.fromFirestore(doc)).toList();
-      // Fallback: add messages missing chatRoomId but with matching senderId/customerId (legacy)
-      // (Optional: implement if you have legacy data)
-      return messages;
-    });
+          final messages =
+              snapshot.docs
+                  .map((doc) => ChatMessage.fromFirestore(doc))
+                  .toList();
+          // Fallback: add messages missing chatRoomId but with matching senderId/customerId (legacy)
+          // (Optional: implement if you have legacy data)
+          return messages;
+        });
   }
-  
+
   // Get all chat rooms (for admin)
   Stream<List<ChatRoom>> getChatRooms() {
     return chatRoomsCollection
@@ -246,19 +264,20 @@ class FirebaseService extends GetxController {
         .orderBy('lastMessageAt', descending: true)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        return ChatRoom.fromFirestore(doc);
-      }).toList();
-    });
+          return snapshot.docs.map((doc) {
+            return ChatRoom.fromFirestore(doc);
+          }).toList();
+        });
   }
-  
+
   // Get chat room by customer ID
   Future<ChatRoom?> getChatRoomByCustomerId(String customerId) async {
-    final doc = await chatRoomsCollection
-        .where('customerId', isEqualTo: customerId)
-        .where('isActive', isEqualTo: true)
-        .get();
-    
+    final doc =
+        await chatRoomsCollection
+            .where('customerId', isEqualTo: customerId)
+            .where('isActive', isEqualTo: true)
+            .get();
+
     if (doc.docs.isNotEmpty) {
       return ChatRoom.fromFirestore(doc.docs.first);
     }
@@ -269,18 +288,43 @@ class FirebaseService extends GetxController {
   // Get all projects
   Stream<List<Project>> getProjects() {
     return projectsCollection
-        .orderBy('title', descending: false)
+        .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        return Project.fromFirestore(doc);
-      }).toList();
-    });
+          return snapshot.docs.map((doc) {
+            return Project.fromFirestore(doc);
+          }).toList();
+        });
+  }
+
+  // Get projects by client ID
+  Stream<List<Project>> getProjectsByClientId(String clientId) {
+    return projectsCollection
+        .where('clientId', isEqualTo: clientId)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs.map((doc) {
+            return Project.fromFirestore(doc);
+          }).toList();
+        });
+  }
+
+  // Get project by ID
+  Future<Project?> getProjectById(String id) async {
+    final doc = await projectsCollection.doc(id).get();
+    if (doc.exists) {
+      return Project.fromFirestore(doc);
+    }
+    return null;
   }
 
   // Add new project
   Future<void> addProject(Project project) async {
-    await projectsCollection.add(project.toMap());
+    final projectData = project.toMap();
+    projectData['createdAt'] = FieldValue.serverTimestamp();
+    projectData['updatedAt'] = FieldValue.serverTimestamp();
+    await projectsCollection.add(projectData);
   }
 
   // Update project
@@ -291,8 +335,66 @@ class FirebaseService extends GetxController {
     });
   }
 
+  // Update project progress
+  Future<void> updateProjectProgress(
+    String id,
+    double progress,
+    ProjectStatus status,
+  ) async {
+    await projectsCollection.doc(id).update({
+      'progress': progress,
+      'status': status.name,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  // Add project update
+  Future<void> addProjectUpdate(String projectId, ProjectUpdate update) async {
+    final projectRef = projectsCollection.doc(projectId);
+    await projectRef.update({
+      'updates': FieldValue.arrayUnion([update.toMap()]),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  // Add project media
+  Future<void> addProjectMedia(String projectId, ProjectMedia media) async {
+    final projectRef = projectsCollection.doc(projectId);
+    await projectRef.update({
+      'projectMedia': FieldValue.arrayUnion([media.toMap()]),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
   // Delete project
   Future<void> deleteProject(String id) async {
     await projectsCollection.doc(id).delete();
   }
-} 
+
+  // Get project statistics
+  Future<Map<String, dynamic>> getProjectStats() async {
+    final totalProjects = await projectsCollection.count().get();
+    final inProgressProjects =
+        await projectsCollection
+            .where('status', isEqualTo: 'inProgress')
+            .count()
+            .get();
+    final completedProjects =
+        await projectsCollection
+            .where('status', isEqualTo: 'completed')
+            .count()
+            .get();
+    final planningProjects =
+        await projectsCollection
+            .where('status', isEqualTo: 'planning')
+            .count()
+            .get();
+
+    return {
+      'totalProjects': totalProjects.count,
+      'inProgressProjects': inProgressProjects.count,
+      'completedProjects': completedProjects.count,
+      'planningProjects': planningProjects.count,
+    };
+  }
+}
