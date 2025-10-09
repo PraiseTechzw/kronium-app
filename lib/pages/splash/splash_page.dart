@@ -5,9 +5,7 @@ import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/constants.dart';
 import 'package:kronium/core/routes.dart';
 import 'package:kronium/core/user_auth_service.dart';
-import 'package:lottie/lottie.dart';
 import 'package:animate_do/animate_do.dart';
-
 import 'package:shimmer/shimmer.dart';
 
 class SplashPage extends StatefulWidget {
@@ -77,11 +75,7 @@ class _SplashPageState extends State<SplashPage> {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.white,
-                    Colors.grey[50]!,
-                    Colors.white,
-                  ],
+                  colors: [Colors.white, Colors.grey[50]!, Colors.white],
                 ),
               ),
             ),
@@ -144,10 +138,25 @@ class _SplashPageState extends State<SplashPage> {
                   delay: const Duration(milliseconds: 1000),
                   child: Column(
                     children: [
-                      Lottie.asset(
-                        AppConstants.loadingAnimation,
-                        width: 150,
-                        height: 150,
+                      Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: Center(
+                          child: SizedBox(
+                            width: 30,
+                            height: 30,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 3,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                AppTheme.primaryColor,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 20),
                       FadeInUp(

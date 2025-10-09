@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/user_controller.dart';
 import 'package:kronium/core/user_auth_service.dart';
+import 'package:kronium/core/simple_id_generator.dart';
 import 'package:kronium/pages/home/active_projects_section.dart';
 import 'package:kronium/pages/home/featured_services_section.dart';
 import 'package:kronium/pages/home/quick_actions_sections.dart';
@@ -341,6 +342,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     userName = 'User';
                   }
 
+                  // Debug logging for simple ID
+                  print('HomeScreen: userSimpleId = "$userSimpleId"');
+                  print(
+                    'HomeScreen: userAuthService.userProfile.value?.simpleId = "${userAuthService.userProfile.value?.simpleId}"',
+                  );
+                  print(
+                    'HomeScreen: userController.userSimpleId.value = "${userController.userSimpleId.value}"',
+                  );
+
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -374,75 +384,45 @@ class _HomeScreenState extends State<HomeScreen> {
                             width: 1,
                           ),
                         ),
-                        child: Text(
-                          'ID: ${userSimpleId.isNotEmpty ? userSimpleId : 'Loading...'}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                            letterSpacing: 1.2,
-                          ),
-                        ),
+                        child:
+                            userSimpleId.isNotEmpty
+                                ? Text(
+                                  'ID: $userSimpleId',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                    letterSpacing: 1.2,
+                                  ),
+                                )
+                                : Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    SizedBox(
+                                      width: 12,
+                                      height: 12,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Colors.white,
+                                            ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Loading ID...',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                        letterSpacing: 1.2,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                       ),
                     ],
-                  );
-                }),
-                const SizedBox(height: 8),
-                Obx(() {
-                  // Get user ID from multiple sources with priority
-                  String userId = '';
-
-                  // First try UserAuthService directly (most reliable)
-                  if (userAuthService.userProfile.value?.id != null) {
-                    userId = userAuthService.userProfile.value!.id!;
-                  }
-                  // Then try UserController
-                  else if (userController.userId.value.isNotEmpty) {
-                    userId = userController.userId.value;
-                  }
-                  // Then try UserController userProfile
-                  else if (userController.userProfile.value?.id != null) {
-                    userId = userController.userProfile.value!.id!;
-                  }
-
-                  return Container(
-                    constraints: const BoxConstraints(
-                      maxWidth: double.infinity,
-                      minHeight: 32,
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppTheme.secondaryColor.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: AppTheme.secondaryColor.withValues(alpha: 0.5),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.fingerprint, size: 14, color: Colors.white),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            'ID: ${userId.isNotEmpty ? userId : 'N/A'}',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.white,
-                              fontFamily: 'monospace',
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.3,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                          ),
-                        ),
-                      ],
-                    ),
                   );
                 }),
               ],
