@@ -43,13 +43,14 @@ class UserController extends GetxController {
   // Optionally, add a method to update userProfile
   void setUserProfile(User? profile) {
     print('UserController: Setting user profile - ${profile?.name ?? "null"}');
+    print('UserController: Profile simpleId: "${profile?.simpleId}"');
     userProfile.value = profile;
     if (profile != null) {
       userId.value = profile.id ?? '';
       userSimpleId.value = profile.simpleId ?? '';
       userName.value = profile.name;
       print(
-        'UserController: Updated userId to ${userId.value}, simpleId to ${userSimpleId.value} and userName to ${userName.value}',
+        'UserController: Updated userId to ${userId.value}, simpleId to "${userSimpleId.value}" and userName to ${userName.value}',
       );
     }
   }

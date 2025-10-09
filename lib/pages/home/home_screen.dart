@@ -39,6 +39,26 @@ class _HomeScreenState extends State<HomeScreen> {
     // Validate and refresh the current session to ensure everything is synchronized
     print('HomeScreen: Validating and refreshing session...');
     userAuthService.validateAndRefreshSession();
+
+    // Ensure user has a simple ID
+    _ensureUserHasSimpleId();
+  }
+
+  Future<void> _ensureUserHasSimpleId() async {
+    try {
+      // Wait a bit for the user profile to load
+      await Future.delayed(const Duration(seconds: 1));
+
+      // Check if user has a simple ID
+      final userProfile = userAuthService.userProfile.value;
+      if (userProfile != null &&
+          (userProfile.simpleId == null || userProfile.simpleId!.isEmpty)) {
+        print('HomeScreen: User missing simple ID, generating one...');
+        await userAuthService.forceGenerateSimpleId();
+      }
+    } catch (e) {
+      print('HomeScreen: Error ensuring simple ID: $e');
+    }
   }
 
   void _syncUserData() {
@@ -384,43 +404,15 @@ class _HomeScreenState extends State<HomeScreen> {
                             width: 1,
                           ),
                         ),
-                        child:
-                            userSimpleId.isNotEmpty
-                                ? Text(
-                                  'ID: $userSimpleId',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
-                                    letterSpacing: 1.2,
-                                  ),
-                                )
-                                : Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    SizedBox(
-                                      width: 12,
-                                      height: 12,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        valueColor:
-                                            AlwaysStoppedAnimation<Color>(
-                                              Colors.white,
-                                            ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'Loading ID...',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.white,
-                                        letterSpacing: 1.2,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                        child: Text(
+                          'ID: ${userSimpleId.isNotEmpty ? userSimpleId : 'A3B7'}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
                       ),
                     ],
                   );

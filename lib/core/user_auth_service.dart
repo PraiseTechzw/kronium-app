@@ -150,7 +150,12 @@ class UserAuthService extends GetxController {
         final userData = userDoc.data()!;
         var userModel = User.fromFirestore(userDoc);
 
-        // Generate simple ID if user doesn't have one
+        // Debug: Check current simple ID
+        print(
+          'UserAuthService: Current simpleId from Firestore: "${userModel.simpleId}"',
+        );
+
+        // Always ensure user has a simple ID - generate one if missing
         if (userModel.simpleId == null || userModel.simpleId!.isEmpty) {
           print('UserAuthService: User missing simple ID, generating one...');
           final simpleId = SimpleIdGenerator.generateSimpleId();
@@ -161,7 +166,11 @@ class UserAuthService extends GetxController {
             'simpleId': simpleId,
             'updatedAt': FieldValue.serverTimestamp(),
           });
-          print('UserAuthService: Generated simple ID: $simpleId');
+          print('UserAuthService: Generated and saved simple ID: $simpleId');
+        } else {
+          print(
+            'UserAuthService: User already has simple ID: ${userModel.simpleId}',
+          );
         }
 
         print(
@@ -443,6 +452,32 @@ class UserAuthService extends GetxController {
     print('UserAuthService: Logging out user...');
     await _auth.signOut();
     await _clearUserSession();
+  }
+
+  // Force generate simple ID for current user
+  Future<void> forceGenerateSimpleId() async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        print(
+          'UserAuthService: Force generating simple ID for user: ${user.uid}',
+        );
+        final simpleId = SimpleIdGenerator.generateSimpleId();
+
+        // Update the user document in Firestore with the new simple ID
+        await _firestore.collection('users').doc(user.uid).update({
+          'simpleId': simpleId,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+
+        print('UserAuthService: Force generated simple ID: $simpleId');
+
+        // Reload user profile to get the updated simple ID
+        await _loadUserProfile(user);
+      }
+    } catch (e) {
+      print('UserAuthService: Error force generating simple ID: $e');
+    }
   }
 
   // Profile update methods
