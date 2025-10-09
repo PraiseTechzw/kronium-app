@@ -418,14 +418,14 @@ class _AdminProjectManagementPageState extends State<AdminProjectManagementPage>
   }
 
   void _showAddProjectDialog() {
-    _showProjectFormDialog();
+    _showProjectFormBottomSheet();
   }
 
   void _showEditProjectDialog(Project project) {
-    _showProjectFormDialog(project: project);
+    _showProjectFormBottomSheet(project: project);
   }
 
-  void _showProjectFormDialog({Project? project}) {
+  void _showProjectFormBottomSheet({Project? project}) {
     final titleController = TextEditingController(text: project?.title ?? '');
     final descriptionController = TextEditingController(
       text: project?.description ?? '',
@@ -454,353 +454,377 @@ class _AdminProjectManagementPageState extends State<AdminProjectManagementPage>
     List<ProjectMedia> projectMedia = List.from(project?.projectMedia ?? []);
     bool isUploading = false;
 
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder:
-          (context) => StatefulBuilder(
-            builder:
-                (context, setDialogState) => AlertDialog(
-                  title: Text(
-                    project == null ? 'Add New Project' : 'Edit Project',
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => DraggableScrollableSheet(
+          initialChildSize: 0.95,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          builder: (context, scrollController) => Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: Column(
+              children: [
+                // Handle bar
+                Container(
+                  margin: const EdgeInsets.only(top: 12),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
                   ),
-                  content: SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        TextField(
-                          controller: titleController,
-                          decoration: const InputDecoration(
-                            labelText: 'Project Title',
-                            border: OutlineInputBorder(),
-                          ),
+                ),
+                // Header
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(24),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: descriptionController,
-                          decoration: const InputDecoration(
-                            labelText: 'Description',
-                            border: OutlineInputBorder(),
-                          ),
-                          maxLines: 3,
+                        child: Icon(
+                          project == null ? Iconsax.add_circle : Iconsax.edit,
+                          color: Colors.white,
+                          size: 24,
                         ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: locationController,
-                          decoration: const InputDecoration(
-                            labelText: 'Location',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: sizeController,
-                          decoration: const InputDecoration(
-                            labelText: 'Size (e.g., 10 acres, 500 sqm)',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        DropdownButtonFormField<String>(
-                          value: selectedCategory,
-                          decoration: const InputDecoration(
-                            labelText: 'Category',
-                            border: OutlineInputBorder(),
-                          ),
-                          items: const [
-                            DropdownMenuItem(
-                              value: 'Greenhouses',
-                              child: Text('Greenhouses'),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              project == null ? 'Add New Project' : 'Edit Project',
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
                             ),
-                            DropdownMenuItem(
-                              value: 'Steel Structures',
-                              child: Text('Steel Structures'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'Solar Systems',
-                              child: Text('Solar Systems'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'Construction',
-                              child: Text('Construction'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'Logistics',
-                              child: Text('Logistics'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'IoT & Automation',
-                              child: Text('IoT & Automation'),
+                            const SizedBox(height: 4),
+                            Text(
+                              project == null 
+                                  ? 'Create a new project with all details'
+                                  : 'Update project information',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.white.withOpacity(0.8),
+                              ),
                             ),
                           ],
-                          onChanged:
-                              (value) => setDialogState(
-                                () => selectedCategory = value!,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.close, color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+                // Form Content
+                Expanded(
+                  child: SingleChildScrollView(
+                    controller: scrollController,
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Basic Information Section
+                        _buildSectionHeader('Basic Information', Iconsax.info_circle),
+                        const SizedBox(height: 16),
+                        _buildTextField(
+                          controller: titleController,
+                          label: 'Project Title',
+                          hint: 'Enter project title',
+                          icon: Iconsax.text,
+                          isRequired: true,
+                        ),
+                        const SizedBox(height: 16),
+                        _buildTextField(
+                          controller: descriptionController,
+                          label: 'Description',
+                          hint: 'Describe the project details',
+                          icon: Iconsax.document_text,
+                          maxLines: 3,
+                          isRequired: true,
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildTextField(
+                                controller: locationController,
+                                label: 'Location',
+                                hint: 'Project location',
+                                icon: Iconsax.location,
+                                isRequired: true,
                               ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildTextField(
+                                controller: sizeController,
+                                label: 'Size',
+                                hint: '10 acres, 500 sqm',
+                                icon: Iconsax.ruler,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        // Project Details Section
+                        _buildSectionHeader('Project Details', Iconsax.setting),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildDropdownField<String>(
+                                value: selectedCategory,
+                                label: 'Category',
+                                icon: Iconsax.category,
+                                items: const [
+                                  DropdownMenuItem(value: 'Greenhouses', child: Text('Greenhouses')),
+                                  DropdownMenuItem(value: 'Steel Structures', child: Text('Steel Structures')),
+                                  DropdownMenuItem(value: 'Solar Systems', child: Text('Solar Systems')),
+                                  DropdownMenuItem(value: 'Construction', child: Text('Construction')),
+                                  DropdownMenuItem(value: 'Logistics', child: Text('Logistics')),
+                                  DropdownMenuItem(value: 'IoT & Automation', child: Text('IoT & Automation')),
+                                ],
+                                onChanged: (value) => setModalState(() => selectedCategory = value!),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildDropdownField<ProjectStatus>(
+                                value: selectedStatus,
+                                label: 'Status',
+                                icon: Iconsax.flag,
+                                items: ProjectStatus.values.map((status) {
+                                  return DropdownMenuItem(
+                                    value: status,
+                                    child: Text(status.name.toUpperCase()),
+                                  );
+                                }).toList(),
+                                onChanged: (value) => setModalState(() => selectedStatus = value!),
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 16),
-                        DropdownButtonFormField<ProjectStatus>(
-                          value: selectedStatus,
-                          decoration: const InputDecoration(
-                            labelText: 'Status',
-                            border: OutlineInputBorder(),
-                          ),
-                          items:
-                              ProjectStatus.values.map((status) {
-                                return DropdownMenuItem(
-                                  value: status,
-                                  child: Text(status.name.toUpperCase()),
-                                );
-                              }).toList(),
-                          onChanged:
-                              (value) =>
-                                  setDialogState(() => selectedStatus = value!),
+                        _buildDateField(
+                          selectedDate: selectedDate,
+                          onDateSelected: (date) => setModalState(() => selectedDate = date),
                         ),
+                        const SizedBox(height: 24),
+                        // Client Information Section
+                        _buildSectionHeader('Client Information', Iconsax.user),
                         const SizedBox(height: 16),
-                        TextField(
+                        _buildTextField(
                           controller: clientNameController,
-                          decoration: const InputDecoration(
-                            labelText: 'Client Name',
-                            border: OutlineInputBorder(),
-                          ),
+                          label: 'Client Name',
+                          hint: 'Enter client name',
+                          icon: Iconsax.user,
                         ),
                         const SizedBox(height: 16),
-                        TextField(
-                          controller: clientEmailController,
-                          decoration: const InputDecoration(
-                            labelText: 'Client Email',
-                            border: OutlineInputBorder(),
-                          ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildTextField(
+                                controller: clientEmailController,
+                                label: 'Email',
+                                hint: 'client@email.com',
+                                icon: Iconsax.sms,
+                                keyboardType: TextInputType.emailAddress,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildTextField(
+                                controller: clientPhoneController,
+                                label: 'Phone',
+                                hint: '+1234567890',
+                                icon: Iconsax.call,
+                                keyboardType: TextInputType.phone,
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 16),
-                        TextField(
-                          controller: clientPhoneController,
-                          decoration: const InputDecoration(
-                            labelText: 'Client Phone',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        TextField(
+                        _buildTextField(
                           controller: transportCostController,
-                          decoration: const InputDecoration(
-                            labelText: 'Transport Cost',
-                            border: OutlineInputBorder(),
-                          ),
+                          label: 'Transport Cost',
+                          hint: '0.00',
+                          icon: Iconsax.dollar_circle,
                           keyboardType: TextInputType.number,
                         ),
-                        const SizedBox(height: 16),
-                        InkWell(
-                          onTap: () async {
-                            final result = await showDatePicker(
-                              context: context,
-                              initialDate: selectedDate ?? DateTime.now(),
-                              firstDate: DateTime.now().subtract(
-                                const Duration(days: 365),
-                              ),
-                              lastDate: DateTime.now().add(
-                                const Duration(days: 365),
-                              ),
-                            );
-                            if (result != null) {
-                              setDialogState(() => selectedDate = result);
-                            }
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(Iconsax.calendar),
-                                const SizedBox(width: 8),
-                                Text(
-                                  selectedDate != null
-                                      ? '${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}'
-                                      : 'Select Date',
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 24),
                         // Media Upload Section
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey[300]!),
-                            borderRadius: BorderRadius.circular(8),
+                        _buildSectionHeader('Project Media', Iconsax.gallery),
+                        const SizedBox(height: 16),
+                        _buildMediaUploadSection(
+                          projectMedia: projectMedia,
+                          isUploading: isUploading,
+                          onImageUpload: () => _pickAndUploadMedia(
+                            ImageSource.gallery,
+                            (media) => setModalState(() => projectMedia.add(media)),
+                            () => setModalState(() => isUploading = true),
+                            () => setModalState(() => isUploading = false),
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Project Media',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(height: 8),
-                              if (isUploading)
-                                const Center(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(16),
-                                    child: CircularProgressIndicator(),
-                                  ),
-                                )
-                              else
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: ElevatedButton.icon(
-                                        onPressed:
-                                            () => _pickAndUploadMedia(
-                                              ImageSource.gallery,
-                                              (media) => setDialogState(() {
-                                                projectMedia.add(media);
-                                              }),
-                                              () => setDialogState(
-                                                () => isUploading = true,
-                                              ),
-                                              () => setDialogState(
-                                                () => isUploading = false,
-                                              ),
-                                            ),
-                                        icon: const Icon(Iconsax.image),
-                                        label: const Text('Add Image'),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: ElevatedButton.icon(
-                                        onPressed:
-                                            () => _pickAndUploadVideo(
-                                              (media) => setDialogState(() {
-                                                projectMedia.add(media);
-                                              }),
-                                              () => setDialogState(
-                                                () => isUploading = true,
-                                              ),
-                                              () => setDialogState(
-                                                () => isUploading = false,
-                                              ),
-                                            ),
-                                        icon: const Icon(Iconsax.video),
-                                        label: const Text('Add Video'),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              if (projectMedia.isNotEmpty) ...[
-                                const SizedBox(height: 8),
-                                Wrap(
-                                  spacing: 8,
-                                  runSpacing: 8,
-                                  children:
-                                      projectMedia.map((media) {
-                                        return Chip(
-                                          label: Text(media.type),
-                                          deleteIcon: const Icon(
-                                            Icons.close,
-                                            size: 16,
-                                          ),
-                                          onDeleted:
-                                              () => setDialogState(() {
-                                                projectMedia.remove(media);
-                                              }),
-                                        );
-                                      }).toList(),
-                                ),
-                              ],
-                            ],
+                          onVideoUpload: () => _pickAndUploadVideo(
+                            (media) => setModalState(() => projectMedia.add(media)),
+                            () => setModalState(() => isUploading = true),
+                            () => setModalState(() => isUploading = false),
                           ),
+                          onRemoveMedia: (media) => setModalState(() => projectMedia.remove(media)),
                         ),
+                        const SizedBox(height: 100), // Space for bottom buttons
                       ],
                     ),
                   ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancel'),
+                ),
+                // Bottom Action Buttons
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border(
+                      top: BorderSide(color: Colors.grey[200]!),
                     ),
-                    ElevatedButton(
-                      onPressed: () async {
-                        if (titleController.text.trim().isEmpty ||
-                            descriptionController.text.trim().isEmpty ||
-                            locationController.text.trim().isEmpty) {
-                          Get.snackbar(
-                            'Error',
-                            'Please fill in all required fields',
-                          );
-                          return;
-                        }
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            side: BorderSide(color: Colors.grey[300]!),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text('Cancel'),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        flex: 2,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            if (titleController.text.trim().isEmpty ||
+                                descriptionController.text.trim().isEmpty ||
+                                locationController.text.trim().isEmpty) {
+                              Get.snackbar(
+                                'Error',
+                                'Please fill in all required fields',
+                                backgroundColor: Colors.red,
+                                colorText: Colors.white,
+                              );
+                              return;
+                            }
 
-                        final newProject = Project(
-                          id: project?.id ?? const Uuid().v4(),
-                          title: titleController.text.trim(),
-                          description: descriptionController.text.trim(),
-                          location: locationController.text.trim(),
-                          size: sizeController.text.trim(),
-                          mediaUrls: projectMedia.map((m) => m.url).toList(),
-                          projectMedia: projectMedia,
-                          bookedDates: project?.bookedDates ?? [],
-                          features: features,
-                          approved: true,
-                          progress: project?.progress ?? 0.0,
-                          status: selectedStatus,
-                          date: selectedDate,
-                          category: selectedCategory,
-                          transportCost:
-                              double.tryParse(transportCostController.text) ??
-                              0.0,
-                          clientId: project?.clientId,
-                          clientName:
-                              clientNameController.text.trim().isNotEmpty
+                            final newProject = Project(
+                              id: project?.id ?? const Uuid().v4(),
+                              title: titleController.text.trim(),
+                              description: descriptionController.text.trim(),
+                              location: locationController.text.trim(),
+                              size: sizeController.text.trim(),
+                              mediaUrls: projectMedia.map((m) => m.url).toList(),
+                              projectMedia: projectMedia,
+                              bookedDates: project?.bookedDates ?? [],
+                              features: features,
+                              approved: true,
+                              progress: project?.progress ?? 0.0,
+                              status: selectedStatus,
+                              date: selectedDate,
+                              category: selectedCategory,
+                              transportCost: double.tryParse(transportCostController.text) ?? 0.0,
+                              clientId: project?.clientId,
+                              clientName: clientNameController.text.trim().isNotEmpty
                                   ? clientNameController.text.trim()
                                   : null,
-                          clientEmail:
-                              clientEmailController.text.trim().isNotEmpty
+                              clientEmail: clientEmailController.text.trim().isNotEmpty
                                   ? clientEmailController.text.trim()
                                   : null,
-                          clientPhone:
-                              clientPhoneController.text.trim().isNotEmpty
+                              clientPhone: clientPhoneController.text.trim().isNotEmpty
                                   ? clientPhoneController.text.trim()
                                   : null,
-                          updates: project?.updates ?? [],
-                          startDate: project?.startDate,
-                          endDate: project?.endDate,
-                          createdAt: project?.createdAt ?? DateTime.now(),
-                          updatedAt: DateTime.now(),
-                        );
+                              updates: project?.updates ?? [],
+                              startDate: project?.startDate,
+                              endDate: project?.endDate,
+                              createdAt: project?.createdAt ?? DateTime.now(),
+                              updatedAt: DateTime.now(),
+                            );
 
-                        try {
-                          if (project == null) {
-                            await _firebaseService.addProject(newProject);
-                            Get.snackbar(
-                              'Success',
-                              'Project added successfully!',
-                            );
-                          } else {
-                            await _firebaseService.updateProject(
-                              project.id,
-                              newProject.toMap(),
-                            );
-                            Get.snackbar(
-                              'Success',
-                              'Project updated successfully!',
-                            );
-                          }
-                          Navigator.pop(context);
-                        } catch (e) {
-                          Get.snackbar('Error', 'Failed to save project: $e');
-                        }
-                      },
-                      child: Text(
-                        project == null ? 'Add Project' : 'Update Project',
+                            try {
+                              if (project == null) {
+                                await _firebaseService.addProject(newProject);
+                                Get.snackbar(
+                                  'Success',
+                                  'Project added successfully!',
+                                  backgroundColor: Colors.green,
+                                  colorText: Colors.white,
+                                );
+                              } else {
+                                await _firebaseService.updateProject(project.id, newProject.toMap());
+                                Get.snackbar(
+                                  'Success',
+                                  'Project updated successfully!',
+                                  backgroundColor: Colors.green,
+                                  colorText: Colors.white,
+                                );
+                              }
+                              Navigator.pop(context);
+                            } catch (e) {
+                              Get.snackbar(
+                                'Error',
+                                'Failed to save project: $e',
+                                backgroundColor: Colors.red,
+                                colorText: Colors.white,
+                              );
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(project == null ? Iconsax.add : Iconsax.edit),
+                              const SizedBox(width: 8),
+                              Text(project == null ? 'Add Project' : 'Update Project'),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
+              ],
+            ),
           ),
+        ),
+      ),
     );
   }
 
@@ -1040,7 +1064,7 @@ class _AdminProjectManagementPageState extends State<AdminProjectManagementPage>
                         ),
                         const SizedBox(height: 16),
                         DropdownButtonFormField<ProjectStatus>(
-                          value: status,
+                          initialValue: status,
                           decoration: const InputDecoration(
                             labelText: 'Status',
                             border: OutlineInputBorder(),
@@ -1179,5 +1203,348 @@ class _AdminProjectManagementPageState extends State<AdminProjectManagementPage>
     } finally {
       onEnd();
     }
+  }
+
+  Widget _buildSectionHeader(String title, IconData icon) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            icon,
+            color: AppTheme.primaryColor,
+            size: 20,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    int maxLines = 1,
+    bool isRequired = false,
+    TextInputType? keyboardType,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey,
+              ),
+            ),
+            if (isRequired) ...[
+              const SizedBox(width: 4),
+              const Text(
+                '*',
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ],
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          maxLines: maxLines,
+          keyboardType: keyboardType,
+          decoration: InputDecoration(
+            hintText: hint,
+            prefixIcon: Icon(icon, color: AppTheme.primaryColor),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey[300]!),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey[300]!),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppTheme.primaryColor),
+            ),
+            filled: true,
+            fillColor: Colors.grey[50],
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDropdownField<T>({
+    required T value,
+    required String label,
+    required IconData icon,
+    required List<DropdownMenuItem<T>> items,
+    required Function(T?) onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey,
+          ),
+        ),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<T>(
+          initialValue: value,
+          decoration: InputDecoration(
+            prefixIcon: Icon(icon, color: AppTheme.primaryColor),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey[300]!),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey[300]!),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppTheme.primaryColor),
+            ),
+            filled: true,
+            fillColor: Colors.grey[50],
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
+          ),
+          items: items,
+          onChanged: onChanged,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDateField({
+    required DateTime? selectedDate,
+    required Function(DateTime?) onDateSelected,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Project Date',
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey,
+          ),
+        ),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: () async {
+            final result = await showDatePicker(
+              context: context,
+              initialDate: selectedDate ?? DateTime.now(),
+              firstDate: DateTime.now().subtract(const Duration(days: 365)),
+              lastDate: DateTime.now().add(const Duration(days: 365)),
+            );
+            if (result != null) {
+              onDateSelected(result);
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey[300]!),
+              borderRadius: BorderRadius.circular(12),
+              color: Colors.grey[50],
+            ),
+            child: Row(
+              children: [
+                Icon(Iconsax.calendar, color: AppTheme.primaryColor),
+                const SizedBox(width: 12),
+                Text(
+                  selectedDate != null
+                      ? '${selectedDate.day}/${selectedDate.month}/${selectedDate.year}'
+                      : 'Select Date',
+                  style: TextStyle(
+                    color: selectedDate != null ? Colors.black : Colors.grey[600],
+                    fontSize: 16,
+                  ),
+                ),
+                const Spacer(),
+                Icon(Iconsax.arrow_down_2, color: Colors.grey[600]),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMediaUploadSection({
+    required List<ProjectMedia> projectMedia,
+    required bool isUploading,
+    required VoidCallback onImageUpload,
+    required VoidCallback onVideoUpload,
+    required Function(ProjectMedia) onRemoveMedia,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Iconsax.gallery, color: AppTheme.primaryColor, size: 20),
+              const SizedBox(width: 8),
+              const Text(
+                'Project Media',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                '${projectMedia.length} files',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (isUploading)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 12),
+                    Text('Uploading...'),
+                  ],
+                ),
+              ),
+            )
+          else
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: onImageUpload,
+                    icon: const Icon(Iconsax.image, size: 18),
+                    label: const Text('Add Image'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue[50],
+                      foregroundColor: Colors.blue[700],
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: onVideoUpload,
+                    icon: const Icon(Iconsax.video, size: 18),
+                    label: const Text('Add Video'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red[50],
+                      foregroundColor: Colors.red[700],
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          if (projectMedia.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: projectMedia.map((media) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: media.type == 'image' ? Colors.blue[50] : Colors.red[50],
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: media.type == 'image' ? Colors.blue[200]! : Colors.red[200]!,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        media.type == 'image' ? Iconsax.image : Iconsax.video,
+                        size: 16,
+                        color: media.type == 'image' ? Colors.blue[700] : Colors.red[700],
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        media.type.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: media.type == 'image' ? Colors.blue[700] : Colors.red[700],
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      GestureDetector(
+                        onTap: () => onRemoveMedia(media),
+                        child: Icon(
+                          Icons.close,
+                          size: 16,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 }

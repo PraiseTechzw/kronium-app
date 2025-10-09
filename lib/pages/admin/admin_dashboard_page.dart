@@ -337,10 +337,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                                         () => Get.toNamed(
                                           AppRoutes.adminBookings,
                                         ),
-                                    child: const Text('View All'),
                                     style: TextButton.styleFrom(
                                       foregroundColor: AppTheme.primaryColor,
                                     ),
+                                    child: const Text('View All'),
                                   ),
                                 ],
                               ),
@@ -367,10 +367,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                                   TextButton(
                                     onPressed:
                                         () => Get.toNamed(AppRoutes.adminChat),
-                                    child: const Text('View All'),
                                     style: TextButton.styleFrom(
                                       foregroundColor: AppTheme.primaryColor,
                                     ),
+                                    child: const Text('View All'),
                                   ),
                                 ],
                               ),

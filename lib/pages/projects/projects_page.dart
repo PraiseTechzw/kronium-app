@@ -523,16 +523,7 @@ class ProjectsPageState extends State<ProjectsPage>
                         ],
                       ),
                     ),
-                    child:
-                        project.mediaUrls.isNotEmpty
-                            ? Image.network(
-                              project.mediaUrls.first,
-                              fit: BoxFit.cover,
-                              errorBuilder:
-                                  (context, error, stackTrace) =>
-                                      _buildPlaceholderImage(),
-                            )
-                            : _buildPlaceholderImage(),
+                    child: _buildProjectImage(project),
                   ),
                 ),
 
@@ -669,19 +660,10 @@ class ProjectsPageState extends State<ProjectsPage>
                       ],
                     ),
                   ),
-                  child:
-                      project.mediaUrls.isNotEmpty
-                          ? ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Image.network(
-                              project.mediaUrls.first,
-                              fit: BoxFit.cover,
-                              errorBuilder:
-                                  (context, error, stackTrace) =>
-                                      _buildPlaceholderImage(),
-                            ),
-                          )
-                          : _buildPlaceholderImage(),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: _buildProjectImage(project),
+                  ),
                 ),
 
                 const SizedBox(width: 16),
@@ -795,6 +777,65 @@ class ProjectsPageState extends State<ProjectsPage>
     );
   }
 
+  Widget _buildProjectImage(Project project) {
+    // Check for images in both mediaUrls and projectMedia
+    String? imageUrl;
+    
+    // First try projectMedia (enhanced media with metadata)
+    if (project.projectMedia.isNotEmpty) {
+      final imageMedia = project.projectMedia
+          .where((media) => media.type == 'image')
+          .firstOrNull;
+      if (imageMedia != null) {
+        imageUrl = imageMedia.url;
+      }
+    }
+    
+    // Fallback to mediaUrls if no projectMedia images
+    if (imageUrl == null && project.mediaUrls.isNotEmpty) {
+      imageUrl = project.mediaUrls.first;
+    }
+    
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      return Image.network(
+        imageUrl,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppTheme.primaryColor.withOpacity(0.3),
+                  AppTheme.secondaryColor.withOpacity(0.2),
+                ],
+              ),
+            ),
+            child: Center(
+              child: CircularProgressIndicator(
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded /
+                        loadingProgress.expectedTotalBytes!
+                    : null,
+                color: Colors.white,
+                strokeWidth: 2,
+              ),
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          print('Image load error: $error');
+          print('Image URL: $imageUrl');
+          return _buildPlaceholderImage();
+        },
+      );
+    }
+    
+    return _buildPlaceholderImage();
+  }
+
   Widget _buildPlaceholderImage() {
     return Container(
       decoration: BoxDecoration(
@@ -811,6 +852,24 @@ class ProjectsPageState extends State<ProjectsPage>
         child: Icon(Iconsax.image, color: Colors.white, size: 32),
       ),
     );
+  }
+
+  List<String> _getProjectImages(Project project) {
+    List<String> images = [];
+    
+    // First add images from projectMedia (enhanced media with metadata)
+    for (final media in project.projectMedia) {
+      if (media.type == 'image' && media.url.isNotEmpty) {
+        images.add(media.url);
+      }
+    }
+    
+    // Then add images from mediaUrls if no projectMedia images
+    if (images.isEmpty) {
+      images.addAll(project.mediaUrls.where((url) => url.isNotEmpty));
+    }
+    
+    return images;
   }
 
   Widget _buildProgressIndicator(double progress) {
@@ -1086,22 +1145,56 @@ class ProjectsPageState extends State<ProjectsPage>
                   const SizedBox(height: 20),
 
                   // Project Images
-                  if (project.mediaUrls.isNotEmpty) ...[
+                  if (_getProjectImages(project).isNotEmpty) ...[
                     SizedBox(
                       height: 200,
                       child: PageView.builder(
-                        itemCount: project.mediaUrls.length,
-                        itemBuilder:
-                            (context, index) => Container(
-                              margin: const EdgeInsets.only(right: 8),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
-                                image: DecorationImage(
-                                  image: NetworkImage(project.mediaUrls[index]),
-                                  fit: BoxFit.cover,
-                                ),
+                        itemCount: _getProjectImages(project).length,
+                        itemBuilder: (context, index) {
+                          final imageUrl = _getProjectImages(project)[index];
+                          return Container(
+                            margin: const EdgeInsets.only(right: 8),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                imageUrl,
+                                fit: BoxFit.cover,
+                                loadingBuilder: (context, child, loadingProgress) {
+                                  if (loadingProgress == null) return child;
+                                  return Container(
+                                    color: Colors.grey[200],
+                                    child: Center(
+                                      child: CircularProgressIndicator(
+                                        value: loadingProgress.expectedTotalBytes != null
+                                            ? loadingProgress.cumulativeBytesLoaded /
+                                                loadingProgress.expectedTotalBytes!
+                                            : null,
+                                        color: AppTheme.primaryColor,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                errorBuilder: (context, error, stackTrace) {
+                                  print('Project detail image error: $error');
+                                  print('Image URL: $imageUrl');
+                                  return Container(
+                                    color: Colors.grey[200],
+                                    child: const Center(
+                                      child: Icon(
+                                        Iconsax.image,
+                                        color: Colors.grey,
+                                        size: 48,
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
                             ),
+                          );
+                        },
                       ),
                     ),
                     const SizedBox(height: 20),

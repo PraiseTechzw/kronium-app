@@ -5,6 +5,7 @@ import 'package:kronium/models/user_model.dart';
 class UserController extends GetxController {
   RxString role = 'guest'.obs;
   RxString userId = ''.obs;
+  RxString userSimpleId = ''.obs; // 4-character simple ID
   RxString userName = ''.obs;
   // Add more user info as needed
   Rx<User?> userProfile = Rx<User?>(null);
@@ -20,11 +21,12 @@ class UserController extends GetxController {
     role.value = newRole;
   }
 
-  void setUser(String id, String name, String newRole) {
+  void setUser(String id, String name, String newRole, {String? simpleId}) {
     print(
-      'UserController: Setting user - ID: $id, Name: $name, Role: $newRole',
+      'UserController: Setting user - ID: $id, SimpleID: $simpleId, Name: $name, Role: $newRole',
     );
     userId.value = id;
+    userSimpleId.value = simpleId ?? '';
     userName.value = name;
     role.value = newRole;
   }
@@ -32,6 +34,7 @@ class UserController extends GetxController {
   void logout() {
     print('UserController: Logging out user');
     userId.value = '';
+    userSimpleId.value = '';
     userName.value = '';
     role.value = 'guest';
     userProfile.value = null;
@@ -43,12 +46,17 @@ class UserController extends GetxController {
     userProfile.value = profile;
     if (profile != null) {
       userId.value = profile.id ?? '';
+      userSimpleId.value = profile.simpleId ?? '';
       userName.value = profile.name;
       print(
-        'UserController: Updated userId to ${userId.value} and userName to ${userName.value}',
+        'UserController: Updated userId to ${userId.value}, simpleId to ${userSimpleId.value} and userName to ${userName.value}',
       );
     }
   }
+
+  // Get display ID (simple ID if available, otherwise Firebase ID)
+  String get displayId =>
+      userSimpleId.value.isNotEmpty ? userSimpleId.value : userId.value;
 
   // Method to check if user is properly loaded
   bool get isUserLoaded => userId.value.isNotEmpty && userName.value.isNotEmpty;

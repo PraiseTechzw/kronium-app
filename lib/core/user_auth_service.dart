@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:get/get.dart';
 import 'package:kronium/models/user_model.dart';
 import 'package:kronium/core/user_controller.dart';
+import 'package:kronium/core/simple_id_generator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserAuthService extends GetxController {
@@ -147,10 +148,24 @@ class UserAuthService extends GetxController {
 
       if (userDoc.exists) {
         final userData = userDoc.data()!;
-        final userModel = User.fromFirestore(userDoc);
+        var userModel = User.fromFirestore(userDoc);
+
+        // Generate simple ID if user doesn't have one
+        if (userModel.simpleId == null || userModel.simpleId!.isEmpty) {
+          print('UserAuthService: User missing simple ID, generating one...');
+          final simpleId = SimpleIdGenerator.generateSimpleId();
+          userModel = userModel.copyWith(simpleId: simpleId);
+
+          // Update the user document in Firestore with the new simple ID
+          await _firestore.collection('users').doc(user.uid).update({
+            'simpleId': simpleId,
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+          print('UserAuthService: Generated simple ID: $simpleId');
+        }
 
         print(
-          'UserAuthService: Profile loaded from Firestore: ${userModel.name}',
+          'UserAuthService: Profile loaded from Firestore: ${userModel.name} (ID: ${userModel.simpleId})',
         );
 
         // Update service state
@@ -393,15 +408,12 @@ class UserAuthService extends GetxController {
       final user = userCredential.user;
 
       if (user != null) {
-        // Create user profile
-        final userModel = User(
-          id: user.uid,
+        // Create user profile with simple ID
+        final userModel = User.create(
           name: name,
           email: email,
           phone: phone,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        );
+        ).copyWith(id: user.uid);
 
         // Save to Firestore with role
         final userData = userModel.toFirestore();
@@ -414,7 +426,10 @@ class UserAuthService extends GetxController {
         return {'success': true, 'message': 'Account created successfully'};
       }
 
-      return {'success': false, 'message': 'Registration failed - no user returned'};
+      return {
+        'success': false,
+        'message': 'Registration failed - no user returned',
+      };
     } catch (e) {
       print('UserAuthService: Registration error: $e');
       String errorMessage = _getFirebaseErrorMessage(e.toString());

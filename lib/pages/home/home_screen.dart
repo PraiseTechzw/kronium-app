@@ -27,8 +27,6 @@ class _HomeScreenState extends State<HomeScreen> {
     userController = Get.find<UserController>();
     userAuthService = Get.find<UserAuthService>();
 
-    
-
     // Ensure UserController is synchronized with UserAuthService
     _syncUserData();
 
@@ -166,11 +164,11 @@ class _HomeScreenState extends State<HomeScreen> {
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   const SizedBox(height: 20),
-                
+
                   const FeaturedServicesSection(),
                   const SizedBox(height: 24),
                   const ActiveProjectsSection(),
-                    const SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   const QuickActionsSection(),
                   const SizedBox(height: 40),
                 ]),
@@ -181,7 +179,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
 
   Widget _buildHeaderRow() {
     return Row(
@@ -319,18 +316,24 @@ class _HomeScreenState extends State<HomeScreen> {
                 Obx(() {
                   // Get user name from multiple sources with priority
                   String userName = '';
+                  String userSimpleId = '';
 
                   // First try UserAuthService directly (most reliable)
                   if (userAuthService.userProfile.value?.name != null) {
                     userName = userAuthService.userProfile.value!.name;
+                    userSimpleId =
+                        userAuthService.userProfile.value!.simpleId ?? '';
                   }
                   // Then try UserController
                   else if (userController.userName.value.isNotEmpty) {
                     userName = userController.userName.value;
+                    userSimpleId = userController.userSimpleId.value;
                   }
                   // Then try UserController userProfile
                   else if (userController.userProfile.value?.name != null) {
                     userName = userController.userProfile.value!.name;
+                    userSimpleId =
+                        userController.userProfile.value!.simpleId ?? '';
                   }
 
                   // Fallback to 'User' if still empty
@@ -338,21 +341,50 @@ class _HomeScreenState extends State<HomeScreen> {
                     userName = 'User';
                   }
 
-                  return Text(
-                    userName,
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      letterSpacing: 0.8,
-                      shadows: [
-                        Shadow(
-                          color: AppTheme.shadow,
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        userName,
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          letterSpacing: 0.8,
+                          shadows: [
+                            Shadow(
+                              color: AppTheme.shadow,
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.4),
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          'ID: ${userSimpleId.isNotEmpty ? userSimpleId : 'Loading...'}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                      ),
+                    ],
                   );
                 }),
                 const SizedBox(height: 8),

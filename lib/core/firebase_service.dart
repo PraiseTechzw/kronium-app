@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:kronium/models/booking_model.dart';
 import 'package:kronium/models/chat_model.dart';
 import 'package:kronium/core/appwrite_client.dart';
+import 'package:kronium/core/appwrite_config.dart';
+import 'package:kronium/core/simple_id_generator.dart';
 
 import 'dart:io';
 
@@ -131,17 +133,45 @@ class FirebaseService extends GetxController {
   // Upload image to Appwrite Storage using helper
   Future<String> uploadImage(File file, String path) async {
     try {
+      final bucketId = AppwriteConfig.imageBucketId;
+
+      // Test connection first
+      print('Testing Appwrite connection...');
+      final connectionOk = await AppwriteService.testConnection(bucketId);
+      if (!connectionOk) {
+        throw Exception(
+          'Cannot connect to Appwrite storage. Please check your configuration.',
+        );
+      }
+
+      // Generate a unique filename with proper extension
+      final fileExtension = file.path.split('.').last.toLowerCase();
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final randomId = DateTime.now().microsecondsSinceEpoch
+          .toString()
+          .substring(8);
+      final fileName = '${path}_${timestamp}_$randomId.$fileExtension';
+
+      print('Uploading image: $fileName');
+      print('File size: ${await file.length()} bytes');
+
       // Use AppwriteService helper for upload
       final fileId = await AppwriteService.uploadFile(
-        bucketId: '687a6819003de32d8af1', // Correct bucket ID
+        bucketId: bucketId,
         path: file.path,
         bytes: await file.readAsBytes(),
-        fileName: file.path.split('/').last,
+        fileName: fileName,
       );
-      if (fileId == null) throw Exception('Upload failed');
+      if (fileId == null)
+        throw Exception('Upload failed - no file ID returned');
+
       // Return the correct Appwrite public view URL
-      return 'https://cloud.appwrite.io/v1/storage/buckets/687a6819003de32d8af1/files/$fileId/view?project=6867ce2e001b592626ae';
+      final url =
+          'https://cloud.appwrite.io/v1/storage/buckets/$bucketId/files/$fileId/view?project=6867ce2e001b592626ae';
+      print('Image uploaded successfully: $url');
+      return url;
     } catch (e) {
+      print('Image upload error: $e');
       throw Exception('Failed to upload image: $e');
     }
   }
@@ -149,17 +179,45 @@ class FirebaseService extends GetxController {
   // Upload video to Appwrite Storage using helper
   Future<String> uploadVideo(File file, String path) async {
     try {
+      final bucketId = AppwriteConfig.videoBucketId;
+
+      // Test connection first
+      print('Testing Appwrite connection...');
+      final connectionOk = await AppwriteService.testConnection(bucketId);
+      if (!connectionOk) {
+        throw Exception(
+          'Cannot connect to Appwrite storage. Please check your configuration.',
+        );
+      }
+
+      // Generate a unique filename with proper extension
+      final fileExtension = file.path.split('.').last.toLowerCase();
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final randomId = DateTime.now().microsecondsSinceEpoch
+          .toString()
+          .substring(8);
+      final fileName = '${path}_${timestamp}_$randomId.$fileExtension';
+
+      print('Uploading video: $fileName');
+      print('File size: ${await file.length()} bytes');
+
       // Use AppwriteService helper for upload
       final fileId = await AppwriteService.uploadFile(
-        bucketId: '687a6819003de32d8af1', // Correct bucket ID
+        bucketId: bucketId,
         path: file.path,
         bytes: await file.readAsBytes(),
-        fileName: file.path.split('/').last,
+        fileName: fileName,
       );
-      if (fileId == null) throw Exception('Upload failed');
+      if (fileId == null)
+        throw Exception('Upload failed - no file ID returned');
+
       // Return the correct Appwrite public view URL
-      return 'https://cloud.appwrite.io/v1/storage/buckets/687a6819003de32d8af1/files/$fileId/view?project=6867ce2e001b592626ae';
+      final url =
+          'https://cloud.appwrite.io/v1/storage/buckets/$bucketId/files/$fileId/view?project=6867ce2e001b592626ae';
+      print('Video uploaded successfully: $url');
+      return url;
     } catch (e) {
+      print('Video upload error: $e');
       throw Exception('Failed to upload video: $e');
     }
   }
@@ -188,10 +246,14 @@ class FirebaseService extends GetxController {
     String email,
     String companyName,
   ) async {
+    // Generate simple ID for admin
+    final simpleId = SimpleIdGenerator.generateEntityId('admin');
+
     await adminsCollection.doc(uid).set({
       'name': name,
       'email': email,
       'companyName': companyName,
+      'simpleId': simpleId,
       'role': 'admin',
       'createdAt': FieldValue.serverTimestamp(),
     });

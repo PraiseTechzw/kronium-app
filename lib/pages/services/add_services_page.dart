@@ -4,6 +4,9 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:kronium/core/app_theme.dart';
+import 'package:kronium/core/firebase_service.dart';
+import 'package:kronium/models/service_model.dart';
+import 'package:kronium/core/toast_utils.dart';
 
 class AddServicePage extends StatefulWidget {
   const AddServicePage({super.key});
@@ -14,6 +17,7 @@ class AddServicePage extends StatefulWidget {
 
 class AddServicePageState extends State<AddServicePage> {
   final _formKey = GlobalKey<FormState>();
+  final FirebaseService _firebaseService = Get.find<FirebaseService>();
   final List<String> categories = [
     'Construction',
     'Renewable Energy',
@@ -36,7 +40,11 @@ class AddServicePageState extends State<AddServicePage> {
   final List<String> _features = [];
   final TextEditingController _featureController = TextEditingController();
   File? _videoFile;
+  File? _imageFile;
   bool _isUploadingVideo = false;
+  bool _isUploadingImage = false;
+  String? _imageUrl;
+  String? _videoUrl;
 
   // Color and icon options
   final List<Color> colorOptions = [
@@ -68,24 +76,155 @@ class AddServicePageState extends State<AddServicePage> {
     super.dispose();
   }
 
+  Future<void> _pickImage() async {
+    setState(() => _isUploadingImage = true);
+    try {
+      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        setState(() => _imageFile = File(image.path));
+
+        // Check file size (limit to 10MB)
+        final fileSize = await _imageFile!.length();
+        if (fileSize > 10 * 1024 * 1024) {
+          ToastUtils.showError(
+            'Image file is too large. Please select an image smaller than 10MB.',
+          );
+          setState(() => _imageFile = null);
+          return;
+        }
+
+        // Upload image to Appwrite
+        final url = await _firebaseService.uploadImage(
+          _imageFile!,
+          'service_images',
+        );
+        setState(() => _imageUrl = url);
+        ToastUtils.showSuccess('Image uploaded successfully!');
+      }
+    } catch (e) {
+      print('Image upload error: $e');
+      String errorMessage = 'Failed to upload image';
+      if (e.toString().contains('unsupported namespace')) {
+        errorMessage = 'Invalid file format. Please select a valid image file.';
+      } else if (e.toString().contains('network')) {
+        errorMessage = 'Network error. Please check your internet connection.';
+      } else if (e.toString().contains('permission')) {
+        errorMessage =
+            'Permission denied. Please check Appwrite configuration.';
+      }
+      ToastUtils.showError('$errorMessage: ${e.toString()}');
+    } finally {
+      setState(() => _isUploadingImage = false);
+    }
+  }
+
   Future<void> _pickVideo() async {
     setState(() => _isUploadingVideo = true);
     try {
       final XFile? video = await _picker.pickVideo(source: ImageSource.gallery);
       if (video != null) {
         setState(() => _videoFile = File(video.path));
+
+        // Check file size (limit to 100MB for videos)
+        final fileSize = await _videoFile!.length();
+        if (fileSize > 100 * 1024 * 1024) {
+          ToastUtils.showError(
+            'Video file is too large. Please select a video smaller than 100MB.',
+          );
+          setState(() => _videoFile = null);
+          return;
+        }
+
+        // Upload video to Appwrite
+        final url = await _firebaseService.uploadVideo(
+          _videoFile!,
+          'service_videos',
+        );
+        setState(() => _videoUrl = url);
+        ToastUtils.showSuccess('Video uploaded successfully!');
       }
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to pick video: ${e.toString()}',
-        backgroundColor: AppTheme.errorColor,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      print('Video upload error: $e');
+      String errorMessage = 'Failed to upload video';
+      if (e.toString().contains('unsupported namespace')) {
+        errorMessage = 'Invalid file format. Please select a valid video file.';
+      } else if (e.toString().contains('network')) {
+        errorMessage = 'Network error. Please check your internet connection.';
+      } else if (e.toString().contains('permission')) {
+        errorMessage =
+            'Permission denied. Please check Appwrite configuration.';
+      }
+      ToastUtils.showError('$errorMessage: ${e.toString()}');
     } finally {
       setState(() => _isUploadingVideo = false);
     }
+  }
+
+  Widget _buildImageSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Service Image',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        const SizedBox(height: 8),
+        if (_imageFile != null || _imageUrl != null) ...[
+          Container(
+            height: 200,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child:
+                  _imageFile != null
+                      ? Image.file(_imageFile!, fit: BoxFit.cover)
+                      : _imageUrl != null
+                      ? Image.network(_imageUrl!, fit: BoxFit.cover)
+                      : const Icon(Icons.image, size: 50),
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: _isUploadingImage ? null : _pickImage,
+                icon:
+                    _isUploadingImage
+                        ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                        : const Icon(Icons.image),
+                label: Text(_isUploadingImage ? 'Uploading...' : 'Pick Image'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ),
+            if (_imageFile != null || _imageUrl != null) ...[
+              const SizedBox(width: 8),
+              IconButton(
+                onPressed: () {
+                  setState(() {
+                    _imageFile = null;
+                    _imageUrl = null;
+                  });
+                },
+                icon: const Icon(Icons.delete, color: Colors.red),
+              ),
+            ],
+          ],
+        ),
+      ],
+    );
   }
 
   Widget _buildVideoSection() {
@@ -97,7 +236,7 @@ class AddServicePageState extends State<AddServicePage> {
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
         const SizedBox(height: 8),
-        if (_videoFile != null || _videoUrlController.text.isNotEmpty) ...[
+        if (_videoFile != null || _videoUrl != null) ...[
           Card(
             elevation: 3,
             shape: RoundedRectangleBorder(
@@ -115,13 +254,15 @@ class AddServicePageState extends State<AddServicePage> {
                       children: [
                         Text(
                           _videoFile?.path.split('/').last ??
-                              _videoUrlController.text,
+                              (_videoUrl ?? _videoUrlController.text),
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 4),
                         Text(
                           _videoFile != null
                               ? '${(_videoFile!.lengthSync() / 1024 / 1024).toStringAsFixed(1)} MB'
+                              : _videoUrl != null
+                              ? 'Uploaded to Appwrite'
                               : 'URL provided',
                           style: const TextStyle(
                             color: Colors.grey,
@@ -136,6 +277,7 @@ class AddServicePageState extends State<AddServicePage> {
                     onPressed:
                         () => setState(() {
                           _videoFile = null;
+                          _videoUrl = null;
                           _videoUrlController.clear();
                         }),
                   ),
@@ -261,30 +403,34 @@ class AddServicePageState extends State<AddServicePage> {
     );
   }
 
-  void _submitForm() {
+  Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
-      final newService = {
-        'title': _titleController.text,
-        'description': _descriptionController.text,
-        'category': _selectedCategory,
-        'imagePath': _imagePathController.text,
-        'video': _videoFile ?? _videoUrlController.text,
-        'icon': _selectedIcon,
-        'color': _selectedColor,
-        'features': List<String>.from(_features),
-      };
+      try {
+        // Create service with Appwrite URLs
+        final service = Service(
+          id: '', // Will be generated by Firebase
+          title: _titleController.text.trim(),
+          description: _descriptionController.text.trim(),
+          category: _selectedCategory,
+          icon: _selectedIcon,
+          color: _selectedColor,
+          features: List<String>.from(_features),
+          imageUrl: _imageUrl ?? _imagePathController.text.trim(),
+          videoUrl: _videoUrl ?? _videoUrlController.text.trim(),
+          price: 0.0, // You might want to add a price field
+          isActive: true,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
 
-      print('New Service with Video: $newService');
+        // Save to Firebase
+        await _firebaseService.addService(service);
 
-      Get.snackbar(
-        'Success',
-        'Service with video added successfully',
-        backgroundColor: AppTheme.primaryColor,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-      );
-
-      Get.back(result: newService);
+        ToastUtils.showSuccess('Service added successfully!');
+        Get.back();
+      } catch (e) {
+        ToastUtils.showError('Failed to add service: ${e.toString()}');
+      }
     }
   }
 
@@ -363,6 +509,9 @@ class AddServicePageState extends State<AddServicePage> {
                   },
                 ),
               ]),
+
+              const SizedBox(height: 24),
+              _buildFormSection('Service Image', [_buildImageSection()]),
 
               const SizedBox(height: 24),
               _buildFormSection('Video Demonstration', [_buildVideoSection()]),

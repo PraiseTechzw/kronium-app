@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:kronium/core/simple_id_generator.dart';
 
 class User {
   final String? id;
+  final String? simpleId; // 4-character simple ID (e.g., A3B7)
   final String name;
   final String email;
   final String phone;
@@ -14,6 +16,7 @@ class User {
 
   User({
     this.id,
+    this.simpleId,
     required this.name,
     required this.email,
     required this.phone,
@@ -28,9 +31,10 @@ class User {
   // Create from Firestore document
   factory User.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    
+
     return User(
       id: doc.id,
+      simpleId: data['simpleId'],
       name: data['name'] ?? '',
       email: data['email'] ?? '',
       phone: data['phone'] ?? '',
@@ -43,9 +47,32 @@ class User {
     );
   }
 
+  // Create a new user with a simple ID
+  factory User.create({
+    required String name,
+    required String email,
+    required String phone,
+    String? profileImage,
+    String? address,
+  }) {
+    return User(
+      simpleId: SimpleIdGenerator.generateSimpleId(), // Generate 4-character ID
+      name: name,
+      email: email,
+      phone: phone,
+      profileImage: profileImage,
+      address: address,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+      isActive: true,
+      favoriteServices: const [],
+    );
+  }
+
   // Convert to Map for Firestore
   Map<String, dynamic> toFirestore() {
     return {
+      'simpleId': simpleId,
       'name': name,
       'email': email,
       'phone': phone,
@@ -61,6 +88,7 @@ class User {
   // Copy with method
   User copyWith({
     String? id,
+    String? simpleId,
     String? name,
     String? email,
     String? phone,
@@ -73,6 +101,7 @@ class User {
   }) {
     return User(
       id: id ?? this.id,
+      simpleId: simpleId ?? this.simpleId,
       name: name ?? this.name,
       email: email ?? this.email,
       phone: phone ?? this.phone,
@@ -84,4 +113,10 @@ class User {
       favoriteServices: favoriteServices ?? this.favoriteServices,
     );
   }
-} 
+
+  // Get display ID (simple ID if available, otherwise Firebase ID)
+  String get displayId => simpleId ?? id ?? 'N/A';
+
+  // Check if user has a simple ID
+  bool get hasSimpleId => simpleId != null && simpleId!.isNotEmpty;
+}
