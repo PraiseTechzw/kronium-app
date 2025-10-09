@@ -205,9 +205,10 @@ class FeaturedServicesSection extends StatelessWidget {
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Container(
-                            height: 70, // Increased image height
+                            height: 70,
                             width: double.infinity,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(16),
@@ -254,19 +255,17 @@ class FeaturedServicesSection extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 6),
-                          Expanded(
-                            child: Text(
-                              s['description'] as String,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AppTheme.secondaryColor.withValues(
-                                  alpha: 0.7,
-                                ),
-                                fontWeight: FontWeight.w500,
-                                height: 1.3,
+                          Text(
+                            s['description'] as String,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppTheme.secondaryColor.withValues(
+                                alpha: 0.7,
                               ),
+                              fontWeight: FontWeight.w500,
+                              height: 1.3,
                             ),
                           ),
                         ],
