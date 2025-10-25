@@ -1,26 +1,33 @@
 import 'dart:math';
 
-/// Simple ID generator for creating short, user-friendly IDs
-/// Generates 4-character IDs using letters and numbers
+/// Simple ID generator for creating user-friendly IDs
+/// Generates 8-character IDs with exactly 3 letters and 5 numbers
 class SimpleIdGenerator {
-  // Characters to use for ID generation (letters and numbers only)
-  static const String _chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  // Letters to use for ID generation (exclude confusing characters)
+  static const String _letters = 'ABCDEFGHJKMNPQRSTUVWXYZ';
 
-  // Exclude confusing characters (0, O, 1, I, L)
-  static const String _safeChars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  // Numbers to use for ID generation (exclude confusing characters)
+  static const String _numbers = '23456789';
 
   static final Random _random = Random();
 
-  /// Generates a simple 4-character ID using letters and numbers
-  /// Format: XXXX (e.g., A3B7, K9M2, etc.)
+  /// Generates a simple 8-character ID with exactly 3 letters and 5 numbers
+  /// Format: LLLNNNNN (e.g., ABC23456, XYZ78923, etc.)
   static String generateSimpleId() {
-    final buffer = StringBuffer();
+    final List<String> letters = List.generate(
+      3,
+      (index) => _letters[_random.nextInt(_letters.length)],
+    );
+    final List<String> numbers = List.generate(
+      5,
+      (index) => _numbers[_random.nextInt(_numbers.length)],
+    );
 
-    for (int i = 0; i < 4; i++) {
-      buffer.write(_safeChars[_random.nextInt(_safeChars.length)]);
-    }
+    // Shuffle the combined list to randomize position
+    final List<String> combined = [...letters, ...numbers];
+    combined.shuffle(_random);
 
-    return buffer.toString();
+    return combined.join();
   }
 
   /// Generates a simple ID with a specific prefix
@@ -41,6 +48,7 @@ class SimpleIdGenerator {
   }
 
   /// Generates a simple ID with custom length
+  /// Note: For 8-character IDs, use generateSimpleId() for proper 3 letters + 5 numbers format
   static String generateCustomLengthId(int length) {
     if (length < 2 || length > 8) {
       throw ArgumentError('Length must be between 2 and 8 characters');
@@ -49,23 +57,34 @@ class SimpleIdGenerator {
     final buffer = StringBuffer();
 
     for (int i = 0; i < length; i++) {
-      buffer.write(_safeChars[_random.nextInt(_safeChars.length)]);
+      // Use both letters and numbers for custom length
+      final allChars = _letters + _numbers;
+      buffer.write(allChars[_random.nextInt(allChars.length)]);
     }
 
     return buffer.toString();
   }
 
   /// Validates if a string is a valid simple ID format
+  /// Must be exactly 8 characters with 3 letters and 5 numbers
   static bool isValidSimpleId(String id) {
-    if (id.length != 4) return false;
+    if (id.length != 8) return false;
+
+    int letterCount = 0;
+    int numberCount = 0;
 
     for (int i = 0; i < id.length; i++) {
-      if (!_safeChars.contains(id[i].toUpperCase())) {
-        return false;
+      final char = id[i].toUpperCase();
+      if (_letters.contains(char)) {
+        letterCount++;
+      } else if (_numbers.contains(char)) {
+        numberCount++;
+      } else {
+        return false; // Invalid character
       }
     }
 
-    return true;
+    return letterCount == 3 && numberCount == 5;
   }
 
   /// Generates a simple ID for different entity types
@@ -98,21 +117,21 @@ extension SimpleIdExtension on String {
 /// Example usage:
 /// 
 /// ```dart
-/// // Basic 4-character ID
-/// String id = SimpleIdGenerator.generateSimpleId(); // e.g., "A3B7"
+/// // Basic 8-character ID with 3 letters and 5 numbers
+/// String id = SimpleIdGenerator.generateSimpleId(); // e.g., "ABC23456"
 /// 
 /// // Prefixed ID
-/// String userId = SimpleIdGenerator.generatePrefixedId('USER'); // e.g., "USER-A3B7"
+/// String userId = SimpleIdGenerator.generatePrefixedId('USER'); // e.g., "USER-ABC23456"
 /// 
 /// // Entity-specific ID
-/// String projectId = SimpleIdGenerator.generateEntityId('project'); // e.g., "PRJ-K9M2"
+/// String projectId = SimpleIdGenerator.generateEntityId('project'); // e.g., "PRJ-XYZ78923"
 /// 
 /// // Using extension
-/// String serviceId = 'service'.toSimpleId(); // e.g., "SRV-M4N8"
+/// String serviceId = 'service'.toSimpleId(); // e.g., "SRV-MNP45678"
 /// 
-/// // Custom length
+/// // Custom length (not recommended for 8-char IDs)
 /// String shortId = SimpleIdGenerator.generateCustomLengthId(3); // e.g., "X2Y"
 /// 
 /// // Validate ID
-/// bool isValid = SimpleIdGenerator.isValidSimpleId("A3B7"); // true
+/// bool isValid = SimpleIdGenerator.isValidSimpleId("ABC23456"); // true
 /// ```

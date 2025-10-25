@@ -470,9 +470,9 @@ class ProjectsPageState extends State<ProjectsPage>
     return GridView.builder(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 0.8,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
+        childAspectRatio: 0.65, // Optimized for modern design
+        crossAxisSpacing: 20,
+        mainAxisSpacing: 20,
       ),
       itemCount: projects.length,
       itemBuilder: (context, index) => _buildProjectCard(projects[index]),
@@ -490,131 +490,257 @@ class ProjectsPageState extends State<ProjectsPage>
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: AppTheme.primaryColor.withOpacity(0.05),
+            blurRadius: 15,
             offset: const Offset(0, 4),
+            spreadRadius: 0,
           ),
         ],
+        border: Border.all(color: Colors.grey.withOpacity(0.1), width: 1),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
             onTap: () => _showProjectDetails(project),
+            borderRadius: BorderRadius.circular(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Project Image
+                // Project Image with Modern Header
                 Expanded(
                   flex: 3,
-                  child: Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          AppTheme.primaryColor.withOpacity(0.8),
-                          AppTheme.secondaryColor.withOpacity(0.6),
-                        ],
+                  child: Stack(
+                    children: [
+                      Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              AppTheme.primaryColor.withOpacity(0.9),
+                              AppTheme.secondaryColor.withOpacity(0.7),
+                              AppTheme.primaryColor.withOpacity(0.8),
+                            ],
+                            stops: const [0.0, 0.5, 1.0],
+                          ),
+                        ),
+                        child: _buildProjectImage(project),
                       ),
-                    ),
-                    child: _buildProjectImage(project),
+                      // Modern overlay with progress
+                      Positioned(
+                        top: 12,
+                        right: 12,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.9),
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            '${(project.progress * 100).toInt()}%',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.primaryColor,
+                            ),
+                          ),
+                        ),
+                      ),
+                      // Category badge
+                      Positioned(
+                        top: 12,
+                        left: 12,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.9),
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            project.category ?? 'Project',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.primaryColor,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
 
-                // Project Info
+                // Modern Project Info
                 Expanded(
                   flex: 2,
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        // Title with modern typography
                         Flexible(
                           child: Text(
                             project.title,
                             style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
                               color: Color(0xFF1E293B),
+                              height: 1.2,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Flexible(
-                          child: Text(
-                            project.location,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
+                        // Location with icon
                         Flexible(
                           child: Row(
                             children: [
+                              Icon(
+                                Iconsax.location,
+                                size: 14,
+                                color: Colors.grey[600],
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Text(
+                                  project.location,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.grey[600],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        // Modern progress section
+                        Flexible(
+                          child: Row(
+                            children: [
+                              // Size badge with modern design
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
+                                  horizontal: 12,
+                                  vertical: 6,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.primaryColor.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8),
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      AppTheme.primaryColor.withOpacity(0.1),
+                                      AppTheme.primaryColor.withOpacity(0.05),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: AppTheme.primaryColor.withOpacity(
+                                      0.2,
+                                    ),
+                                    width: 1,
+                                  ),
                                 ),
                                 child: Text(
                                   project.size,
                                   style: const TextStyle(
-                                    fontSize: 10,
+                                    fontSize: 11,
                                     fontWeight: FontWeight.w600,
                                     color: Color(0xFF667EEA),
                                   ),
                                 ),
                               ),
                               const Spacer(),
-                              _buildProgressIndicator(project.progress),
+                              // Modern progress indicator
+                              _buildModernProgressIndicator(project.progress),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 16),
+                        // Modern CTA button
                         Flexible(
-                          child: SizedBox(
+                          child: Container(
                             width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: () => _showBookingDialog(project),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppTheme.primaryColor,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 6),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                elevation: 0,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppTheme.primaryColor,
+                                  AppTheme.secondaryColor,
+                                ],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
                               ),
-                              child: const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                Icon(Iconsax.book_1, size: 14),
-                                SizedBox(width: 4),
-                                Text(
-                                  'Book Now',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.primaryColor.withOpacity(0.3),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
                                 ),
                               ],
+                            ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () => _showBookingDialog(project),
+                                borderRadius: BorderRadius.circular(12),
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Iconsax.book_1,
+                                      size: 16,
+                                      color: Colors.white,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'Book Project',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -788,22 +914,23 @@ class ProjectsPageState extends State<ProjectsPage>
   Widget _buildProjectImage(Project project) {
     // Check for images in both mediaUrls and projectMedia
     String? imageUrl;
-    
+
     // First try projectMedia (enhanced media with metadata)
     if (project.projectMedia.isNotEmpty) {
-      final imageMedia = project.projectMedia
-          .where((media) => media.type == 'image')
-          .firstOrNull;
+      final imageMedia =
+          project.projectMedia
+              .where((media) => media.type == 'image')
+              .firstOrNull;
       if (imageMedia != null) {
         imageUrl = imageMedia.url;
       }
     }
-    
+
     // Fallback to mediaUrls if no projectMedia images
     if (imageUrl == null && project.mediaUrls.isNotEmpty) {
       imageUrl = project.mediaUrls.first;
     }
-    
+
     if (imageUrl != null && imageUrl.isNotEmpty) {
       return Image.network(
         imageUrl,
@@ -823,10 +950,11 @@ class ProjectsPageState extends State<ProjectsPage>
             ),
             child: Center(
               child: CircularProgressIndicator(
-                value: loadingProgress.expectedTotalBytes != null
-                    ? loadingProgress.cumulativeBytesLoaded /
-                        loadingProgress.expectedTotalBytes!
-                    : null,
+                value:
+                    loadingProgress.expectedTotalBytes != null
+                        ? loadingProgress.cumulativeBytesLoaded /
+                            loadingProgress.expectedTotalBytes!
+                        : null,
                 color: Colors.white,
                 strokeWidth: 2,
               ),
@@ -840,7 +968,7 @@ class ProjectsPageState extends State<ProjectsPage>
         },
       );
     }
-    
+
     return _buildPlaceholderImage();
   }
 
@@ -864,53 +992,101 @@ class ProjectsPageState extends State<ProjectsPage>
 
   List<String> _getProjectImages(Project project) {
     List<String> images = [];
-    
+
     // First add images from projectMedia (enhanced media with metadata)
     for (final media in project.projectMedia) {
       if (media.type == 'image' && media.url.isNotEmpty) {
         images.add(media.url);
       }
     }
-    
+
     // Then add images from mediaUrls if no projectMedia images
     if (images.isEmpty) {
       images.addAll(project.mediaUrls.where((url) => url.isNotEmpty));
     }
-    
+
     return images;
   }
 
   Widget _buildProgressIndicator(double progress) {
-    return Column(
-      children: [
-        Text(
-          '${(progress * 100).toInt()}%',
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF667EEA),
+    return SizedBox(
+      width: 55, // Increased width
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '${(progress * 100).toInt()}%',
+            style: const TextStyle(
+              fontSize: 11, // Increased font size
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF667EEA),
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-        ),
-        const SizedBox(height: 4),
-        Container(
-          width: 40,
-          height: 4,
-          decoration: BoxDecoration(
-            color: Colors.grey[200],
-            borderRadius: BorderRadius.circular(2),
-          ),
-          child: FractionallySizedBox(
-            alignment: Alignment.centerLeft,
-            widthFactor: progress,
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppTheme.primaryColor,
-                borderRadius: BorderRadius.circular(2),
+          const SizedBox(height: 3), // Increased spacing
+          Container(
+            width: 45, // Increased width
+            height: 4, // Increased height
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(2),
+            ),
+            child: FractionallySizedBox(
+              alignment: Alignment.centerLeft,
+              widthFactor: progress,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModernProgressIndicator(double progress) {
+    return SizedBox(
+      width: 60,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Modern progress bar
+          Container(
+            width: 50,
+            height: 6,
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(3),
+            ),
+            child: FractionallySizedBox(
+              alignment: Alignment.centerLeft,
+              widthFactor: progress,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
+                  ),
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          // Progress percentage with modern styling
+          Text(
+            '${(progress * 100).toInt()}%',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.primaryColor,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1170,16 +1346,25 @@ class ProjectsPageState extends State<ProjectsPage>
                               child: Image.network(
                                 imageUrl,
                                 fit: BoxFit.cover,
-                                loadingBuilder: (context, child, loadingProgress) {
+                                loadingBuilder: (
+                                  context,
+                                  child,
+                                  loadingProgress,
+                                ) {
                                   if (loadingProgress == null) return child;
                                   return Container(
                                     color: Colors.grey[200],
                                     child: Center(
                                       child: CircularProgressIndicator(
-                                        value: loadingProgress.expectedTotalBytes != null
-                                            ? loadingProgress.cumulativeBytesLoaded /
-                                                loadingProgress.expectedTotalBytes!
-                                            : null,
+                                        value:
+                                            loadingProgress
+                                                        .expectedTotalBytes !=
+                                                    null
+                                                ? loadingProgress
+                                                        .cumulativeBytesLoaded /
+                                                    loadingProgress
+                                                        .expectedTotalBytes!
+                                                : null,
                                         color: AppTheme.primaryColor,
                                       ),
                                     ),

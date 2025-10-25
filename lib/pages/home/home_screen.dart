@@ -405,7 +405,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         child: Text(
-                          'ID: ${userSimpleId.isNotEmpty ? userSimpleId : 'A3B7'}',
+                          'ID: ${userSimpleId.isNotEmpty ? userSimpleId : 'ABC23456'}',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
