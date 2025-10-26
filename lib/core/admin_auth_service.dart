@@ -24,10 +24,10 @@ class AdminAuthService extends GetxController {
     try {
       final prefs = await SharedPreferences.getInstance();
       final adminEmail = prefs.getString('admin_email');
-      
+
       if (adminEmail != null && adminEmail.isNotEmpty) {
         print('Found saved admin session: $adminEmail');
-        
+
         // Check if there's a current Firebase user
         final currentUser = _auth.currentUser;
         if (currentUser != null && currentUser.email == adminEmail) {
@@ -36,12 +36,14 @@ class AdminAuthService extends GetxController {
         } else {
           // No Firebase user but we have admin email saved
           // This happens during hot reload - restore admin status from saved data
-          print('Admin email found but no Firebase user - restoring admin status from saved session');
-          
+          print(
+            'Admin email found but no Firebase user - restoring admin status from saved session',
+          );
+
           // Set admin status to true based on saved session
           isAdminLoggedIn.value = true;
           adminUser.value = null; // No Firebase user but we're admin
-          
+
           print('Admin session restored from SharedPreferences: $adminEmail');
         }
       }
@@ -63,19 +65,23 @@ class AdminAuthService extends GetxController {
           // Add a small delay to avoid race conditions with rapid auth changes
           await Future.delayed(const Duration(milliseconds: 100));
           final currentAuthUser = _auth.currentUser;
-          
+
           if (currentAuthUser == null && isAdminLoggedIn.value) {
             // Check if we have a saved admin session
             final prefs = await SharedPreferences.getInstance();
             final adminEmail = prefs.getString('admin_email');
-            
+
             if (adminEmail == null || adminEmail.isEmpty) {
               // No saved admin session, clear admin status
-              print('Clearing admin session due to auth state change - no saved session');
+              print(
+                'Clearing admin session due to auth state change - no saved session',
+              );
               await _clearAdminSession();
             } else {
               // We have a saved admin session, keep admin status during hot reload
-              print('Keeping admin session during hot reload - saved session exists: $adminEmail');
+              print(
+                'Keeping admin session during hot reload - saved session exists: $adminEmail',
+              );
             }
           }
         }
@@ -95,14 +101,18 @@ class AdminAuthService extends GetxController {
       // No Firebase user - check if we have saved admin session
       final prefs = await SharedPreferences.getInstance();
       final adminEmail = prefs.getString('admin_email');
-      
-      if (adminEmail != null && adminEmail.isNotEmpty && !isAdminLoggedIn.value) {
+
+      if (adminEmail != null &&
+          adminEmail.isNotEmpty &&
+          !isAdminLoggedIn.value) {
         // Restore admin session if not already restored
-        print('Immediate check: Restoring admin session from SharedPreferences: $adminEmail');
+        print(
+          'Immediate check: Restoring admin session from SharedPreferences: $adminEmail',
+        );
         isAdminLoggedIn.value = true;
         adminUser.value = null;
       }
-      
+
       isInitialized.value = true;
     }
   }
@@ -144,17 +154,21 @@ class AdminAuthService extends GetxController {
     print('Admin session cleared');
   }
 
-  Future<Map<String, dynamic>> loginAsAdmin(String email, String password) async {
+  Future<Map<String, dynamic>> loginAsAdmin(
+    String email,
+    String password,
+  ) async {
     try {
       final userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
       // Check if user is admin in Firestore
-      final adminDoc = await _firestore
-          .collection('admins')
-          .doc(userCredential.user!.uid)
-          .get();
+      final adminDoc =
+          await _firestore
+              .collection('admins')
+              .doc(userCredential.user!.uid)
+              .get();
       if (adminDoc.exists) {
         adminUser.value = userCredential.user;
         isAdminLoggedIn.value = true;
@@ -163,7 +177,10 @@ class AdminAuthService extends GetxController {
         return {'success': true, 'message': 'Admin login successful'};
       } else {
         await _auth.signOut();
-        return {'success': false, 'message': 'This account is not authorized as admin'};
+        return {
+          'success': false,
+          'message': 'This account is not authorized as admin',
+        };
       }
     } catch (e) {
       String errorMessage = _getFirebaseErrorMessage(e.toString());
