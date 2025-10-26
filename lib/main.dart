@@ -51,6 +51,22 @@ void main() async {
       print('Error verifying SettingsService: $e');
     }
 
+    // Verify FirebaseService is properly initialized
+    try {
+      Get.find<FirebaseService>();
+      print('FirebaseService initialized successfully');
+    } catch (e) {
+      print('Error verifying FirebaseService: $e');
+    }
+
+    // Verify AdminNotificationService is properly initialized
+    try {
+      Get.find<AdminNotificationService>();
+      print('AdminNotificationService initialized successfully');
+    } catch (e) {
+      print('Error verifying AdminNotificationService: $e');
+    }
+
     print('Initializing AppwriteService...');
     AppwriteService.init();
 
