@@ -12,7 +12,7 @@ import 'package:kronium/pages/projects/projects_page.dart';
 import 'package:kronium/widgets/app_drawer.dart';
 import 'package:kronium/pages/customer/customer_chat_page.dart';
 import 'package:kronium/pages/customer/customer_dashboard_page.dart';
-import 'package:kronium/pages/customer/customer_profile_page.dart';
+import 'package:kronium/pages/profile/profile_page.dart';
 import 'package:kronium/widgets/background_switcher.dart';
 
 /// HomePage is the main shell for the app's tabbed navigation.
@@ -101,7 +101,7 @@ class _HomePageState extends State<HomePage> {
           label: role == 'guest' ? 'Login' : 'Profile',
         ),
       );
-      pages.add(const CustomerProfilePage());
+      pages.add(const ProfilePage());
 
       return BackgroundSwitcher(
         child: Scaffold(
@@ -124,9 +124,7 @@ class _HomePageState extends State<HomePage> {
                         value: viewAsAdmin,
                         onChanged: (val) => _viewAsAdmin.value = val,
                         secondary: Icon(
-                          viewAsAdmin
-                              ? Iconsax.shield_tick
-                              : Iconsax.user,
+                          viewAsAdmin ? Iconsax.shield_tick : Iconsax.user,
                         ),
                       ),
                     ]
@@ -195,14 +193,8 @@ class _HomePageState extends State<HomePage> {
     final viewAsAdmin = !isAdmin || _viewAsAdmin.value;
 
     final List<BottomNavigationBarItem> items = [
-      const BottomNavigationBarItem(
-        icon: Icon(Iconsax.home_2),
-        label: 'Home',
-      ),
-      const BottomNavigationBarItem(
-        icon: Icon(Iconsax.box),
-        label: 'Services',
-      ),
+      const BottomNavigationBarItem(icon: Icon(Iconsax.home_2), label: 'Home'),
+      const BottomNavigationBarItem(icon: Icon(Iconsax.box), label: 'Services'),
       const BottomNavigationBarItem(
         icon: Icon(Iconsax.document_text),
         label: 'Projects',

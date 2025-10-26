@@ -9,7 +9,6 @@ import 'package:kronium/pages/auth/customer_register_page.dart';
 import 'package:kronium/pages/auth/forgot_password_page.dart';
 import 'package:kronium/pages/customer/customer_chat_page.dart';
 import 'package:kronium/pages/customer/customer_dashboard_page.dart';
-import 'package:kronium/pages/customer/customer_profile_page.dart';
 import 'package:kronium/pages/home/home_page.dart';
 import 'package:kronium/pages/profile/profile_page.dart';
 import 'package:kronium/pages/projects/project_history_page.dart';
@@ -22,7 +21,6 @@ import 'package:kronium/core/user_auth_service.dart';
 import 'package:kronium/pages/admin/admin_add_service_page.dart';
 import 'package:kronium/pages/admin/admin_projects_page.dart';
 import 'package:kronium/core/admin_auth_service.dart';
-import 'package:kronium/core/user_controller.dart';
 import 'package:kronium/pages/settings/settings_page.dart';
 
 class AppRoutes {
@@ -95,7 +93,7 @@ class AppRoutes {
     ),
     GetPage(
       name: customerProfile,
-      page: () => const CustomerProfilePage(),
+      page: () => const ProfilePage(),
       transition: Transition.rightToLeftWithFade,
       transitionDuration: const Duration(milliseconds: 800),
     ),
@@ -199,7 +197,6 @@ class AppRoutes {
       transition: Transition.rightToLeftWithFade,
       transitionDuration: const Duration(milliseconds: 800),
     ),
-    
   ];
 
   // Helper to get initial route based on user role
@@ -213,7 +210,6 @@ class AppRoutes {
   static String getAuthenticatedRoute() {
     final userAuthService = UserAuthService.instance;
     final adminAuthService = AdminAuthService.instance;
-    final userController = Get.find<UserController>();
 
     // Wait for services to initialize
     if (!userAuthService.isInitialized.value ||

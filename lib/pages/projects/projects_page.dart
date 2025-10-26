@@ -4,6 +4,7 @@ import 'package:iconsax/iconsax.dart';
 import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/user_controller.dart';
 import 'package:kronium/core/firebase_service.dart';
+import 'package:kronium/core/user_auth_service.dart';
 import 'package:kronium/models/project_model.dart';
 import 'package:kronium/core/toast_utils.dart';
 
@@ -143,7 +144,7 @@ class ProjectsPageState extends State<ProjectsPage>
           ),
           child: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -190,7 +191,7 @@ class ProjectsPageState extends State<ProjectsPage>
                       );
                     },
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   AnimatedBuilder(
                     animation: _titleSlideAnimation,
                     builder: (context, child) {
@@ -444,35 +445,57 @@ class ProjectsPageState extends State<ProjectsPage>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Category Tabs
+            // Enhanced Category Tabs
             Container(
-              height: 50,
-              margin: const EdgeInsets.only(bottom: 20),
+              height: 60,
+              margin: const EdgeInsets.only(bottom: 24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
               child: TabBar(
                 controller: _tabController,
                 isScrollable: true,
                 indicatorSize: TabBarIndicatorSize.label,
                 indicator: BoxDecoration(
-                  color: AppTheme.primaryColor,
-                  borderRadius: BorderRadius.circular(25),
+                  gradient: LinearGradient(
+                    colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.primaryColor.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 labelColor: Colors.white,
                 unselectedLabelColor: const Color(0xFF64748B),
                 labelStyle: const TextStyle(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
                   fontSize: 14,
+                  letterSpacing: -0.2,
                 ),
                 unselectedLabelStyle: const TextStyle(
                   fontWeight: FontWeight.w500,
                   fontSize: 14,
                 ),
+                dividerColor: Colors.transparent,
                 tabs:
                     categories
                         .map(
                           (category) => Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 12,
+                              horizontal: 24,
+                              vertical: 16,
                             ),
                             child: Text(category),
                           ),
@@ -581,10 +604,7 @@ class ProjectsPageState extends State<ProjectsPage>
             spreadRadius: 0,
           ),
         ],
-        border: Border.all(
-          color: Colors.grey.withOpacity(0.1),
-          width: 1,
-        ),
+        border: Border.all(color: Colors.grey.withOpacity(0.1), width: 1),
       ),
       child: Material(
         color: Colors.transparent,
@@ -724,58 +744,66 @@ class ProjectsPageState extends State<ProjectsPage>
                       Row(
                         children: [
                           // Category badge
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  AppTheme.primaryColor.withOpacity(0.1),
-                                  AppTheme.primaryColor.withOpacity(0.05),
-                                ],
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
                               ),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: AppTheme.primaryColor.withOpacity(0.2),
-                                width: 1,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    AppTheme.primaryColor.withOpacity(0.1),
+                                    AppTheme.primaryColor.withOpacity(0.05),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: AppTheme.primaryColor.withOpacity(0.2),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Text(
+                                project.category ?? 'Project',
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF667EEA),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            child: Text(
-                              project.category ?? 'Project',
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF667EEA),
+                          ),
+                          const SizedBox(width: 6),
+                          // Size badge
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.green.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: Colors.green.withOpacity(0.2),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Text(
+                                project.size,
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.green,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ),
                           const SizedBox(width: 8),
-                          // Size badge
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.green.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Colors.green.withOpacity(0.2),
-                                width: 1,
-                              ),
-                            ),
-                            child: Text(
-                              project.size,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.green,
-                              ),
-                            ),
-                          ),
-                          const Spacer(),
                           // Enhanced progress indicator
                           _buildEnhancedProgressIndicator(project.progress),
                         ],
@@ -937,39 +965,41 @@ class ProjectsPageState extends State<ProjectsPage>
     return images;
   }
 
-  Widget _buildProgressIndicator(double progress) {
-    return SizedBox(
-      width: 55, // Increased width
+  Widget _buildEnhancedProgressIndicator(double progress) {
+    return Container(
+      width: 50,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            '${(progress * 100).toInt()}%',
-            style: const TextStyle(
-              fontSize: 11, // Increased font size
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF667EEA),
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 3), // Increased spacing
+          // Enhanced progress bar
           Container(
-            width: 45, // Increased width
-            height: 4, // Increased height
+            width: 40,
+            height: 6,
             decoration: BoxDecoration(
               color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(3),
             ),
             child: FractionallySizedBox(
               alignment: Alignment.centerLeft,
               widthFactor: progress,
               child: Container(
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryColor,
-                  borderRadius: BorderRadius.circular(2),
+                  gradient: LinearGradient(
+                    colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
+                  ),
+                  borderRadius: BorderRadius.circular(3),
                 ),
               ),
+            ),
+          ),
+          const SizedBox(height: 3),
+          // Progress percentage with enhanced styling
+          Text(
+            '${(progress * 100).toInt()}%',
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.primaryColor,
             ),
           ),
         ],
@@ -978,13 +1008,43 @@ class ProjectsPageState extends State<ProjectsPage>
   }
 
   Widget _buildLoadingState() {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(color: AppTheme.primaryColor),
-          SizedBox(height: 16),
-          Text('Loading projects...', style: TextStyle(color: Colors.grey)),
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppTheme.primaryColor.withOpacity(0.1),
+                  AppTheme.secondaryColor.withOpacity(0.1),
+                ],
+              ),
+              shape: BoxShape.circle,
+            ),
+            child: const Center(
+              child: CircularProgressIndicator(
+                color: AppTheme.primaryColor,
+                strokeWidth: 3,
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'Loading projects...',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1E293B),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Please wait while we fetch the latest projects',
+            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+          ),
         ],
       ),
     );
@@ -992,104 +1052,228 @@ class ProjectsPageState extends State<ProjectsPage>
 
   Widget _buildErrorState(String error) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Iconsax.warning_2, size: 64, color: Colors.red),
-          const SizedBox(height: 16),
-          const Text(
-            'Failed to load projects',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.red,
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Iconsax.warning_2, size: 48, color: Colors.red),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            error,
-            style: const TextStyle(color: Colors.grey),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () => setState(() {}),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryColor,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+            const SizedBox(height: 24),
+            const Text(
+              'Failed to load projects',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E293B),
               ),
             ),
-            child: const Text('Retry'),
-          ),
-        ],
+            const SizedBox(height: 12),
+            Text(
+              'We encountered an issue while loading projects. Please check your connection and try again.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey[600],
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: Colors.red.withOpacity(0.2),
+                  width: 1,
+                ),
+              ),
+              child: Text(
+                error,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.red[700],
+                  fontFamily: 'monospace',
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () => setState(() {}),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 0,
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Iconsax.refresh, size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    'Retry',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildEmptyState() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 120,
-            height: 120,
-            decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withOpacity(0.1),
-              shape: BoxShape.circle,
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 140,
+              height: 140,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppTheme.primaryColor.withOpacity(0.1),
+                    AppTheme.secondaryColor.withOpacity(0.1),
+                  ],
+                ),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Iconsax.folder_open,
+                size: 64,
+                color: AppTheme.primaryColor,
+              ),
             ),
-            child: const Icon(
-              Iconsax.folder_open,
-              size: 48,
-              color: AppTheme.primaryColor,
+            const SizedBox(height: 32),
+            const Text(
+              'No projects found',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E293B),
+                letterSpacing: -0.5,
+              ),
             ),
-          ),
-          const SizedBox(height: 24),
-          const Text(
-            'No projects found',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1E293B),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Obx(
-            () => Text(
-              _searchQuery.value.isNotEmpty
-                  ? 'Try adjusting your search terms'
-                  : 'No projects available in this category',
-              style: const TextStyle(color: Colors.grey, fontSize: 14),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          Obx(
-            () =>
+            const SizedBox(height: 12),
+            Obx(
+              () => Text(
                 _searchQuery.value.isNotEmpty
-                    ? Column(
-                      children: [
-                        const SizedBox(height: 16),
-                        ElevatedButton(
+                    ? 'Try adjusting your search terms or filters'
+                    : 'No projects available in this category at the moment',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Obx(
+              () =>
+                  _searchQuery.value.isNotEmpty
+                      ? Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              AppTheme.primaryColor,
+                              AppTheme.secondaryColor,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.primaryColor.withOpacity(0.3),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ElevatedButton(
                           onPressed: () {
                             _searchQuery.value = '';
                             _searchAnimationController.reverse();
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.primaryColor,
+                            backgroundColor: Colors.transparent,
                             foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 32,
+                              vertical: 16,
+                            ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
+                            elevation: 0,
                           ),
-                          child: const Text('Clear Search'),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Iconsax.close_circle, size: 20),
+                              SizedBox(width: 8),
+                              Text(
+                                'Clear Search',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ],
-                    )
-                    : const SizedBox.shrink(),
-          ),
-        ],
+                      )
+                      : Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[50],
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.grey[200]!,
+                            width: 1,
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Iconsax.info_circle,
+                              size: 32,
+                              color: Colors.grey[400],
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Check back later for new projects',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1783,7 +1967,7 @@ class ProjectsPageState extends State<ProjectsPage>
     );
   }
 
-  void _submitBooking(Project project) {
+  void _submitBooking(Project project) async {
     // Validate form fields
     if (_nameController.text.trim().isEmpty) {
       ToastUtils.showError('Please enter your full name');
@@ -1807,54 +1991,77 @@ class ProjectsPageState extends State<ProjectsPage>
       return;
     }
 
-    // Show loading state
-    ToastUtils.showInfo('Submitting your request...');
+    // Validate phone number format
+    if (_phoneController.text.trim().length < 10) {
+      ToastUtils.showError('Please enter a valid phone number');
+      return;
+    }
 
-    // Simulate API call delay
-    Future.delayed(const Duration(seconds: 2), () {
-      try {
-        // Here you would typically save the booking to Firestore
-        // For now, we'll just show success message
+    try {
+      // Show loading state
+      ToastUtils.showInfo('Submitting your request...');
 
-        // Create booking data for Firestore integration
-        final bookingData = {
-          'projectId': project.id,
-          'projectTitle': project.title,
-          'clientName': _nameController.text.trim(),
-          'clientEmail': _emailController.text.trim(),
-          'clientPhone': _phoneController.text.trim(),
-          'requestDate': DateTime.now().toIso8601String(),
-          'status': 'pending',
-          'transportCost': project.transportCost,
-          'projectLocation': project.location,
-          'projectSize': project.size,
-        };
+      // Get Firebase service
+      final firebaseService = Get.find<FirebaseService>();
 
-        // TODO: Save to Firestore
-        // await FirebaseFirestore.instance.collection('project_bookings').add(bookingData);
-        print('Booking data prepared: $bookingData'); // Temporary logging
+      // Get current user info
+      final userAuthService = Get.find<UserAuthService>();
+      final currentUser = userAuthService.currentUserProfile;
 
-        // Clear form
-        _nameController.clear();
-        _emailController.clear();
-        _phoneController.clear();
+      // Create booking data
+      final bookingData = {
+        'projectId': project.id,
+        'projectTitle': project.title,
+        'projectCategory': project.category ?? 'General',
+        'projectLocation': project.location,
+        'projectSize': project.size,
+        'projectProgress': project.progress,
+        'transportCost': project.transportCost,
+        'clientName': _nameController.text.trim(),
+        'clientEmail': _emailController.text.trim(),
+        'clientPhone': _phoneController.text.trim(),
+        'clientId': currentUser?.id ?? 'anonymous',
+        'requestDate': DateTime.now(),
+        'status': 'pending',
+        'notes': '', // Could be added later for additional notes
+        'createdAt': DateTime.now(),
+        'updatedAt': DateTime.now(),
+      };
 
-        // Show success message
-        ToastUtils.showSuccess(
-          'Project booking request submitted successfully! We will contact you soon.',
-        );
+      // Save to Firestore
+      await firebaseService.bookingsCollection.add(bookingData);
 
-        // Close bottom sheet
-        Navigator.pop(context);
+      // Clear form
+      _nameController.clear();
+      _emailController.clear();
+      _phoneController.clear();
 
-        // Show confirmation dialog
-        _showBookingConfirmation(project);
-      } catch (e) {
-        ToastUtils.showError(
-          'Failed to submit booking request. Please try again.',
-        );
+      // Show success message
+      ToastUtils.showSuccess(
+        'Project booking request submitted successfully! We will contact you soon.',
+      );
+
+      // Close bottom sheet
+      Navigator.pop(context);
+
+      // Show confirmation dialog
+      _showBookingConfirmation(project);
+    } catch (e) {
+      print('Booking submission error: $e');
+
+      String errorMessage =
+          'Failed to submit booking request. Please try again.';
+      if (e.toString().contains('network')) {
+        errorMessage =
+            'Network error. Please check your connection and try again.';
+      } else if (e.toString().contains('permission')) {
+        errorMessage = 'Permission denied. Please try again.';
+      } else if (e.toString().contains('timeout')) {
+        errorMessage = 'Request timeout. Please try again.';
       }
-    });
+
+      ToastUtils.showError(errorMessage);
+    }
   }
 
   void _showBookingConfirmation(Project project) {

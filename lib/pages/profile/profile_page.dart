@@ -21,25 +21,86 @@ class ProfilePageState extends State<ProfilePage> {
   final TextEditingController _addressController = TextEditingController();
 
   bool _isEditing = false;
-  bool _isDarkMode = false;
-  bool _notificationsEnabled = true;
-  bool _biometricEnabled = false;
-  final String _language = 'English';
-  final String _currency = 'USD';
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Refresh user data when page becomes visible
     _loadUserData();
+    
+    // Add listeners to track user input
+    _nameController.addListener(() {
+      print('User typing in name field: "${_nameController.text}"');
+    });
+    
+    _phoneController.addListener(() {
+      print('User typing in phone field: "${_phoneController.text}"');
+    });
+    
+    _addressController.addListener(() {
+      print('User typing in address field: "${_addressController.text}"');
+    });
   }
 
   void _loadUserData() {
     final user = UserAuthService.instance.currentUserProfile;
+    print(
+      '_loadUserData: Getting user from UserAuthService.instance.currentUserProfile',
+    );
+    print(
+      '_loadUserData: User data: ${user?.name}, ${user?.email}, ${user?.phone}',
+    );
+    print(
+      '_loadUserData: UserAuthService.instance.userProfile.value: ${UserAuthService.instance.userProfile.value?.name}, ${UserAuthService.instance.userProfile.value?.phone}',
+    );
+
     if (user != null) {
-      _nameController.text = user.name;
-      _emailController.text = user.email;
-      _phoneController.text = user.phone;
-      _addressController.text = user.address ?? '';
+      print('_loadUserData: User is not null, updating controllers...');
+      print(
+        '_loadUserData: Current controller values - Name: ${_nameController.text}, Phone: ${_phoneController.text}',
+      );
+
+      // Only update controllers if the values are different to avoid unnecessary updates
+      if (_nameController.text != user.name) {
+        print(
+          '_loadUserData: Updating name from "${_nameController.text}" to "${user.name}"',
+        );
+        _nameController.text = user.name;
+      }
+      if (_emailController.text != user.email) {
+        print(
+          '_loadUserData: Updating email from "${_emailController.text}" to "${user.email}"',
+        );
+        _emailController.text = user.email;
+      }
+      if (_phoneController.text != user.phone) {
+        print(
+          '_loadUserData: Updating phone from "${_phoneController.text}" to "${user.phone}"',
+        );
+        _phoneController.text = user.phone;
+      }
+      if (_addressController.text != (user.address ?? '')) {
+        print(
+          '_loadUserData: Updating address from "${_addressController.text}" to "${user.address ?? ''}"',
+        );
+        _addressController.text = user.address ?? '';
+      }
+
+      print(
+        '_loadUserData: Final controller values - Name: ${_nameController.text}, Phone: ${_phoneController.text}',
+      );
+
+      // Force UI update
+      setState(() {});
+    } else {
+      print('_loadUserData: User is null, clearing controllers');
+      _nameController.text = '';
+      _emailController.text = '';
+      _phoneController.text = '';
+      _addressController.text = '';
+
+      // Force UI update
+      setState(() {});
     }
   }
 
@@ -107,10 +168,15 @@ class ProfilePageState extends State<ProfilePage> {
               color: Colors.white,
             ),
             onPressed: () {
+              print('Edit/Save button pressed. Current _isEditing: $_isEditing');
               setState(() {
                 _isEditing = !_isEditing;
+                print('After toggle, _isEditing is now: $_isEditing');
                 if (!_isEditing) {
+                  print('Switching to save mode, calling _saveProfile()');
                   _saveProfile();
+                } else {
+                  print('Switching to edit mode');
                 }
               });
             },
@@ -132,27 +198,35 @@ class ProfilePageState extends State<ProfilePage> {
           onPressed: () => Get.back(),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            // Profile Header Section
-            _buildProfileHeader(userController, userAuthService),
-            const SizedBox(height: 30),
+      body: Obx(() {
+        final user = userAuthService.currentUserProfile;
 
-            // Profile Information Section
-            _buildProfileInfoSection(),
-            const SizedBox(height: 24),
+        // Update controllers when user profile changes
+        if (user != null) {
+          _nameController.text = user.name;
+          _emailController.text = user.email;
+          _phoneController.text = user.phone;
+          _addressController.text = user.address ?? '';
+        }
 
-            // Settings Section
-            _buildSettingsSection(),
-            const SizedBox(height: 24),
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              // Profile Header Section
+              _buildProfileHeader(userController, userAuthService),
+              const SizedBox(height: 30),
 
-            // Account Actions Section
-            _buildAccountActionsSection(userAuthService),
-          ],
-        ),
-      ),
+              // Profile Information Section
+              _buildProfileInfoSection(),
+              const SizedBox(height: 24),
+
+              // Account Actions Section
+              _buildAccountActionsSection(userAuthService),
+            ],
+          ),
+        );
+      }),
     );
   }
 
@@ -162,62 +236,86 @@ class ProfilePageState extends State<ProfilePage> {
   ) {
     final user = userAuthService.currentUserProfile;
     return Center(
-      child: Stack(
+      child: Column(
         children: [
-          Hero(
-            tag: 'profile-pic',
-            child: Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppTheme.primaryColor.withOpacity(0.3),
-                    blurRadius: 10,
-                    spreadRadius: 2,
+          Stack(
+            children: [
+              Hero(
+                tag: 'profile-pic',
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.primaryColor.withOpacity(0.3),
+                        blurRadius: 10,
+                        spreadRadius: 2,
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child:
-                  user?.name.isNotEmpty == true
-                      ? Center(
-                        child: Text(
-                          user!.name[0].toUpperCase(),
-                          style: const TextStyle(
-                            fontSize: 48,
-                            fontWeight: FontWeight.bold,
+                  child:
+                      user?.name.isNotEmpty == true
+                          ? Center(
+                            child: Text(
+                              user!.name[0].toUpperCase(),
+                              style: const TextStyle(
+                                fontSize: 48,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          )
+                          : const Icon(
+                            Iconsax.user,
+                            size: 50,
                             color: Colors.white,
                           ),
-                        ),
-                      )
-                      : const Icon(Iconsax.user, size: 50, color: Colors.white),
-            ),
-          ),
-          if (_isEditing)
-            Positioned(
-              bottom: 0,
-              right: 0,
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: const BoxDecoration(
-                  color: AppTheme.surfaceLight,
-                  shape: BoxShape.circle,
-                  boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8)],
-                ),
-                child: const Icon(
-                  Iconsax.camera,
-                  color: AppTheme.primaryColor,
-                  size: 20,
                 ),
               ),
+              if (_isEditing)
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: const BoxDecoration(
+                      color: AppTheme.surfaceLight,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(color: Colors.black12, blurRadius: 8),
+                      ],
+                    ),
+                    child: const Icon(
+                      Iconsax.camera,
+                      color: AppTheme.primaryColor,
+                      size: 20,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            user?.name ?? 'User',
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1E293B),
             ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            user?.email ?? 'user@example.com',
+            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+          ),
         ],
       ),
     );
@@ -249,82 +347,9 @@ class ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildSettingsSection() {
-    return FadeInUp(
-      delay: const Duration(milliseconds: 200),
-      child: _buildSectionCard(
-        title: 'Settings & Preferences',
-        icon: Iconsax.setting,
-        children: [
-          _buildListTile(
-            icon: Iconsax.moon,
-            title: 'Dark Mode',
-            subtitle: 'Switch between light and dark themes',
-            trailing: Switch(
-              value: _isDarkMode,
-              onChanged: (value) {
-                setState(() {
-                  _isDarkMode = value;
-                });
-                // TODO: Implement dark mode toggle
-              },
-              activeThumbColor: AppTheme.primaryColor,
-            ),
-          ),
-          const Divider(height: 1),
-          _buildListTile(
-            icon: Iconsax.notification,
-            title: 'Notifications',
-            subtitle: 'Manage your notification preferences',
-            trailing: Switch(
-              value: _notificationsEnabled,
-              onChanged: (value) {
-                setState(() {
-                  _notificationsEnabled = value;
-                });
-                // TODO: Implement notification toggle
-              },
-              activeThumbColor: AppTheme.primaryColor,
-            ),
-          ),
-          const Divider(height: 1),
-          _buildListTile(
-            icon: Iconsax.finger_cricle,
-            title: 'Biometric Login',
-            subtitle: 'Use fingerprint or face ID to login',
-            trailing: Switch(
-              value: _biometricEnabled,
-              onChanged: (value) {
-                setState(() {
-                  _biometricEnabled = value;
-                });
-                // TODO: Implement biometric toggle
-              },
-              activeThumbColor: AppTheme.primaryColor,
-            ),
-          ),
-          const Divider(height: 1),
-          _buildListTile(
-            icon: Iconsax.global,
-            title: 'Language',
-            subtitle: _language,
-            onTap: _showLanguageDialog,
-          ),
-          const Divider(height: 1),
-          _buildListTile(
-            icon: Iconsax.dollar_circle,
-            title: 'Currency',
-            subtitle: _currency,
-            onTap: _showCurrencyDialog,
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildAccountActionsSection(UserAuthService userAuthService) {
     return FadeInUp(
-      delay: const Duration(milliseconds: 400),
+      delay: const Duration(milliseconds: 300),
       child: _buildSectionCard(
         title: 'Account Actions',
         icon: Iconsax.user_edit,
@@ -472,6 +497,9 @@ class ProfilePageState extends State<ProfilePage> {
             controller: controller,
             enabled: enabled,
             maxLines: maxLines,
+            onChanged: (value) {
+              print('TextFormField "$label" changed to: "$value"');
+            },
             decoration: InputDecoration(
               prefixIcon: Icon(icon, color: AppTheme.primaryColor),
               border: OutlineInputBorder(
@@ -488,27 +516,149 @@ class ProfilePageState extends State<ProfilePage> {
 
   void _saveProfile() async {
     try {
+      // Show loading indicator
+      Get.dialog(
+        const Center(
+          child: CircularProgressIndicator(color: AppTheme.primaryColor),
+        ),
+        barrierDismissible: false,
+      );
+
       final userAuthService = Get.find<UserAuthService>();
-      await userAuthService.updateUserProfile({
+
+      // Validate required fields
+      if (_nameController.text.trim().isEmpty) {
+        Get.back(); // Close loading dialog
+        Get.snackbar(
+          'Error',
+          'Name cannot be empty',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+
+      if (_phoneController.text.trim().isEmpty) {
+        Get.back(); // Close loading dialog
+        Get.snackbar(
+          'Error',
+          'Phone number cannot be empty',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+
+      // Validate phone number format (basic validation)
+      if (_phoneController.text.trim().length < 10) {
+        Get.back(); // Close loading dialog
+        Get.snackbar(
+          'Error',
+          'Please enter a valid phone number (at least 10 digits)',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+
+      // Validate name length
+      if (_nameController.text.trim().length < 2) {
+        Get.back(); // Close loading dialog
+        Get.snackbar(
+          'Error',
+          'Name must be at least 2 characters long',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+
+      // Debug: Show what user has input in the fields
+      print('=== PROFILE UPDATE DEBUG ===');
+      print('User input in name field: "${_nameController.text}"');
+      print('User input in phone field: "${_phoneController.text}"');
+      print('User input in address field: "${_addressController.text}"');
+      print('Trimmed name: "${_nameController.text.trim()}"');
+      print('Trimmed phone: "${_phoneController.text.trim()}"');
+      print('Trimmed address: "${_addressController.text.trim()}"');
+
+      // Update profile data
+      final updateData = {
         'name': _nameController.text.trim(),
         'phone': _phoneController.text.trim(),
         'address': _addressController.text.trim(),
-      });
+      };
+      
+      print('Data being sent to updateUserProfile: $updateData');
+      print('=== END PROFILE UPDATE DEBUG ===');
 
+      await userAuthService.updateUserProfile(updateData);
+      print('Profile updated in database: $updateData');
+
+      // Wait a moment for the local profile to be updated
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      Get.back(); // Close loading dialog
+
+      // Force refresh the user profile from the service
+      final updatedUser = userAuthService.currentUserProfile;
+      print('Profile page: Getting updated user profile...');
+      print(
+        'Profile page: Updated user profile: ${updatedUser?.name}, ${updatedUser?.phone}',
+      );
+      print(
+        'Profile page: UserAuthService userProfile.value: ${userAuthService.userProfile.value?.name}, ${userAuthService.userProfile.value?.phone}',
+      );
+
+      // The updateUserProfile method already updates the local profile
+      // So we just need to refresh our UI
+      _loadUserData();
+
+      // Show success message
       Get.snackbar(
         'Success',
-        'Profile updated successfully',
+        'Profile updated successfully!',
         backgroundColor: Colors.green,
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 3),
+        icon: const Icon(Icons.check_circle, color: Colors.white),
       );
+
+      // Exit edit mode
+      setState(() {
+        _isEditing = false;
+      });
     } catch (e) {
+      Get.back(); // Close loading dialog
+
+      print('Profile update error: $e');
+
+      String errorMessage = 'Failed to update profile';
+      if (e.toString().contains('network')) {
+        errorMessage =
+            'Network error. Please check your internet connection and try again.';
+      } else if (e.toString().contains('permission')) {
+        errorMessage =
+            'Permission denied. Please make sure you are logged in and try again.';
+      } else if (e.toString().contains('timeout')) {
+        errorMessage = 'Request timeout. Please try again.';
+      } else if (e.toString().contains('firebase')) {
+        errorMessage = 'Database error. Please try again.';
+      }
+
       Get.snackbar(
         'Error',
-        'Failed to update profile: $e',
+        errorMessage,
         backgroundColor: Colors.red,
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error, color: Colors.white),
       );
     }
   }
@@ -525,43 +675,147 @@ class ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  void _showLanguageDialog() {
-    Get.snackbar(
-      'Coming Soon',
-      'Language selection will be available soon',
-      backgroundColor: AppTheme.primaryColor,
-      colorText: Colors.white,
-    );
-  }
+  void _exportData() async {
+    try {
+      // Show loading indicator
+      Get.dialog(
+        const Center(
+          child: CircularProgressIndicator(color: AppTheme.primaryColor),
+        ),
+        barrierDismissible: false,
+      );
 
-  void _showCurrencyDialog() {
-    Get.snackbar(
-      'Coming Soon',
-      'Currency selection will be available soon',
-      backgroundColor: AppTheme.primaryColor,
-      colorText: Colors.white,
-    );
-  }
+      final userAuthService = Get.find<UserAuthService>();
+      final user = userAuthService.currentUserProfile;
 
-  void _exportData() {
-    Get.snackbar(
-      'Coming Soon',
-      'Data export will be available soon',
-      backgroundColor: AppTheme.primaryColor,
-      colorText: Colors.white,
-    );
+      if (user == null) {
+        Get.back(); // Close loading dialog
+        Get.snackbar(
+          'Error',
+          'No user data found to export',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+
+      // Create user data summary
+      final userData = {
+        'name': user.name,
+        'email': user.email,
+        'phone': user.phone,
+        'address': user.address ?? 'Not provided',
+        'createdAt': user.createdAt?.toIso8601String() ?? 'Unknown',
+        'lastUpdated': user.updatedAt?.toIso8601String() ?? 'Unknown',
+        'exportDate': DateTime.now().toIso8601String(),
+      };
+
+      // In a real app, you would save this to a file or send it via email
+      // For now, we'll show the data in a dialog
+      Get.back(); // Close loading dialog
+
+      Get.dialog(
+        AlertDialog(
+          title: const Text('Your Data'),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Name: ${userData['name']}'),
+                const SizedBox(height: 8),
+                Text('Email: ${userData['email']}'),
+                const SizedBox(height: 8),
+                Text('Phone: ${userData['phone']}'),
+                const SizedBox(height: 8),
+                Text('Address: ${userData['address']}'),
+                const SizedBox(height: 8),
+                Text('Member Since: ${userData['createdAt']}'),
+                const SizedBox(height: 8),
+                Text('Last Updated: ${userData['lastUpdated']}'),
+                const SizedBox(height: 16),
+                const Text(
+                  'Note: In a production app, this data would be exported to a file or sent via email.',
+                  style: TextStyle(fontStyle: FontStyle.italic),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Get.back(), child: const Text('Close')),
+          ],
+        ),
+      );
+    } catch (e) {
+      Get.back(); // Close loading dialog
+      Get.snackbar(
+        'Error',
+        'Failed to export data: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
   }
 
   void _signOut(UserAuthService userAuthService) async {
     try {
+      // Show confirmation dialog
+      final confirmed = await Get.dialog<bool>(
+        AlertDialog(
+          title: const Text('Sign Out'),
+          content: const Text('Are you sure you want to sign out?'),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(result: false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Get.back(result: true),
+              child: const Text('Sign Out'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed != true) return;
+
+      // Show loading indicator
+      Get.dialog(
+        const Center(
+          child: CircularProgressIndicator(color: AppTheme.primaryColor),
+        ),
+        barrierDismissible: false,
+      );
+
       await userAuthService.logout();
+
+      Get.back(); // Close loading dialog
+
+      Get.snackbar(
+        'Success',
+        'Signed out successfully!',
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 2),
+        icon: const Icon(Icons.check_circle, color: Colors.white),
+      );
+
       Get.offAllNamed(AppRoutes.welcome);
     } catch (e) {
+      Get.back(); // Close loading dialog
+
+      print('Sign out error: $e');
+
       Get.snackbar(
         'Error',
-        'Failed to sign out: $e',
+        'Failed to sign out. Please try again.',
         backgroundColor: Colors.red,
         colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+        icon: const Icon(Icons.error, color: Colors.white),
       );
     }
   }
@@ -779,25 +1033,89 @@ class _ChangePasswordBottomSheetState
     setState(() => _isLoading = true);
     try {
       final userAuthService = Get.find<UserAuthService>();
-      final success = await userAuthService.changePassword(
-        _newPasswordController.text,
-      );
+
+      // Validate current password (basic check)
+      if (_currentPasswordController.text.trim().isEmpty) {
+        Get.snackbar(
+          'Error',
+          'Please enter your current password',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      // Validate new password strength
+      final newPassword = _newPasswordController.text.trim();
+      if (newPassword.length < 6) {
+        Get.snackbar(
+          'Error',
+          'New password must be at least 6 characters long',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      final success = await userAuthService.changePassword(newPassword);
 
       if (success) {
         Navigator.pop(context);
         Get.snackbar(
           'Success',
-          'Password updated successfully',
+          'Password updated successfully!',
           backgroundColor: Colors.green,
           colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+          duration: const Duration(seconds: 3),
+          icon: const Icon(Icons.check_circle, color: Colors.white),
+        );
+
+        // Clear form fields
+        _currentPasswordController.clear();
+        _newPasswordController.clear();
+        _confirmPasswordController.clear();
+      } else {
+        Get.snackbar(
+          'Error',
+          'Failed to update password. Please try again.',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+          icon: const Icon(Icons.error, color: Colors.white),
         );
       }
     } catch (e) {
+      print('Password change error: $e');
+
+      String errorMessage = 'Failed to update password';
+      if (e.toString().contains('requires-recent-login')) {
+        errorMessage =
+            'Please log out and log back in before changing your password';
+      } else if (e.toString().contains('weak-password')) {
+        errorMessage =
+            'Password is too weak. Please choose a stronger password with at least 6 characters';
+      } else if (e.toString().contains('network')) {
+        errorMessage =
+            'Network error. Please check your internet connection and try again';
+      } else if (e.toString().contains('timeout')) {
+        errorMessage = 'Request timeout. Please try again';
+      } else if (e.toString().contains('firebase')) {
+        errorMessage = 'Authentication error. Please try again';
+      }
+
       Get.snackbar(
         'Error',
-        'Failed to update password: $e',
+        errorMessage,
         backgroundColor: Colors.red,
         colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error, color: Colors.white),
       );
     } finally {
       setState(() => _isLoading = false);

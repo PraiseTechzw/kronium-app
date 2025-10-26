@@ -483,37 +483,168 @@ class UserAuthService extends GetxController {
   // Profile update methods
   Future<void> updateUserProfile(Map<String, dynamic> data) async {
     try {
-      final user = currentUser.value;
+      // Use Firebase Auth current user directly instead of reactive variable
+      final user = _auth.currentUser;
+      print('UserAuthService: Starting profile update...');
+      print('UserAuthService: Firebase Auth current user: ${user?.uid}');
+      print('UserAuthService: Reactive currentUser: ${currentUser.value?.uid}');
+      print('UserAuthService: Update data: $data');
+
       if (user != null) {
         print('UserAuthService: Updating user profile...');
+        print(
+          'UserAuthService: Current profile before update: ${userProfile.value?.name}, ${userProfile.value?.phone}',
+        );
 
         // Update in Firestore
+        print('UserAuthService: Updating Firestore document ${user.uid}...');
         await _firestore.collection('users').doc(user.uid).update({
           ...data,
           'updatedAt': FieldValue.serverTimestamp(),
         });
+        print('UserAuthService: Firestore update completed');
 
         // Update local profile
         if (userProfile.value != null) {
+          print('UserAuthService: Updating local profile...');
           final updatedProfile = userProfile.value!.copyWith(
             name: data['name'] ?? userProfile.value!.name,
             phone: data['phone'] ?? userProfile.value!.phone,
             address: data['address'] ?? userProfile.value!.address,
             updatedAt: DateTime.now(),
           );
+          print(
+            'UserAuthService: New profile data: ${updatedProfile.name}, ${updatedProfile.phone}',
+          );
+
           userProfile.value = updatedProfile;
+          print('UserAuthService: Local profile updated');
 
           // Update UserController
+          print('UserAuthService: Updating UserController...');
           userController.setUserProfile(updatedProfile);
+          print('UserAuthService: UserController updated');
+        } else {
+          print('UserAuthService: ERROR - userProfile.value is null!');
         }
 
         // Update preferences
         if (data['name'] != null) {
+          print('UserAuthService: Updating SharedPreferences...');
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('user_name', data['name']);
+          print('UserAuthService: SharedPreferences updated');
         }
 
         print('UserAuthService: Profile updated successfully');
+        print(
+          'UserAuthService: Final profile: ${userProfile.value?.name}, ${userProfile.value?.phone}',
+        );
+      } else {
+        print('UserAuthService: ERROR - Firebase Auth currentUser is null!');
+        print(
+          'UserAuthService: This means the user is not properly authenticated',
+        );
+
+        // Check if we have a local profile with user ID
+        if (userProfile.value != null &&
+            (userProfile.value!.id?.isNotEmpty ?? false)) {
+          print(
+            'UserAuthService: Found local profile with ID: ${userProfile.value!.id}',
+          );
+          print(
+            'UserAuthService: Attempting to update using local profile ID...',
+          );
+
+          try {
+            // Update in Firestore using the local profile ID
+            await _firestore
+                .collection('users')
+                .doc(userProfile.value!.id)
+                .update({...data, 'updatedAt': FieldValue.serverTimestamp()});
+            print(
+              'UserAuthService: Firestore update completed using local profile ID',
+            );
+
+            // Update local profile
+            final updatedProfile = userProfile.value!.copyWith(
+              name: data['name'] ?? userProfile.value!.name,
+              phone: data['phone'] ?? userProfile.value!.phone,
+              address: data['address'] ?? userProfile.value!.address,
+              updatedAt: DateTime.now(),
+            );
+            print(
+              'UserAuthService: New profile data: ${updatedProfile.name}, ${updatedProfile.phone}',
+            );
+
+            userProfile.value = updatedProfile;
+            print('UserAuthService: Local profile updated');
+
+            // Update UserController
+            print('UserAuthService: Updating UserController...');
+            userController.setUserProfile(updatedProfile);
+            print('UserAuthService: UserController updated');
+
+            // Update preferences
+            if (data['name'] != null) {
+              print('UserAuthService: Updating SharedPreferences...');
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setString('user_name', data['name']);
+              print('UserAuthService: SharedPreferences updated');
+            }
+
+            print(
+              'UserAuthService: Profile updated successfully using local profile ID',
+            );
+            print(
+              'UserAuthService: Final profile: ${userProfile.value?.name}, ${userProfile.value?.phone}',
+            );
+            return;
+          } catch (e) {
+            print('UserAuthService: Error updating with local profile ID: $e');
+            throw Exception(
+              'Failed to update profile. Please try logging in again.',
+            );
+          }
+        }
+
+        // Try to refresh the session
+        print('UserAuthService: Attempting to refresh session...');
+        try {
+          await validateAndRefreshSession();
+          final refreshedUser = _auth.currentUser;
+          if (refreshedUser != null) {
+            print(
+              'UserAuthService: Session refreshed successfully, retrying update...',
+            );
+            // Retry the update with the refreshed user
+            await _firestore.collection('users').doc(refreshedUser.uid).update({
+              ...data,
+              'updatedAt': FieldValue.serverTimestamp(),
+            });
+
+            // Update local profile
+            if (userProfile.value != null) {
+              final updatedProfile = userProfile.value!.copyWith(
+                name: data['name'] ?? userProfile.value!.name,
+                phone: data['phone'] ?? userProfile.value!.phone,
+                address: data['address'] ?? userProfile.value!.address,
+                updatedAt: DateTime.now(),
+              );
+              userProfile.value = updatedProfile;
+              userController.setUserProfile(updatedProfile);
+            }
+
+            print(
+              'UserAuthService: Profile updated successfully after session refresh',
+            );
+            return;
+          }
+        } catch (e) {
+          print('UserAuthService: Session refresh failed: $e');
+        }
+
+        throw Exception('User not authenticated. Please log in again.');
       }
     } catch (e) {
       print('UserAuthService: Error updating profile: $e');
