@@ -226,47 +226,6 @@ class AdminBookingsPage extends StatelessWidget {
           );
         },
       ),
-      bottomNavigationBar: Obx(() {
-        final userController = Get.find<UserController>();
-        final role = userController.role.value;
-        final isAdmin = role == 'admin';
-        final List<BottomNavigationBarItem> items = [
-          const BottomNavigationBarItem(
-            icon: Icon(Iconsax.home_2),
-            label: 'Home',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Iconsax.box),
-            label: 'Services',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Iconsax.document_text),
-            label: 'Projects',
-          ),
-        ];
-        if (role == 'customer' || isAdmin) {
-          items.add(const BottomNavigationBarItem(
-            icon: Icon(Iconsax.message),
-            label: 'Chat',
-          ));
-        }
-        items.add(BottomNavigationBarItem(
-          icon: const Icon(Iconsax.user),
-          label: role == 'guest' ? 'Login' : (isAdmin ? 'Admin Profile' : 'Profile'),
-        ));
-        return BottomNavigationBar(
-          currentIndex: 0, // Set the correct index for this page
-          onTap: (index) {
-            // Navigation logic here
-          },
-          backgroundColor: AppTheme.surfaceLight,
-          selectedItemColor: AppTheme.primaryColor,
-          unselectedItemColor: AppTheme.secondaryColor,
-          showUnselectedLabels: true,
-          type: BottomNavigationBarType.fixed,
-          items: items,
-        );
-      }),
     );
   }
 

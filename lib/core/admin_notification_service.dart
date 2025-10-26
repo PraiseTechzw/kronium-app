@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:animate_do/animate_do.dart';
 import 'package:kronium/core/firebase_service.dart';
 import 'package:kronium/models/service_model.dart';
 import 'package:kronium/models/booking_model.dart';
@@ -186,40 +185,58 @@ class AdminNotificationWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final notificationService = Get.find<AdminNotificationService>();
+    try {
+      final notificationService = Get.find<AdminNotificationService>();
 
-    return Obx(
-      () => Stack(
-        children: [
-          IconButton(
-            icon: const Icon(Iconsax.notification),
-            onPressed: () => _showNotifications(context),
-          ),
-          if (notificationService.unreadCount > 0)
-            Positioned(
-              right: 8,
-              top: 8,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
-                ),
-                constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                child: Text(
-                  '${notificationService.unreadCount}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
+      return Obx(
+        () => Stack(
+          children: [
+            IconButton(
+              icon: const Icon(Iconsax.notification),
+              onPressed: () => _showNotifications(context),
+            ),
+            if (notificationService.unreadCount > 0)
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
                   ),
-                  textAlign: TextAlign.center,
+                  constraints: const BoxConstraints(
+                    minWidth: 16,
+                    minHeight: 16,
+                  ),
+                  child: Text(
+                    '${notificationService.unreadCount}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ),
-            ),
-        ],
-      ),
-    );
+          ],
+        ),
+      );
+    } catch (e) {
+      print('AdminNotificationService not available: $e');
+      // Return a simple icon button without notification functionality
+      return IconButton(
+        icon: const Icon(Iconsax.notification),
+        onPressed: () {
+          Get.snackbar(
+            'Notifications',
+            'Notification service not available',
+            snackPosition: SnackPosition.TOP,
+          );
+        },
+      );
+    }
   }
 
   void _showNotifications(BuildContext context) {

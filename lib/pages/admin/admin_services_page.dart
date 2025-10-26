@@ -50,60 +50,6 @@ class AdminServicesPage extends StatelessWidget {
         }
         return const SizedBox.shrink();
       }),
-      bottomNavigationBar: Obx(() {
-        final role = userController.role.value;
-        // final isAdmin = role == 'admin';
-        // final viewAsAdmin = true; // Or use a toggle if you want
-        return BottomNavigationBar(
-          currentIndex: 1, // Services tab
-          onTap: (index) {
-            switch (index) {
-              case 0:
-                Get.toNamed(AppRoutes.adminDashboard);
-                break;
-              case 1:
-                // Already on services
-                break;
-              case 2:
-                Get.toNamed(AppRoutes.adminProjects);
-                break;
-              case 3:
-                Get.toNamed(AppRoutes.adminChat);
-                break;
-              case 4:
-                Get.toNamed(AppRoutes.profile);
-                break;
-            }
-          },
-          backgroundColor: AppTheme.surfaceLight,
-          selectedItemColor: AppTheme.primaryColor,
-          unselectedItemColor: AppTheme.secondaryColor,
-          showUnselectedLabels: true,
-          type: BottomNavigationBarType.fixed,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Iconsax.home_2),
-              label: 'Dashboard',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Iconsax.box),
-              label: 'Services',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Iconsax.document_text),
-              label: 'Projects',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Iconsax.message),
-              label: 'Chat',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Iconsax.user),
-              label: 'Profile',
-            ),
-          ],
-        );
-      }),
       body: StreamBuilder<List<Service>>(
         stream: firebaseService.getServices(),
         builder: (context, snapshot) {

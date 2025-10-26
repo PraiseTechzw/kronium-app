@@ -75,18 +75,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             Get.offAllNamed(AppRoutes.welcome);
           },
         ),
-        ElevatedButton.icon(
+        IconButton(
           icon: const Icon(Iconsax.message_question),
-          label: const Text('View Project Requests'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.orange,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
           onPressed: () => Get.to(() => const AdminProjectRequestsPage()),
+          tooltip: 'View Project Requests',
         ),
       ],
       isDarkMode: _isDarkMode,
@@ -448,47 +440,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   ],
                 ),
               ),
-
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0, // Dashboard tab
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              // Already on dashboard
-              break;
-            case 1:
-              Get.toNamed(AppRoutes.adminServices);
-              break;
-            case 2:
-              Get.toNamed(AppRoutes.adminProjects);
-              break;
-            case 3:
-              Get.toNamed(AppRoutes.adminChat);
-              break;
-            case 4:
-              Get.toNamed(AppRoutes.profile);
-              break;
-          }
-        },
-        backgroundColor: AppTheme.surfaceLight,
-        selectedItemColor: AppTheme.primaryColor,
-        unselectedItemColor: AppTheme.secondaryColor,
-        showUnselectedLabels: true,
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Iconsax.home_2),
-            label: 'Dashboard',
-          ),
-          BottomNavigationBarItem(icon: Icon(Iconsax.box), label: 'Services'),
-          BottomNavigationBarItem(
-            icon: Icon(Iconsax.document_text),
-            label: 'Projects',
-          ),
-          BottomNavigationBarItem(icon: Icon(Iconsax.message), label: 'Chat'),
-          BottomNavigationBarItem(icon: Icon(Iconsax.user), label: 'Profile'),
-        ],
-      ),
     );
   }
 
@@ -1190,11 +1141,11 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: OutlinedButton.icon(
-                         onPressed: () {
-                           Get.back();
-                           // Navigate to management tab in admin main page
-                           Get.toNamed(AppRoutes.adminMain);
-                         },
+                        onPressed: () {
+                          Get.back();
+                          // Navigate to management tab in admin main page
+                          Get.toNamed(AppRoutes.adminMain);
+                        },
                         icon: const Icon(Iconsax.setting_2),
                         label: const Text('Manage'),
                         style: OutlinedButton.styleFrom(
