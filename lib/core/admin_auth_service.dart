@@ -83,24 +83,28 @@ class AdminAuthService extends GetxController {
       });
 
       // Also check current state immediately in case user is already signed in
-      final currentUser = _auth.currentUser;
-      if (currentUser != null) {
-        _checkAdminStatus(currentUser);
-      } else {
-        // No Firebase user - check if we have saved admin session
-        final prefs = await SharedPreferences.getInstance();
-        final adminEmail = prefs.getString('admin_email');
-        
-        if (adminEmail != null && adminEmail.isNotEmpty && !isAdminLoggedIn.value) {
-          // Restore admin session if not already restored
-          print('Immediate check: Restoring admin session from SharedPreferences: $adminEmail');
-          isAdminLoggedIn.value = true;
-          adminUser.value = null;
-        }
-        
-        isInitialized.value = true;
-      }
+      _checkImmediateAuthState();
     });
+  }
+
+  Future<void> _checkImmediateAuthState() async {
+    final currentUser = _auth.currentUser;
+    if (currentUser != null) {
+      _checkAdminStatus(currentUser);
+    } else {
+      // No Firebase user - check if we have saved admin session
+      final prefs = await SharedPreferences.getInstance();
+      final adminEmail = prefs.getString('admin_email');
+      
+      if (adminEmail != null && adminEmail.isNotEmpty && !isAdminLoggedIn.value) {
+        // Restore admin session if not already restored
+        print('Immediate check: Restoring admin session from SharedPreferences: $adminEmail');
+        isAdminLoggedIn.value = true;
+        adminUser.value = null;
+      }
+      
+      isInitialized.value = true;
+    }
   }
 
   Future<void> _checkAdminStatus(User user) async {
