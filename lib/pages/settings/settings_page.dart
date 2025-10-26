@@ -17,7 +17,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   final UserController _userController = Get.find<UserController>();
   final UserAuthService _userAuthService = Get.find<UserAuthService>();
-  final SettingsService _settingsService = Get.find<SettingsService>();
+  late final SettingsService _settingsService;
 
   bool _isDarkMode = false;
   bool _notificationsEnabled = true;
@@ -37,7 +37,14 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void initState() {
     super.initState();
-    _loadSettings();
+    try {
+      _settingsService = Get.find<SettingsService>();
+      _loadSettings();
+    } catch (e) {
+      print('SettingsService not available: $e');
+      // Use default settings if service is not available
+      _loadDefaultSettings();
+    }
   }
 
   void _loadSettings() {
@@ -58,7 +65,24 @@ class _SettingsPageState extends State<SettingsPage> {
     } catch (e) {
       print('Error loading settings: $e');
       // Use default values if settings service is not available
+      _loadDefaultSettings();
     }
+  }
+
+  void _loadDefaultSettings() {
+    // Use default values when SettingsService is not available
+    _isDarkMode = false;
+    _notificationsEnabled = true;
+    _biometricEnabled = false;
+    _language = 'English';
+    _currency = 'USD';
+    _projectNotifications = true;
+    _bookingReminders = true;
+    _serviceUpdates = true;
+    _locationBasedServices = true;
+    _preferredServiceRadius = '50km';
+    _showTransportCosts = true;
+    _autoCalculateQuotes = false;
   }
 
   @override

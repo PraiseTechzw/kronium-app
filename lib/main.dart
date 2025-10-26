@@ -43,6 +43,14 @@ void main() async {
     print('Initializing SettingsService...');
     Get.put(SettingsService());
 
+    // Verify SettingsService is properly initialized
+    try {
+      Get.find<SettingsService>();
+      print('SettingsService initialized successfully');
+    } catch (e) {
+      print('Error verifying SettingsService: $e');
+    }
+
     print('Initializing AppwriteService...');
     AppwriteService.init();
 
