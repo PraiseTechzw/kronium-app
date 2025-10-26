@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 import 'package:kronium/models/booking_model.dart';
 import 'package:kronium/models/chat_model.dart';
+import 'package:kronium/models/user_model.dart';
 import 'package:kronium/core/appwrite_client.dart';
 import 'package:kronium/core/appwrite_config.dart';
 import 'package:kronium/core/simple_id_generator.dart';
@@ -431,6 +432,41 @@ class FirebaseService extends GetxController {
   // Delete project
   Future<void> deleteProject(String id) async {
     await projectsCollection.doc(id).delete();
+  }
+
+  // Get all users
+  Stream<List<User>> getUsers() {
+    return usersCollection
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs.map((doc) {
+            return User.fromFirestore(doc);
+          }).toList();
+        });
+  }
+
+  // Update user
+  Future<void> updateUser(String userId, Map<String, dynamic> data) async {
+    try {
+      await usersCollection.doc(userId).update({
+        ...data,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print('Error updating user: $e');
+      rethrow;
+    }
+  }
+
+  // Delete user
+  Future<void> deleteUser(String userId) async {
+    try {
+      await usersCollection.doc(userId).delete();
+    } catch (e) {
+      print('Error deleting user: $e');
+      rethrow;
+    }
   }
 
   // Get project statistics

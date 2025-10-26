@@ -10,6 +10,7 @@ import 'package:kronium/core/user_auth_service.dart';
 import 'package:kronium/core/user_controller.dart';
 import 'package:kronium/core/appwrite_client.dart';
 import 'package:kronium/core/settings_service.dart';
+import 'package:kronium/core/admin_notification_service.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -32,6 +33,9 @@ void main() async {
 
     print('Initializing AdminAuthService...');
     Get.put(AdminAuthService());
+
+    print('Initializing AdminNotificationService...');
+    Get.put(AdminNotificationService());
 
     print('Initializing FirebaseService...');
     Get.put(FirebaseService());

@@ -5,6 +5,7 @@ import 'package:kronium/models/user_model.dart';
 import 'package:kronium/core/user_controller.dart';
 import 'package:kronium/core/simple_id_generator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:kronium/core/admin_auth_service.dart';
 
 class UserAuthService extends GetxController {
   static UserAuthService get instance => Get.find();
@@ -450,6 +451,22 @@ class UserAuthService extends GetxController {
 
   Future<void> logout() async {
     print('UserAuthService: Logging out user...');
+
+    // Check if user is admin before signing out
+    try {
+      final adminAuthService = Get.find<AdminAuthService>();
+      if (adminAuthService.isAdmin) {
+        print(
+          'UserAuthService: User is admin, not signing out from Firebase Auth',
+        );
+        // Just clear user session, don't sign out from Firebase
+        await _clearUserSession();
+        return;
+      }
+    } catch (e) {
+      print('UserAuthService: Error checking admin status: $e');
+    }
+
     await _auth.signOut();
     await _clearUserSession();
   }

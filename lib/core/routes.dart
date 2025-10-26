@@ -20,6 +20,8 @@ import 'package:kronium/pages/welcome/welcome_page.dart';
 import 'package:kronium/core/user_auth_service.dart';
 import 'package:kronium/pages/admin/admin_add_service_page.dart';
 import 'package:kronium/pages/admin/admin_projects_page.dart';
+import 'package:kronium/pages/admin/admin_management_page.dart';
+import 'package:kronium/pages/admin/admin_main_page.dart';
 import 'package:kronium/core/admin_auth_service.dart';
 import 'package:kronium/pages/settings/settings_page.dart';
 
@@ -35,11 +37,13 @@ class AppRoutes {
   static const String customerChat = '/customer-chat';
   static const String adminSetup = '/admin-setup';
   static const String adminDashboard = '/admin-dashboard';
+  static const String adminMain = '/admin-main';
   static const String adminServices = '/admin-services';
   static const String adminBookings = '/admin-bookings';
   static const String adminChat = '/admin-chat';
   static const String adminAddService = '/admin-add-service';
   static const String adminProjects = '/admin-projects';
+  static const String adminManagement = '/admin-management';
   static const String home = '/home';
   static const String projects = '/projects';
   static const String projectHistory = '/project-history';
@@ -118,20 +122,8 @@ class AppRoutes {
       transitionDuration: const Duration(milliseconds: 800),
     ),
     GetPage(
-      name: adminServices,
-      page: () => const AdminServicesPage(),
-      transition: Transition.cupertino,
-      transitionDuration: const Duration(milliseconds: 800),
-    ),
-    GetPage(
-      name: adminBookings,
-      page: () => const AdminBookingsPage(),
-      transition: Transition.cupertino,
-      transitionDuration: const Duration(milliseconds: 800),
-    ),
-    GetPage(
-      name: adminChat,
-      page: () => const AdminChatPage(),
+      name: adminMain,
+      page: () => const AdminMainPage(),
       transition: Transition.cupertino,
       transitionDuration: const Duration(milliseconds: 800),
     ),
@@ -144,6 +136,30 @@ class AppRoutes {
     GetPage(
       name: adminProjects,
       page: () => const AdminProjectsPage(),
+      transition: Transition.cupertino,
+      transitionDuration: const Duration(milliseconds: 800),
+    ),
+    GetPage(
+      name: adminManagement,
+      page: () => const AdminMainPage(initialTab: 1),
+      transition: Transition.cupertino,
+      transitionDuration: const Duration(milliseconds: 800),
+    ),
+    GetPage(
+      name: adminServices,
+      page: () => const AdminMainPage(initialTab: 2),
+      transition: Transition.cupertino,
+      transitionDuration: const Duration(milliseconds: 800),
+    ),
+    GetPage(
+      name: adminBookings,
+      page: () => const AdminMainPage(initialTab: 3),
+      transition: Transition.cupertino,
+      transitionDuration: const Duration(milliseconds: 800),
+    ),
+    GetPage(
+      name: adminChat,
+      page: () => const AdminMainPage(initialTab: 4),
       transition: Transition.cupertino,
       transitionDuration: const Duration(milliseconds: 800),
     ),
@@ -217,12 +233,15 @@ class AppRoutes {
       return splash;
     }
 
-    // Check if user is authenticated
+    // Check admin status FIRST - admins should always go to admin interface
+    if (adminAuthService.isAdmin) {
+      return adminMain;
+    }
+    
+    // Check if regular user is authenticated
     if (userAuthService.isUserLoggedIn.value) {
-      // For authenticated users, always show welcome page first
+      // For authenticated regular users, show welcome page first
       return welcome;
-    } else if (adminAuthService.isAdmin) {
-      return adminDashboard;
     } else {
       // For new/unauthenticated users, show the sign-up page first
       return customerRegister;

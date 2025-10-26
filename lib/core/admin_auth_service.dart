@@ -17,6 +17,31 @@ class AdminAuthService extends GetxController {
   void onInit() {
     super.onInit();
     _setupAuthStateListener();
+    _restoreAdminSession();
+  }
+
+  Future<void> _restoreAdminSession() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final adminEmail = prefs.getString('admin_email');
+      
+      if (adminEmail != null && adminEmail.isNotEmpty) {
+        print('Found saved admin session: $adminEmail');
+        
+        // Check if there's a current Firebase user
+        final currentUser = _auth.currentUser;
+        if (currentUser != null && currentUser.email == adminEmail) {
+          // User is already signed in with the admin email
+          await _checkAdminStatus(currentUser);
+        } else {
+          // Try to sign in with the admin email
+          // Note: This is a simplified approach - in production you'd need proper credentials
+          print('Admin email found but no matching Firebase user');
+        }
+      }
+    } catch (e) {
+      print('Error restoring admin session: $e');
+    }
   }
 
   void _setupAuthStateListener() {
@@ -66,13 +91,13 @@ class AdminAuthService extends GetxController {
 
         print('Admin session restored: ${user.email}');
       } else {
-        // User is not admin, sign out
-        await _auth.signOut();
+        // User is not admin - clear admin session but don't sign out
+        // This allows regular users to remain signed in
         await _clearAdminSession();
+        print('User ${user.email} is not an admin - clearing admin session');
       }
     } catch (e) {
       print('Error checking admin status: $e');
-      await _auth.signOut();
       await _clearAdminSession();
     }
   }
