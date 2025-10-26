@@ -304,26 +304,27 @@ class ProjectsPageState extends State<ProjectsPage>
                               size: 20,
                             ),
                           ),
-                          suffixIcon: _searchQuery.value.isNotEmpty
-                              ? Container(
-                                  margin: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.red.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: IconButton(
-                                    onPressed: () {
-                                      _searchQuery.value = '';
-                                      _searchAnimationController.reverse();
-                                    },
-                                    icon: const Icon(
-                                      Iconsax.close_circle,
-                                      color: Colors.red,
-                                      size: 20,
+                          suffixIcon:
+                              _searchQuery.value.isNotEmpty
+                                  ? Container(
+                                    margin: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
-                                  ),
-                                )
-                              : null,
+                                    child: IconButton(
+                                      onPressed: () {
+                                        _searchQuery.value = '';
+                                        _searchAnimationController.reverse();
+                                      },
+                                      icon: const Icon(
+                                        Iconsax.close_circle,
+                                        color: Colors.red,
+                                        size: 20,
+                                      ),
+                                    ),
+                                  )
+                                  : null,
                           border: InputBorder.none,
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 20,
@@ -394,25 +395,26 @@ class ProjectsPageState extends State<ProjectsPage>
                                     size: 16,
                                     color: AppTheme.primaryColor,
                                   ),
-                                  items: [
-                                    'Newest',
-                                    'Oldest',
-                                    'A-Z',
-                                    'Z-A',
-                                    'Progress',
-                                  ].map((String value) {
-                                    return DropdownMenuItem<String>(
-                                      value: value,
-                                      child: Text(
-                                        value,
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
-                                          color: Color(0xFF1E293B),
-                                        ),
-                                      ),
-                                    );
-                                  }).toList(),
+                                  items:
+                                      [
+                                        'Newest',
+                                        'Oldest',
+                                        'A-Z',
+                                        'Z-A',
+                                        'Progress',
+                                      ].map((String value) {
+                                        return DropdownMenuItem<String>(
+                                          value: value,
+                                          child: Text(
+                                            value,
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
+                                              color: Color(0xFF1E293B),
+                                            ),
+                                          ),
+                                        );
+                                      }).toList(),
                                   onChanged: (String? newValue) {
                                     if (newValue != null) {
                                       _selectedSort.value = newValue;
@@ -561,33 +563,44 @@ class ProjectsPageState extends State<ProjectsPage>
 
   Widget _buildProjectListItem(Project project) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: AppTheme.primaryColor.withOpacity(0.05),
+            blurRadius: 15,
             offset: const Offset(0, 4),
+            spreadRadius: 0,
           ),
         ],
+        border: Border.all(
+          color: Colors.grey.withOpacity(0.1),
+          width: 1,
+        ),
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: () => _showProjectDetails(project),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             child: Row(
               children: [
-                // Project Image
+                // Enhanced Project Image
                 Container(
-                  width: 80,
-                  height: 80,
+                  width: 100,
+                  height: 100,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -596,72 +609,175 @@ class ProjectsPageState extends State<ProjectsPage>
                         AppTheme.secondaryColor.withOpacity(0.6),
                       ],
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.primaryColor.withOpacity(0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: _buildProjectImage(project),
-                  ),
-                ),
-
-                const SizedBox(width: 16),
-
-                // Project Info
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        project.title,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        project.description,
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Icon(
-                            Iconsax.location,
-                            size: 14,
-                            color: Colors.grey[500],
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            project.location,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[500],
-                            ),
-                          ),
-                          const Spacer(),
-                          Container(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Stack(
+                      children: [
+                        _buildProjectImage(project),
+                        // Progress overlay
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 8,
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: AppTheme.primaryColor.withOpacity(0.1),
+                              color: Colors.white.withOpacity(0.9),
                               borderRadius: BorderRadius.circular(8),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
                             child: Text(
-                              project.size,
-                              style: const TextStyle(
+                              '${(project.progress * 100).toInt()}%',
+                              style: TextStyle(
                                 fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.primaryColor,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(width: 20),
+
+                // Enhanced Project Info
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Title with modern typography
+                      Text(
+                        project.title,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
+                          letterSpacing: -0.5,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 6),
+                      // Description with better styling
+                      Text(
+                        project.description,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                          height: 1.4,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 12),
+                      // Location with enhanced icon
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Icon(
+                              Iconsax.location,
+                              size: 14,
+                              color: AppTheme.primaryColor,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              project.location,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey[600],
+                                fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      // Enhanced bottom row
+                      Row(
+                        children: [
+                          // Category badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppTheme.primaryColor.withOpacity(0.1),
+                                  AppTheme.primaryColor.withOpacity(0.05),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: AppTheme.primaryColor.withOpacity(0.2),
+                                width: 1,
+                              ),
+                            ),
+                            child: Text(
+                              project.category ?? 'Project',
+                              style: const TextStyle(
+                                fontSize: 11,
                                 fontWeight: FontWeight.w600,
                                 color: Color(0xFF667EEA),
                               ),
                             ),
                           ),
+                          const SizedBox(width: 8),
+                          // Size badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.green.withOpacity(0.2),
+                                width: 1,
+                              ),
+                            ),
+                            child: Text(
+                              project.size,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.green,
+                              ),
+                            ),
+                          ),
+                          const Spacer(),
+                          // Enhanced progress indicator
+                          _buildEnhancedProgressIndicator(project.progress),
                         ],
                       ),
                     ],
@@ -670,38 +786,48 @@ class ProjectsPageState extends State<ProjectsPage>
 
                 const SizedBox(width: 16),
 
-                // Progress and Action
+                // Enhanced Action Button
                 Column(
                   children: [
-                    _buildProgressIndicator(project.progress),
-                    const SizedBox(height: 12),
-                    ElevatedButton(
-                      onPressed: () => _showBookingDialog(project),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryColor,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
+                    Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppTheme.primaryColor,
+                            AppTheme.secondaryColor,
+                          ],
                         ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Iconsax.book_1, size: 14),
-                          SizedBox(width: 4),
-                          Text(
-                            'Book',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.primaryColor.withOpacity(0.3),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
                           ),
                         ],
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => _showBookingDialog(project),
+                          borderRadius: BorderRadius.circular(12),
+                          child: const Icon(
+                            Iconsax.book_1,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Book',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[600],
                       ),
                     ),
                   ],
