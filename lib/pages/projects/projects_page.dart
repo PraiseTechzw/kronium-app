@@ -31,7 +31,6 @@ class ProjectsPageState extends State<ProjectsPage>
 
   final RxString _searchQuery = ''.obs;
   final RxString _selectedSort = 'Newest'.obs;
-  final RxBool _isGridView = true.obs;
 
   // Animation controllers
   late AnimationController _searchAnimationController;
@@ -116,23 +115,35 @@ class ProjectsPageState extends State<ProjectsPage>
 
   Widget _buildModernAppBar() {
     return SliverAppBar(
-      expandedHeight: 120,
+      expandedHeight: 140,
       floating: false,
       pinned: true,
       backgroundColor: Colors.white,
       elevation: 0,
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
+              colors: [
+                const Color(0xFF667EEA),
+                const Color(0xFF764BA2),
+                const Color(0xFF667EEA).withOpacity(0.8),
+              ],
+              stops: const [0.0, 0.6, 1.0],
             ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF667EEA).withOpacity(0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
           ),
           child: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -147,19 +158,39 @@ class ProjectsPageState extends State<ProjectsPage>
                         ),
                         child: Opacity(
                           opacity: _titleSlideAnimation.value,
-                          child: const Text(
-                            'Our Projects',
-                            style: TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  Iconsax.folder_open,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              const Expanded(
+                                child: Text(
+                                  'Our Projects',
+                                  style: TextStyle(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       );
                     },
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   AnimatedBuilder(
                     animation: _titleSlideAnimation,
                     builder: (context, child) {
@@ -170,11 +201,26 @@ class ProjectsPageState extends State<ProjectsPage>
                         ),
                         child: Opacity(
                           opacity: _titleSlideAnimation.value,
-                          child: const Text(
-                            'Discover our innovative solutions',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.white70,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.3),
+                                width: 1,
+                              ),
+                            ),
+                            child: const Text(
+                              'Discover our innovative solutions',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
                         ),
@@ -193,154 +239,196 @@ class ProjectsPageState extends State<ProjectsPage>
   Widget _buildSearchAndFilter() {
     return SliverToBoxAdapter(
       child: Container(
-        color: Colors.white,
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            // Search Bar
-            AnimatedBuilder(
-              animation: _searchScaleAnimation,
-              builder: (context, child) {
-                return Transform.scale(
-                  scale: _searchScaleAnimation.value,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
-                    ),
-                    child: TextField(
-                      onChanged: (value) {
-                        _searchQuery.value = value;
-                        _searchAnimationController.forward();
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'Search projects...',
-                        hintStyle: TextStyle(color: Colors.grey[400]),
-                        prefixIcon: const Icon(
-                          Iconsax.search_normal,
-                          color: Color(0xFF64748B),
-                        ),
-                        suffixIcon:
-                            _searchQuery.value.isNotEmpty
-                                ? IconButton(
-                                  onPressed: () {
-                                    _searchQuery.value = '';
-                                    _searchAnimationController.reverse();
-                                  },
-                                  icon: const Icon(
-                                    Iconsax.close_circle,
-                                    color: Color(0xFF64748B),
-                                  ),
-                                )
-                                : null,
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 16,
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-
-            const SizedBox(height: 20),
-
-            // Filter Row
-            Row(
-              children: [
-                // Sort Dropdown
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
-                    ),
-                    child: Obx(
-                      () => DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: _selectedSort.value,
-                          isExpanded: true,
-                          icon: const Icon(Iconsax.arrow_down_1, size: 16),
-                          items:
-                              [
-                                'Newest',
-                                'Oldest',
-                                'A-Z',
-                                'Z-A',
-                                'Progress',
-                              ].map((String value) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Text(
-                                    value,
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
-                                );
-                              }).toList(),
-                          onChanged: (String? newValue) {
-                            if (newValue != null) {
-                              _selectedSort.value = newValue;
-                            }
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(width: 12),
-
-                // View Toggle
-                Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _buildViewToggleButton(Iconsax.grid_1, true),
-                      _buildViewToggleButton(Iconsax.menu_1, false),
-                    ],
-                  ),
-                ),
-              ],
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
-      ),
-    );
-  }
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              // Search Bar with enhanced design
+              AnimatedBuilder(
+                animation: _searchScaleAnimation,
+                builder: (context, child) {
+                  return Transform.scale(
+                    scale: _searchScaleAnimation.value,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            const Color(0xFFF8FAFC),
+                            const Color(0xFFF1F5F9),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: const Color(0xFFE2E8F0),
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: TextField(
+                        onChanged: (value) {
+                          _searchQuery.value = value;
+                          _searchAnimationController.forward();
+                        },
+                        decoration: InputDecoration(
+                          hintText: 'Search projects...',
+                          hintStyle: TextStyle(
+                            color: Colors.grey[500],
+                            fontWeight: FontWeight.w500,
+                          ),
+                          prefixIcon: Container(
+                            margin: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Iconsax.search_normal,
+                              color: AppTheme.primaryColor,
+                              size: 20,
+                            ),
+                          ),
+                          suffixIcon: _searchQuery.value.isNotEmpty
+                              ? Container(
+                                  margin: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: IconButton(
+                                    onPressed: () {
+                                      _searchQuery.value = '';
+                                      _searchAnimationController.reverse();
+                                    },
+                                    icon: const Icon(
+                                      Iconsax.close_circle,
+                                      color: Colors.red,
+                                      size: 20,
+                                    ),
+                                  ),
+                                )
+                              : null,
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 20,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
 
-  Widget _buildViewToggleButton(IconData icon, bool isGrid) {
-    return GestureDetector(
-      onTap: () => _isGridView.value = isGrid,
-      child: Obx(
-        () => Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color:
-                _isGridView.value == isGrid
-                    ? AppTheme.primaryColor
-                    : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(
-            icon,
-            size: 18,
-            color:
-                _isGridView.value == isGrid
-                    ? Colors.white
-                    : const Color(0xFF64748B),
+              const SizedBox(height: 24),
+
+              // Enhanced Filter Row
+              Row(
+                children: [
+                  // Sort Dropdown with enhanced design
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 16,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            const Color(0xFFF8FAFC),
+                            const Color(0xFFF1F5F9),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: const Color(0xFFE2E8F0),
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Icon(
+                              Iconsax.sort,
+                              color: AppTheme.primaryColor,
+                              size: 16,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Obx(
+                              () => DropdownButtonHideUnderline(
+                                child: DropdownButton<String>(
+                                  value: _selectedSort.value,
+                                  isExpanded: true,
+                                  icon: const Icon(
+                                    Iconsax.arrow_down_1,
+                                    size: 16,
+                                    color: AppTheme.primaryColor,
+                                  ),
+                                  items: [
+                                    'Newest',
+                                    'Oldest',
+                                    'A-Z',
+                                    'Z-A',
+                                    'Progress',
+                                  ].map((String value) {
+                                    return DropdownMenuItem<String>(
+                                      value: value,
+                                      child: Text(
+                                        value,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: Color(0xFF1E293B),
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                  onChanged: (String? newValue) {
+                                    if (newValue != null) {
+                                      _selectedSort.value = newValue;
+                                    }
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
@@ -458,24 +546,9 @@ class ProjectsPageState extends State<ProjectsPage>
             return _buildEmptyState();
           }
 
-          return _isGridView.value
-              ? _buildGridView(filteredProjects)
-              : _buildListView(filteredProjects);
+          return _buildListView(filteredProjects);
         });
       },
-    );
-  }
-
-  Widget _buildGridView(List<Project> projects) {
-    return GridView.builder(
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.65, // Optimized for modern design
-        crossAxisSpacing: 20,
-        mainAxisSpacing: 20,
-      ),
-      itemCount: projects.length,
-      itemBuilder: (context, index) => _buildProjectCard(projects[index]),
     );
   }
 
@@ -483,276 +556,6 @@ class ProjectsPageState extends State<ProjectsPage>
     return ListView.builder(
       itemCount: projects.length,
       itemBuilder: (context, index) => _buildProjectListItem(projects[index]),
-    );
-  }
-
-  Widget _buildProjectCard(Project project) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-            spreadRadius: 0,
-          ),
-          BoxShadow(
-            color: AppTheme.primaryColor.withOpacity(0.05),
-            blurRadius: 15,
-            offset: const Offset(0, 4),
-            spreadRadius: 0,
-          ),
-        ],
-        border: Border.all(color: Colors.grey.withOpacity(0.1), width: 1),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: () => _showProjectDetails(project),
-            borderRadius: BorderRadius.circular(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Project Image with Modern Header
-                Expanded(
-                  flex: 3,
-                  child: Stack(
-                    children: [
-                      Container(
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              AppTheme.primaryColor.withOpacity(0.9),
-                              AppTheme.secondaryColor.withOpacity(0.7),
-                              AppTheme.primaryColor.withOpacity(0.8),
-                            ],
-                            stops: const [0.0, 0.5, 1.0],
-                          ),
-                        ),
-                        child: _buildProjectImage(project),
-                      ),
-                      // Modern overlay with progress
-                      Positioned(
-                        top: 12,
-                        right: 12,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.9),
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Text(
-                            '${(project.progress * 100).toInt()}%',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.primaryColor,
-                            ),
-                          ),
-                        ),
-                      ),
-                      // Category badge
-                      Positioned(
-                        top: 12,
-                        left: 12,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.9),
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Text(
-                            project.category ?? 'Project',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.primaryColor,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Modern Project Info
-                Expanded(
-                  flex: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Title with modern typography
-                        Flexible(
-                          child: Text(
-                            project.title,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF1E293B),
-                              height: 1.2,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        // Location with icon
-                        Flexible(
-                          child: Row(
-                            children: [
-                              Icon(
-                                Iconsax.location,
-                                size: 14,
-                                color: Colors.grey[600],
-                              ),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: Text(
-                                  project.location,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Colors.grey[600],
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        // Modern progress section
-                        Flexible(
-                          child: Row(
-                            children: [
-                              // Size badge with modern design
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      AppTheme.primaryColor.withOpacity(0.1),
-                                      AppTheme.primaryColor.withOpacity(0.05),
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: AppTheme.primaryColor.withOpacity(
-                                      0.2,
-                                    ),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Text(
-                                  project.size,
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF667EEA),
-                                  ),
-                                ),
-                              ),
-                              const Spacer(),
-                              // Modern progress indicator
-                              _buildModernProgressIndicator(project.progress),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        // Modern CTA button
-                        Flexible(
-                          child: Container(
-                            width: double.infinity,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  AppTheme.primaryColor,
-                                  AppTheme.secondaryColor,
-                                ],
-                                begin: Alignment.centerLeft,
-                                end: Alignment.centerRight,
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppTheme.primaryColor.withOpacity(0.3),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                onTap: () => _showBookingDialog(project),
-                                borderRadius: BorderRadius.circular(12),
-                                child: const Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Iconsax.book_1,
-                                      size: 16,
-                                      color: Colors.white,
-                                    ),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      'Book Project',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 
@@ -1041,48 +844,6 @@ class ProjectsPageState extends State<ProjectsPage>
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildModernProgressIndicator(double progress) {
-    return SizedBox(
-      width: 60,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Modern progress bar
-          Container(
-            width: 50,
-            height: 6,
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(3),
-            ),
-            child: FractionallySizedBox(
-              alignment: Alignment.centerLeft,
-              widthFactor: progress,
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
-                  ),
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 4),
-          // Progress percentage with modern styling
-          Text(
-            '${(progress * 100).toInt()}%',
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-              color: AppTheme.primaryColor,
             ),
           ),
         ],
