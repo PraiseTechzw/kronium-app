@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
@@ -23,7 +22,10 @@ class AdminServicesPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppTheme.primaryColor,
-        title: const Text('Admin Services', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Admin Services',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Iconsax.user, color: Colors.white),
@@ -66,10 +68,7 @@ class AdminServicesPage extends StatelessWidget {
                   const SizedBox(height: 16),
                   Text(
                     'Error loading services',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                   ),
                 ],
               ),
@@ -87,18 +86,12 @@ class AdminServicesPage extends StatelessWidget {
                   const SizedBox(height: 16),
                   Text(
                     'No services yet',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Add your first service to get started',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[500],
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton.icon(
@@ -144,29 +137,32 @@ class AdminServicesPage extends StatelessWidget {
                         color: service.color.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: service.imageUrl != null && service.imageUrl!.isNotEmpty
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.network(
-                                service.imageUrl!,
-                                fit: BoxFit.cover,
-                                width: 60,
-                                height: 60,
-                                errorBuilder: (context, error, stackTrace) => Container(
-                                  color: Colors.grey[200],
-                                  child: Icon(
-                                    Icons.broken_image,
-                                    color: Colors.grey,
-                                    size: 32,
-                                  ),
+                      child:
+                          service.imageUrl != null &&
+                                  service.imageUrl!.isNotEmpty
+                              ? ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.network(
+                                  service.imageUrl!,
+                                  fit: BoxFit.cover,
+                                  width: 60,
+                                  height: 60,
+                                  errorBuilder:
+                                      (context, error, stackTrace) => Container(
+                                        color: Colors.grey[200],
+                                        child: Icon(
+                                          Icons.broken_image,
+                                          color: Colors.grey,
+                                          size: 32,
+                                        ),
+                                      ),
                                 ),
+                              )
+                              : Icon(
+                                service.icon,
+                                color: service.color,
+                                size: 24,
                               ),
-                            )
-                          : Icon(
-                              service.icon,
-                              color: service.color,
-                              size: 24,
-                            ),
                     ),
                     title: Text(
                       service.title,
@@ -205,15 +201,19 @@ class AdminServicesPage extends StatelessWidget {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: service.isActive
-                                    ? Colors.green.withOpacity(0.1)
-                                    : Colors.red.withOpacity(0.1),
+                                color:
+                                    service.isActive
+                                        ? Colors.green.withOpacity(0.1)
+                                        : Colors.red.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
                                 service.isActive ? 'Active' : 'Inactive',
                                 style: TextStyle(
-                                  color: service.isActive ? Colors.green : Colors.red,
+                                  color:
+                                      service.isActive
+                                          ? Colors.green
+                                          : Colors.red,
                                   fontSize: 10,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -247,41 +247,55 @@ class AdminServicesPage extends StatelessWidget {
                             break;
                         }
                       },
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: 'edit',
-                          child: Row(
-                            children: [
-                              Icon(Iconsax.edit, size: 16),
-                              SizedBox(width: 8),
-                              Text('Edit'),
-                            ],
-                          ),
-                        ),
-                        PopupMenuItem(
-                          value: 'toggle',
-                          child: Row(
-                            children: [
-                              Icon(
-                                service.isActive ? Iconsax.eye_slash : Iconsax.eye,
-                                size: 16,
+                      itemBuilder:
+                          (context) => [
+                            const PopupMenuItem(
+                              value: 'edit',
+                              child: Row(
+                                children: [
+                                  Icon(Iconsax.edit, size: 16),
+                                  SizedBox(width: 8),
+                                  Text('Edit'),
+                                ],
                               ),
-                              const SizedBox(width: 8),
-                              Text(service.isActive ? 'Deactivate' : 'Activate'),
-                            ],
-                          ),
-                        ),
-                        const PopupMenuItem(
-                          value: 'delete',
-                          child: Row(
-                            children: [
-                              Icon(Iconsax.trash, size: 16, color: Colors.red),
-                              SizedBox(width: 8),
-                              Text('Delete', style: TextStyle(color: Colors.red)),
-                            ],
-                          ),
-                        ),
-                      ],
+                            ),
+                            PopupMenuItem(
+                              value: 'toggle',
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    service.isActive
+                                        ? Iconsax.eye_slash
+                                        : Iconsax.eye,
+                                    size: 16,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    service.isActive
+                                        ? 'Deactivate'
+                                        : 'Activate',
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const PopupMenuItem(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Iconsax.trash,
+                                    size: 16,
+                                    color: Colors.red,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Delete',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                     ),
                   ),
                 ),
@@ -301,13 +315,11 @@ class AdminServicesPage extends StatelessWidget {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
-        builder: (context) => FractionallySizedBox(
-          heightFactor: 0.85,
-          child: _ServiceDialog(
-            service: null,
-            isEditing: false,
-          ),
-        ),
+        builder:
+            (context) => FractionallySizedBox(
+              heightFactor: 0.85,
+              child: _ServiceDialog(service: null, isEditing: false),
+            ),
       );
     });
   }
@@ -320,22 +332,18 @@ class AdminServicesPage extends StatelessWidget {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
-        builder: (context) => FractionallySizedBox(
-          heightFactor: 0.85,
-          child: _ServiceDialog(
-            service: service,
-            isEditing: true,
-          ),
-        ),
+        builder:
+            (context) => FractionallySizedBox(
+              heightFactor: 0.85,
+              child: _ServiceDialog(service: service, isEditing: true),
+            ),
       );
     });
   }
 
   void _toggleServiceStatus(Service service) {
     final firebaseService = Get.find<FirebaseService>();
-    firebaseService.updateService(service.id!, {
-      'isActive': !service.isActive,
-    });
+    firebaseService.updateService(service.id!, {'isActive': !service.isActive});
   }
 
   void _deleteService(Service service) {
@@ -344,10 +352,7 @@ class AdminServicesPage extends StatelessWidget {
         title: const Text('Delete Service'),
         content: Text('Are you sure you want to delete "${service.title}"?'),
         actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
           TextButton(
             onPressed: () {
               final firebaseService = Get.find<FirebaseService>();
@@ -367,10 +372,7 @@ class _ServiceDialog extends StatefulWidget {
   final Service? service;
   final bool isEditing;
 
-  const _ServiceDialog({
-    this.service,
-    required this.isEditing,
-  });
+  const _ServiceDialog({this.service, required this.isEditing});
 
   @override
   State<_ServiceDialog> createState() => _ServiceDialogState();
@@ -384,7 +386,7 @@ class _ServiceDialogState extends State<_ServiceDialog> {
   final _priceController = TextEditingController();
   final List<String> _features = [];
   final List<TextEditingController> _featureControllers = [];
-  
+
   String? _selectedIcon;
   Color _selectedColor = AppTheme.primaryColor;
   bool _isLoading = false;
@@ -428,7 +430,10 @@ class _ServiceDialogState extends State<_ServiceDialog> {
   }
 
   Future<void> _pickImage() async {
-    final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    final picked = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
     if (picked != null) {
       setState(() {
         _pickedImage = picked;
@@ -441,7 +446,9 @@ class _ServiceDialogState extends State<_ServiceDialog> {
     final fileName = image.name;
     const bucketId = '687a6819003de32d8af1';
     const projectId = '6867ce160037a5704b1d';
-    print('Uploading image to Appwrite: bucketId=$bucketId, fileName=$fileName, bytes=${bytes.length}');
+    print(
+      'Uploading image to Appwrite: bucketId=$bucketId, fileName=$fileName, bytes=${bytes.length}',
+    );
     final fileId = await AppwriteService.uploadFile(
       bucketId: bucketId,
       path: '',
@@ -449,13 +456,10 @@ class _ServiceDialogState extends State<_ServiceDialog> {
       fileName: fileName,
     );
     print('Appwrite upload returned fileId: $fileId');
-    if (fileId != null) {
-      final url = 'https://cloud.appwrite.io/v1/storage/buckets/$bucketId/files/$fileId/view?project=$projectId';
-      print('Appwrite file URL: $url');
-      return url;
-    }
-    print('Appwrite upload failed, fileId is null');
-    return null;
+    final url =
+        'https://cloud.appwrite.io/v1/storage/buckets/$bucketId/files/$fileId/view?project=$projectId';
+    print('Appwrite file URL: $url');
+    return url;
   }
 
   Future<void> _saveService() async {
@@ -495,7 +499,9 @@ class _ServiceDialogState extends State<_ServiceDialog> {
       Get.back();
       Get.snackbar(
         'Success',
-        widget.isEditing ? 'Service updated successfully' : 'Service added successfully',
+        widget.isEditing
+            ? 'Service updated successfully'
+            : 'Service added successfully',
         snackPosition: SnackPosition.BOTTOM,
       );
     } catch (e) {
@@ -627,7 +633,7 @@ class _ServiceDialogState extends State<_ServiceDialog> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      
+
                       // Features Section
                       const Text(
                         'Features',
@@ -654,7 +660,10 @@ class _ServiceDialogState extends State<_ServiceDialog> {
                               if (_featureControllers.length > 1)
                                 IconButton(
                                   onPressed: () => _removeFeatureField(index),
-                                  icon: const Icon(Iconsax.trash, color: Colors.red),
+                                  icon: const Icon(
+                                    Iconsax.trash,
+                                    color: Colors.red,
+                                  ),
                                 ),
                             ],
                           ),
@@ -668,10 +677,7 @@ class _ServiceDialogState extends State<_ServiceDialog> {
                       // Image picker and preview
                       const SizedBox(height: 16),
                       if (_pickedImage != null)
-                        Image.file(
-                          File(_pickedImage!.path),
-                          height: 120,
-                        )
+                        Image.file(File(_pickedImage!.path), height: 120)
                       else if (_imageUrl != null && _imageUrl!.isNotEmpty)
                         Image.network(_imageUrl!, height: 120),
                       TextButton.icon(
@@ -701,18 +707,19 @@ class _ServiceDialogState extends State<_ServiceDialog> {
                           backgroundColor: AppTheme.primaryColor,
                           foregroundColor: Colors.white,
                         ),
-                        child: _isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white,
+                        child:
+                            _isLoading
+                                ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
                                   ),
-                                ),
-                              )
-                            : Text(widget.isEditing ? 'Update' : 'Add'),
+                                )
+                                : Text(widget.isEditing ? 'Update' : 'Add'),
                       ),
                     ),
                   ],
@@ -736,4 +743,4 @@ class _ServiceDialogState extends State<_ServiceDialog> {
     _priceController.dispose();
     super.dispose();
   }
-} 
+}

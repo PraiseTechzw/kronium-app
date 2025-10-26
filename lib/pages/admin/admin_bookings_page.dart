@@ -7,7 +7,6 @@ import 'package:intl/intl.dart';
 import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/firebase_service.dart';
 import 'package:kronium/models/booking_model.dart';
-import 'package:kronium/core/user_controller.dart';
 
 class AdminBookingsPage extends StatelessWidget {
   const AdminBookingsPage({super.key});
@@ -34,10 +33,7 @@ class AdminBookingsPage extends StatelessWidget {
                   const SizedBox(height: 16),
                   Text(
                     'Error loading bookings',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                   ),
                 ],
               ),
@@ -55,18 +51,12 @@ class AdminBookingsPage extends StatelessWidget {
                   const SizedBox(height: 16),
                   Text(
                     'No bookings yet',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Bookings will appear here when customers make them',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[500],
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -133,7 +123,9 @@ class AdminBookingsPage extends StatelessWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: _getStatusColor(booking.status).withOpacity(0.1),
+                            color: _getStatusColor(
+                              booking.status,
+                            ).withOpacity(0.1),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
@@ -155,7 +147,10 @@ class AdminBookingsPage extends StatelessWidget {
                           children: [
                             _buildInfoRow('Email', booking.clientEmail),
                             _buildInfoRow('Phone', booking.clientPhone),
-                            _buildInfoRow('Date', DateFormat('MMM dd, yyyy').format(booking.date)),
+                            _buildInfoRow(
+                              'Date',
+                              DateFormat('MMM dd, yyyy').format(booking.date),
+                            ),
                             _buildInfoRow('Price', '\$${booking.price}'),
                             _buildInfoRow('Location', booking.location),
                             if (booking.notes.isNotEmpty)
@@ -165,20 +160,36 @@ class AdminBookingsPage extends StatelessWidget {
                               children: [
                                 Expanded(
                                   child: OutlinedButton.icon(
-                                    onPressed: () => _updateBookingStatus(booking, BookingStatus.confirmed),
-                                    icon: const Icon(Iconsax.tick_circle, size: 16),
+                                    onPressed:
+                                        () => _updateBookingStatus(
+                                          booking,
+                                          BookingStatus.confirmed,
+                                        ),
+                                    icon: const Icon(
+                                      Iconsax.tick_circle,
+                                      size: 16,
+                                    ),
                                     label: const Text('Confirm'),
                                     style: OutlinedButton.styleFrom(
                                       foregroundColor: Colors.green,
-                                      side: const BorderSide(color: Colors.green),
+                                      side: const BorderSide(
+                                        color: Colors.green,
+                                      ),
                                     ),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: OutlinedButton.icon(
-                                    onPressed: () => _updateBookingStatus(booking, BookingStatus.cancelled),
-                                    icon: const Icon(Iconsax.close_circle, size: 16),
+                                    onPressed:
+                                        () => _updateBookingStatus(
+                                          booking,
+                                          BookingStatus.cancelled,
+                                        ),
+                                    icon: const Icon(
+                                      Iconsax.close_circle,
+                                      size: 16,
+                                    ),
                                     label: const Text('Cancel'),
                                     style: OutlinedButton.styleFrom(
                                       foregroundColor: Colors.red,
@@ -189,12 +200,18 @@ class AdminBookingsPage extends StatelessWidget {
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: OutlinedButton.icon(
-                                    onPressed: () => _updateBookingStatus(booking, BookingStatus.completed),
+                                    onPressed:
+                                        () => _updateBookingStatus(
+                                          booking,
+                                          BookingStatus.completed,
+                                        ),
                                     icon: const Icon(Iconsax.verify, size: 16),
                                     label: const Text('Complete'),
                                     style: OutlinedButton.styleFrom(
                                       foregroundColor: Colors.blue,
-                                      side: const BorderSide(color: Colors.blue),
+                                      side: const BorderSide(
+                                        color: Colors.blue,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -202,8 +219,13 @@ class AdminBookingsPage extends StatelessWidget {
                                 Expanded(
                                   child: OutlinedButton.icon(
                                     onPressed: () async {
-                                      await firebaseService.deleteBooking(booking.id!);
-                                      Get.snackbar('Booking Removed', 'The booking has been cancelled and the date is now available.');
+                                      await firebaseService.deleteBooking(
+                                        booking.id!,
+                                      );
+                                      Get.snackbar(
+                                        'Booking Removed',
+                                        'The booking has been cancelled and the date is now available.',
+                                      );
                                     },
                                     icon: const Icon(Iconsax.trash, size: 16),
                                     label: const Text('Remove'),
@@ -249,10 +271,7 @@ class AdminBookingsPage extends StatelessWidget {
           Expanded(
             child: Text(
               value,
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 12,
-              ),
+              style: TextStyle(color: Colors.grey[600], fontSize: 12),
             ),
           ),
         ],
@@ -315,4 +334,4 @@ class AdminBookingsPage extends StatelessWidget {
       snackPosition: SnackPosition.BOTTOM,
     );
   }
-} 
+}

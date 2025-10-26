@@ -52,28 +52,15 @@ class _AdminMainPageState extends State<AdminMainPage> {
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildNavItem(
-                  icon: Iconsax.home_2,
-                  label: 'Dashboard',
-                  index: 0,
-                ),
-                _buildNavItem(
-                  icon: Iconsax.setting_2,
-                  label: 'Management',
-                  index: 1,
-                ),
-                _buildNavItem(icon: Iconsax.box, label: 'Services', index: 2),
-                _buildNavItem(
-                  icon: Iconsax.calendar,
-                  label: 'Bookings',
-                  index: 3,
-                ),
-                _buildNavItem(icon: Iconsax.message, label: 'Chat', index: 4),
-                _buildNavItem(icon: Iconsax.user, label: 'Profile', index: 5),
+                Expanded(child: _buildNavItem(icon: Iconsax.home_2, label: 'Home', index: 0)),
+                Expanded(child: _buildNavItem(icon: Iconsax.setting_2, label: 'Manage', index: 1)),
+                Expanded(child: _buildNavItem(icon: Iconsax.box, label: 'Services', index: 2)),
+                Expanded(child: _buildNavItem(icon: Iconsax.calendar, label: 'Bookings', index: 3)),
+                Expanded(child: _buildNavItem(icon: Iconsax.message, label: 'Chat', index: 4)),
+                Expanded(child: _buildNavItem(icon: Iconsax.user, label: 'Profile', index: 5)),
               ],
             ),
           ),
@@ -96,13 +83,13 @@ class _AdminMainPageState extends State<AdminMainPage> {
         });
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         decoration: BoxDecoration(
           color:
               isSelected
                   ? AppTheme.primaryColor.withOpacity(0.1)
                   : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -110,14 +97,14 @@ class _AdminMainPageState extends State<AdminMainPage> {
             Icon(
               icon,
               color: isSelected ? AppTheme.primaryColor : Colors.grey[600],
-              size: 22,
+              size: 20,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
             Text(
               label,
               style: TextStyle(
                 color: isSelected ? AppTheme.primaryColor : Colors.grey[600],
-                fontSize: 10,
+                fontSize: 9,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),
             ),
