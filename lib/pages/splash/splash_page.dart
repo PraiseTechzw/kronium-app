@@ -51,12 +51,13 @@ class _SplashPageState extends State<SplashPage> {
     await Future.delayed(const Duration(seconds: 2));
 
     // Navigate based on authentication status
-    if (userAuthService.isLoggedIn) {
+    // Check admin status FIRST - admins should always go to admin interface
+    if (adminAuthService.isAdmin) {
+      print('Splash: Admin logged in, navigating to admin main page');
+      Get.offAllNamed(AppRoutes.adminMain);
+    } else if (userAuthService.isLoggedIn) {
       print('Splash: User already logged in, navigating to welcome page');
       Get.offAllNamed(AppRoutes.welcome);
-    } else if (adminAuthService.isAdmin) {
-      print('Splash: Admin logged in, navigating to admin dashboard');
-      Get.offAllNamed(AppRoutes.adminDashboard);
     } else {
       print('Splash: No user logged in, navigating to customer register');
       Get.offAllNamed(AppRoutes.customerRegister);

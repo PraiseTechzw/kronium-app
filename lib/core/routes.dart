@@ -1,8 +1,5 @@
 import 'package:get/get.dart';
-import 'package:kronium/pages/admin/admin_bookings_page.dart';
-import 'package:kronium/pages/admin/admin_chat_page.dart';
 import 'package:kronium/pages/admin/admin_dashboard_page.dart';
-import 'package:kronium/pages/admin/admin_services_page.dart';
 import 'package:kronium/pages/admin/admin_setup_page.dart';
 import 'package:kronium/pages/auth/customer_login_page.dart';
 import 'package:kronium/pages/auth/customer_register_page.dart';
@@ -20,7 +17,6 @@ import 'package:kronium/pages/welcome/welcome_page.dart';
 import 'package:kronium/core/user_auth_service.dart';
 import 'package:kronium/pages/admin/admin_add_service_page.dart';
 import 'package:kronium/pages/admin/admin_projects_page.dart';
-import 'package:kronium/pages/admin/admin_management_page.dart';
 import 'package:kronium/pages/admin/admin_main_page.dart';
 import 'package:kronium/core/admin_auth_service.dart';
 import 'package:kronium/pages/settings/settings_page.dart';
@@ -237,7 +233,7 @@ class AppRoutes {
     if (adminAuthService.isAdmin) {
       return adminMain;
     }
-    
+
     // Check if regular user is authenticated
     if (userAuthService.isUserLoggedIn.value) {
       // For authenticated regular users, show welcome page first
