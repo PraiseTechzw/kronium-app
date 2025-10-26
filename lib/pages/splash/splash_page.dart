@@ -7,6 +7,7 @@ import 'package:kronium/core/routes.dart';
 import 'package:kronium/core/user_auth_service.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -46,6 +47,17 @@ class _SplashPageState extends State<SplashPage> {
     print('Splash: Auth services initialized');
     print('Splash: User logged in: ${userAuthService.isLoggedIn}');
     print('Splash: Admin logged in: ${adminAuthService.isAdmin}');
+    print('Splash: Admin isAdminLoggedIn: ${adminAuthService.isAdminLoggedIn.value}');
+    print('Splash: Admin user: ${adminAuthService.adminUser.value?.email ?? "null"}');
+    
+    // Check SharedPreferences for admin session
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final adminEmail = prefs.getString('admin_email');
+      print('Splash: Saved admin email: ${adminEmail ?? "null"}');
+    } catch (e) {
+      print('Splash: Error checking SharedPreferences: $e');
+    }
 
     // Add a small delay for better UX
     await Future.delayed(const Duration(seconds: 2));

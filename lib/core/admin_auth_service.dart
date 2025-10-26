@@ -34,9 +34,15 @@ class AdminAuthService extends GetxController {
           // User is already signed in with the admin email
           await _checkAdminStatus(currentUser);
         } else {
-          // Try to sign in with the admin email
-          // Note: This is a simplified approach - in production you'd need proper credentials
-          print('Admin email found but no matching Firebase user');
+          // No Firebase user but we have admin email saved
+          // This happens during hot reload - restore admin status from saved data
+          print('Admin email found but no Firebase user - restoring admin status from saved session');
+          
+          // Set admin status to true based on saved session
+          isAdminLoggedIn.value = true;
+          adminUser.value = null; // No Firebase user but we're admin
+          
+          print('Admin session restored from SharedPreferences: $adminEmail');
         }
       }
     } catch (e) {
@@ -53,13 +59,24 @@ class AdminAuthService extends GetxController {
           // Check if user is admin
           await _checkAdminStatus(user);
         } else {
-          // User is signed out - only clear if we were previously logged in
+          // User is signed out - check if we should clear admin session
           // Add a small delay to avoid race conditions with rapid auth changes
           await Future.delayed(const Duration(milliseconds: 100));
           final currentAuthUser = _auth.currentUser;
+          
           if (currentAuthUser == null && isAdminLoggedIn.value) {
-            print('Clearing admin session due to auth state change');
-            await _clearAdminSession();
+            // Check if we have a saved admin session
+            final prefs = await SharedPreferences.getInstance();
+            final adminEmail = prefs.getString('admin_email');
+            
+            if (adminEmail == null || adminEmail.isEmpty) {
+              // No saved admin session, clear admin status
+              print('Clearing admin session due to auth state change - no saved session');
+              await _clearAdminSession();
+            } else {
+              // We have a saved admin session, keep admin status during hot reload
+              print('Keeping admin session during hot reload - saved session exists: $adminEmail');
+            }
           }
         }
         isInitialized.value = true;
@@ -70,6 +87,17 @@ class AdminAuthService extends GetxController {
       if (currentUser != null) {
         _checkAdminStatus(currentUser);
       } else {
+        // No Firebase user - check if we have saved admin session
+        final prefs = await SharedPreferences.getInstance();
+        final adminEmail = prefs.getString('admin_email');
+        
+        if (adminEmail != null && adminEmail.isNotEmpty && !isAdminLoggedIn.value) {
+          // Restore admin session if not already restored
+          print('Immediate check: Restoring admin session from SharedPreferences: $adminEmail');
+          isAdminLoggedIn.value = true;
+          adminUser.value = null;
+        }
+        
         isInitialized.value = true;
       }
     });
