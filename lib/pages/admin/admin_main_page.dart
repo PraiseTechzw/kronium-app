@@ -54,13 +54,26 @@ class _AdminMainPageState extends State<AdminMainPage> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                Expanded(child: _buildNavItem(icon: Iconsax.home_2, label: 'Home', index: 0)),
-                Expanded(child: _buildNavItem(icon: Iconsax.setting_2, label: 'Manage', index: 1)),
-                Expanded(child: _buildNavItem(icon: Iconsax.box, label: 'Services', index: 2)),
-                Expanded(child: _buildNavItem(icon: Iconsax.calendar, label: 'Bookings', index: 3)),
-                Expanded(child: _buildNavItem(icon: Iconsax.message, label: 'Chat', index: 4)),
-                Expanded(child: _buildNavItem(icon: Iconsax.user, label: 'Profile', index: 5)),
+                _buildNavItem(
+                  icon: Iconsax.home_2,
+                  label: 'Home',
+                  index: 0,
+                ),
+                _buildNavItem(
+                  icon: Iconsax.setting_2,
+                  label: 'Manage',
+                  index: 1,
+                ),
+                _buildNavItem(icon: Iconsax.box, label: 'Services', index: 2),
+                _buildNavItem(
+                  icon: Iconsax.calendar,
+                  label: 'Bookings',
+                  index: 3,
+                ),
+                _buildNavItem(icon: Iconsax.message, label: 'Chat', index: 4),
+                _buildNavItem(icon: Iconsax.user, label: 'Profile', index: 5),
               ],
             ),
           ),
