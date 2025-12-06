@@ -318,6 +318,10 @@ ALTER TABLE chat_rooms ENABLE ROW LEVEL SECURITY;
 ALTER TABLE chat_messages ENABLE ROW LEVEL SECURITY;
 
 -- Users Table Policies
+CREATE POLICY "Users can insert own data" ON users
+  FOR INSERT 
+  WITH CHECK (auth.uid()::text = id::text);
+
 CREATE POLICY "Users can read own data" ON users
   FOR SELECT USING (auth.uid()::text = id::text);
 

@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/constants.dart';
 import 'package:kronium/core/routes.dart';
+import 'package:kronium/core/user_auth_service.dart';
+import 'package:kronium/core/user_controller.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -21,9 +23,33 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   Future<void> _checkAuthenticationAndNavigate() async {
-    // Backend removed - just navigate to welcome page
+    // Wait for services to initialize
     await Future.delayed(const Duration(seconds: 2));
-    Get.offAllNamed(AppRoutes.welcome);
+    
+    try {
+      final userAuthService = Get.find<UserAuthService>();
+      final userController = Get.find<UserController>();
+      
+      // Wait for auth service to finish initializing
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      // Check if user is authenticated
+      if (userAuthService.isUserLoggedIn.value && 
+          userController.role.value != 'guest' &&
+          userAuthService.userProfile.value != null) {
+        // User is logged in, go to welcome page
+        print('Splash: User is authenticated, navigating to welcome page');
+        Get.offAllNamed(AppRoutes.welcome);
+      } else {
+        // User is not logged in, redirect to customer register/login
+        print('Splash: User is not authenticated, redirecting to customer register');
+        Get.offAllNamed(AppRoutes.customerRegister);
+      }
+    } catch (e) {
+      print('Splash: Error checking authentication: $e');
+      // On error, redirect to auth page
+      Get.offAllNamed(AppRoutes.customerRegister);
+    }
   }
 
   @override

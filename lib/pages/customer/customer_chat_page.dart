@@ -19,7 +19,6 @@ class _CustomerChatPageState extends State<CustomerChatPage> {
   final ScrollController _scrollController = ScrollController();
   String? _chatRoomId;
   bool _isLoading = true;
-  bool _isTyping = false;
   bool _isSending = false;
 
   @override
@@ -398,7 +397,6 @@ class _CustomerChatPageState extends State<CustomerChatPage> {
                                                   _messageController.text =
                                                       'Hello! I need help';
                                                   setState(() {
-                                                    _isTyping = true;
                                                   });
                                                 },
                                               ),
@@ -408,7 +406,6 @@ class _CustomerChatPageState extends State<CustomerChatPage> {
                                                   _messageController.text =
                                                       'I have a question about my project';
                                                   setState(() {
-                                                    _isTyping = true;
                                                   });
                                                 },
                                               ),
@@ -418,7 +415,6 @@ class _CustomerChatPageState extends State<CustomerChatPage> {
                                                   _messageController.text =
                                                       'I need technical support';
                                                   setState(() {
-                                                    _isTyping = true;
                                                   });
                                                 },
                                               ),
@@ -467,42 +463,9 @@ class _CustomerChatPageState extends State<CustomerChatPage> {
                         ),
                       ],
                     ),
-                    child: Column(
+                    child: Row(
                       children: [
-                        // Typing indicator
-                        if (_isTyping)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            child: Row(
-                              children: [
-                                SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      AppTheme.primaryColor.withOpacity(0.7),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Support is typing...',
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
-                                    fontSize: 12,
-                                    fontStyle: FontStyle.italic,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        Row(
-                          children: [
-                            Expanded(
+                        Expanded(
                               child: Container(
                                 decoration: BoxDecoration(
                                   color: Colors.grey[50],
@@ -519,9 +482,7 @@ class _CustomerChatPageState extends State<CustomerChatPage> {
                                   controller: _messageController,
                                   enabled: !_isSending,
                                   onChanged: (value) {
-                                    setState(() {
-                                      _isTyping = value.isNotEmpty;
-                                    });
+                                    // Typing detection removed - was incorrectly showing "Support is typing"
                                   },
                                   decoration: InputDecoration(
                                     hintText:
@@ -549,9 +510,6 @@ class _CustomerChatPageState extends State<CustomerChatPage> {
                                               ),
                                               onPressed: () {
                                                 _messageController.clear();
-                                                setState(() {
-                                                  _isTyping = false;
-                                                });
                                               },
                                               color: Colors.grey[500],
                                             )
@@ -633,12 +591,11 @@ class _CustomerChatPageState extends State<CustomerChatPage> {
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-    );
+                      ),
+                      
+                  ],
+                )
+              );
   }
 
   Widget _buildQuickActionChip(String text, VoidCallback onTap) {

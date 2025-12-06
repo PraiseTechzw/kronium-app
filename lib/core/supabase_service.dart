@@ -61,34 +61,56 @@ class SupabaseService {
 
   Future<void> addUser(models.User user) async {
     try {
-      final userData = user.toMap();
+      // Database columns are lowercase (createdat, updatedat, isactive, favoriteservices)
+      // Use lowercase column names to match what PostgREST sees in the schema cache
+      final userData = <String, dynamic>{
+        'name': user.name,
+        'email': user.email,
+        'phone': user.phone,
+      };
+      
       // Include the UUID id from Supabase Auth if provided
       if (user.id != null && user.id!.isNotEmpty) {
         userData['id'] = user.id;
       }
-      // Clean up the data - remove null values except for optional fields
-      userData.removeWhere((key, value) => value == null && key != 'id' && key != 'simpleId' && key != 'profileImage' && key != 'address');
       
-      // Ensure createdAt and updatedAt are ISO strings if present
-      if (userData['createdAt'] != null && userData['createdAt'] is DateTime) {
-        userData['createdAt'] = (userData['createdAt'] as DateTime).toIso8601String();
+      // Include simpleId if provided (database trigger will generate if null)
+      if (user.simpleId != null) {
+        userData['simpleid'] = user.simpleId; // lowercase to match database
       }
-      if (userData['updatedAt'] != null && userData['updatedAt'] is DateTime) {
-        userData['updatedAt'] = (userData['updatedAt'] as DateTime).toIso8601String();
+      
+      // Include optional fields with lowercase names
+      if (user.profileImage != null) {
+        userData['profileimage'] = user.profileImage; // lowercase
       }
+      if (user.address != null) {
+        userData['address'] = user.address;
+      }
+      
+      // Don't send columns with defaults - database will set them:
+      // - createdat (DEFAULT NOW())
+      // - updatedat (DEFAULT NOW())
+      // - isactive (DEFAULT true)
+      // - favoriteservices (DEFAULT '[]'::jsonb)
+      // - role (DEFAULT 'customer')
       
       await client.from('users').insert(userData);
     } catch (e) {
       print('Error adding user to database: $e');
-      print('User data: ${user.toMap()}');
+      print('User data being sent: {name: ${user.name}, email: ${user.email}, phone: ${user.phone}, id: ${user.id}}');
       rethrow;
     }
   }
 
   Future<void> updateUser(String userId, Map<String, dynamic> data) async {
+    // Remove createdAt and updatedAt - database triggers handle these automatically
+    final updateData = Map<String, dynamic>.from(data);
+    updateData.remove('createdAt');
+    updateData.remove('updatedAt');
+    
     await client
         .from('users')
-        .update(data)
+        .update(updateData)
         .eq('id', userId);
   }
 
@@ -158,10 +180,33 @@ class SupabaseService {
   // ==================== PROJECTS ====================
   
   Stream<List<Project>> getProjects() {
+    print('🔵 [SupabaseService] getProjects() called');
     return client
         .from('projects')
         .stream(primaryKey: ['id'])
-        .map((data) => data.map((json) => Project.fromMap(json, id: json['id'])).toList());
+        .map((data) {
+          print('📥 [SupabaseService] Received ${data.length} projects from database');
+          if (data.isNotEmpty) {
+            print('📋 [SupabaseService] First project sample:');
+            print('   - id: ${data.first['id']}');
+            print('   - title: ${data.first['title']}');
+            print('   - clientEmail: ${data.first['clientEmail']}');
+            print('   - clientName: ${data.first['clientName']}');
+            print('   - status: ${data.first['status']}');
+            print('   - bookedDates: ${data.first['bookedDates']}');
+          }
+          final projects = data.map((json) {
+            try {
+              return Project.fromMap(json, id: json['id']);
+            } catch (e) {
+              print('❌ [SupabaseService] Error parsing project: $e');
+              print('   JSON: $json');
+              rethrow;
+            }
+          }).toList();
+          print('✅ [SupabaseService] Parsed ${projects.length} projects successfully');
+          return projects;
+        });
   }
 
   Future<void> addProject(Project project) async {
@@ -218,10 +263,11 @@ class SupabaseService {
   Future<String> getOrCreateChatRoom(String userId, String userName, [String? userEmail]) async {
     try {
       // Try to find existing chat room
+      // Note: Database columns are lowercase: customerid (not customer_id)
       final existing = await client
           .from('chat_rooms')
           .select()
-          .eq('customer_id', userId)
+          .eq('customerid', userId)
           .maybeSingle();
       
       if (existing != null) {
@@ -229,11 +275,12 @@ class SupabaseService {
       }
       
       // Create new chat room
+      // Note: Using actual database column names (lowercase, no underscores)
       final newRoom = {
-        'customer_id': userId,
-        'customer_name': userName,
-        if (userEmail != null) 'customer_email': userEmail,
-        'created_at': DateTime.now().toIso8601String(),
+        'customerid': userId,
+        'customername': userName,
+        if (userEmail != null) 'customeremail': userEmail,
+        'createdat': DateTime.now().toIso8601String(),
       };
       
       final response = await client
@@ -275,25 +322,35 @@ class SupabaseService {
   }
   
   Future<List<ChatMessage>> _fetchChatMessages(String chatRoomId) async {
+    // Note: Database column is chatroomid (lowercase, no underscore)
     final data = await client
         .from('chat_messages')
         .select()
-        .eq('chat_room_id', chatRoomId)
+        .eq('chatroomid', chatRoomId)
         .order('timestamp', ascending: true);
     
     return data.map((json) => ChatMessage.fromMap(json, id: json['id'])).toList();
   }
 
   Future<void> sendMessage(String chatRoomId, ChatMessage message) async {
-    final data = message.toMap();
-    data['chat_room_id'] = chatRoomId;
+    // Convert camelCase to actual database column names (lowercase, no underscores)
+    final data = {
+      'chatroomid': chatRoomId,
+      'senderid': message.senderId,
+      'sendername': message.senderName,
+      'sendertype': message.senderType,
+      'message': message.message,
+      'timestamp': message.timestamp.toIso8601String(),
+      'read': message.isRead,
+    };
     
     await client.from('chat_messages').insert(data);
     
     // Update chat room's last message timestamp
+    // Note: Database column is lastmessageat (lowercase, no underscore)
     await client
         .from('chat_rooms')
-        .update({'last_message_at': DateTime.now().toIso8601String()})
+        .update({'lastmessageat': DateTime.now().toIso8601String()})
         .eq('id', chatRoomId);
   }
 

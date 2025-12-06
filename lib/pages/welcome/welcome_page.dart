@@ -4,6 +4,7 @@ import 'package:kronium/core/constants.dart';
 import 'package:kronium/core/routes.dart';
 import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/user_controller.dart';
+import 'package:kronium/core/user_auth_service.dart';
 import 'package:kronium/models/user_model.dart';
 
 class WelcomePage extends StatefulWidget {
@@ -28,11 +29,35 @@ class _WelcomePageState extends State<WelcomePage>
   void initState() {
     super.initState();
     _initializeAnimations();
+    _checkAuthentication();
     _getUserInfo();
     _startAnimations();
 
     // Listen for changes in user data
     _setupUserDataListener();
+  }
+
+  void _checkAuthentication() {
+    // Check authentication status and redirect if not logged in
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      try {
+        final userAuthService = Get.find<UserAuthService>();
+        final userController = Get.find<UserController>();
+        
+        if (!userAuthService.isUserLoggedIn.value || 
+            userController.role.value == 'guest' ||
+            userAuthService.userProfile.value == null) {
+          print('Welcome: User not authenticated, redirecting to customer register');
+          Get.offAllNamed(AppRoutes.customerRegister);
+          return;
+        }
+      } catch (e) {
+        print('Welcome: Error checking authentication: $e');
+        Get.offAllNamed(AppRoutes.customerRegister);
+      }
+    });
   }
 
   void _initializeAnimations() {
@@ -85,17 +110,25 @@ class _WelcomePageState extends State<WelcomePage>
   }
 
   void _getUserInfo() {
-    // Get user data from userController
+    // Get user data from userController and UserAuthService
     final userController = Get.find<UserController>();
-    if (userController.userName.value.isNotEmpty) {
+    final userAuthService = Get.find<UserAuthService>();
+    
+    // Try UserAuthService first (most reliable)
+    if (userAuthService.userProfile.value != null) {
+      _userName = userAuthService.userProfile.value!.name;
+      _userRole = userController.role.value;
+    } else if (userController.userName.value.isNotEmpty) {
       _userName = userController.userName.value;
       _userRole = userController.role.value;
     } else if (userController.userProfile.value != null) {
       _userName = userController.userProfile.value!.name;
       _userRole = userController.role.value;
     } else {
-      _userName = 'User';
-      _userRole = 'customer';
+      // If no user data, redirect to auth (should not happen due to _checkAuthentication)
+      print('Welcome page: No user data found, this should not happen');
+      _userName = '';
+      _userRole = 'guest';
     }
 
     print('Welcome page: Initial username: $_userName');
@@ -126,8 +159,19 @@ class _WelcomePageState extends State<WelcomePage>
   }
 
   void _navigateForward() {
-    // Navigate based on user role after welcome
+    // Check authentication before navigating
+    final userAuthService = Get.find<UserAuthService>();
     final userController = Get.find<UserController>();
+    
+    if (!userAuthService.isUserLoggedIn.value || 
+        userController.role.value == 'guest' ||
+        userAuthService.userProfile.value == null) {
+      print('Welcome: User not authenticated, redirecting to customer register');
+      Get.offAllNamed(AppRoutes.customerRegister);
+      return;
+    }
+    
+    // Navigate based on user role after welcome
     final userRole = userController.role.value;
 
     if (userRole == 'admin') {
@@ -205,22 +249,23 @@ class _WelcomePageState extends State<WelcomePage>
 
                   const SizedBox(height: 8),
 
-                  // User Name
-                  SlideTransition(
-                    position: _slideAnimation,
-                    child: FadeTransition(
-                      opacity: _fadeAnimation,
-                      child: Text(
-                        _userName.toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.w900,
-                          color: AppTheme.primaryColor,
-                          letterSpacing: 1.5,
+                  // User Name (only show if user is authenticated)
+                  if (_userName.isNotEmpty)
+                    SlideTransition(
+                      position: _slideAnimation,
+                      child: FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: Text(
+                          _userName.toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.w900,
+                            color: AppTheme.primaryColor,
+                            letterSpacing: 1.5,
+                          ),
                         ),
                       ),
                     ),
-                  ),
 
                   const SizedBox(height: 16),
 

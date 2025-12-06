@@ -27,6 +27,16 @@ class ServicesPageState extends State<ServicesPage>
     'Price: High to Low',
   ];
 
+  // Home screen services that should appear first
+  static const List<String> _homeScreenServices = [
+    'Greenhouse Construction',
+    'Solar Systems',
+    'Construction',
+    'Irrigation Systems',
+    'IoT Solutions',
+    'Logistics',
+  ];
+
   late AnimationController _searchAnimationController;
   late AnimationController _titleAnimationController;
   late Animation<double> _searchScaleAnimation;
@@ -491,18 +501,52 @@ class ServicesPageState extends State<ServicesPage>
                   return Center(child: Text('Error loading services'));
                 }
                 final services = snapshot.data ?? [];
+                final hardcodedServices = _getHardcodedServices();
 
-                // Add hardcoded services if backend is empty
-                final allServices =
-                    services.isEmpty ? _getHardcodedServices() : services;
+                // Build final list: home screen services first, then others
+                final List<Service> allServices = [];
+                final Set<String> addedTitles = {};
+                
+                // Add home screen services in order (use database version if exists, otherwise hardcoded)
+                for (var homeScreenTitle in _homeScreenServices) {
+                  // Try to find in database first
+                  final dbMatches = services.where(
+                    (s) => s.title.toLowerCase() == homeScreenTitle.toLowerCase(),
+                  ).toList();
+                  
+                  if (dbMatches.isNotEmpty) {
+                    allServices.add(dbMatches.first);
+                    addedTitles.add(dbMatches.first.title.toLowerCase());
+                  } else {
+                    // Use hardcoded version
+                    final hardcodedMatches = hardcodedServices.where(
+                      (s) => s.title.toLowerCase() == homeScreenTitle.toLowerCase(),
+                    ).toList();
+                    if (hardcodedMatches.isNotEmpty) {
+                      allServices.add(hardcodedMatches.first);
+                      addedTitles.add(hardcodedMatches.first.title.toLowerCase());
+                    }
+                  }
+                }
+                
+                // Add other services from database that aren't home screen services
+                for (var service in services) {
+                  final isHomeScreen = _homeScreenServices.any(
+                    (hs) => hs.toLowerCase() == service.title.toLowerCase(),
+                  );
+                  if (!isHomeScreen && !addedTitles.contains(service.title.toLowerCase())) {
+                    allServices.add(service);
+                    addedTitles.add(service.title.toLowerCase());
+                  }
+                }
 
-                final filtered =
-                    allServices.where((s) {
-                      final query = _searchQuery.value.toLowerCase();
-                      return query.isEmpty ||
-                          s.title.toLowerCase().contains(query) ||
-                          s.category.toLowerCase().contains(query);
-                    }).toList();
+                // Filter based on search query
+                final filtered = allServices.where((s) {
+                  final query = _searchQuery.value.toLowerCase();
+                  return query.isEmpty ||
+                      s.title.toLowerCase().contains(query) ||
+                      s.category.toLowerCase().contains(query);
+                }).toList();
 
                 if (filtered.isEmpty) {
                   return const Center(child: Text('No services found'));

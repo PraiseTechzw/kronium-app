@@ -207,10 +207,8 @@ class UserAuthService {
       }
 
       // Update in users table
-      await _supabaseService.updateUser(currentUser.id, {
-        ...data,
-        'updatedAt': DateTime.now().toIso8601String(),
-      });
+      // Note: updatedAt is automatically handled by database trigger
+      await _supabaseService.updateUser(currentUser.id, data);
 
       // Update metadata in Supabase Auth
       if (data.containsKey('name') || data.containsKey('phone')) {
@@ -303,8 +301,9 @@ class UserAuthService {
       // on the next update or we can trigger it by updating the user record
       if (userProfile.value!.simpleId == null || userProfile.value!.simpleId!.isEmpty) {
         // Trigger ID generation by updating user (database trigger will handle it)
+        // Update a harmless field to trigger the update (database trigger will generate simpleId and update updatedAt)
         await _supabaseService.updateUser(currentUser.id, {
-          'updatedAt': DateTime.now().toIso8601String(),
+          'name': userProfile.value!.name, // Update with same value to trigger trigger
         });
         await _loadUserProfile(currentUser.id);
       }

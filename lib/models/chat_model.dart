@@ -21,16 +21,21 @@ class ChatMessage {
   });
 
   // Create from Map
+  // Note: Handles both camelCase (from Supabase API) and lowercase (direct DB queries)
   factory ChatMessage.fromMap(Map<String, dynamic> data, {String? id}) {
     return ChatMessage(
       id: id ?? data['id'],
-      senderId: data['senderId'] ?? '',
-      senderName: data['senderName'] ?? '',
-      senderType: data['senderType'] ?? 'customer',
+      senderId: data['senderId'] ?? data['senderid'] ?? '',
+      senderName: data['senderName'] ?? data['sendername'] ?? '',
+      senderType: data['senderType'] ?? data['sendertype'] ?? 'customer',
       message: data['message'] ?? '',
-      timestamp: data['timestamp'] is DateTime ? data['timestamp'] : (data['timestamp'] != null ? DateTime.parse(data['timestamp'].toString()) : DateTime.now()),
-      isRead: data['isRead'] ?? false,
-      chatRoomId: data['chatRoomId'],
+      timestamp: data['timestamp'] is DateTime 
+          ? data['timestamp'] 
+          : (data['timestamp'] != null 
+              ? DateTime.parse(data['timestamp'].toString()) 
+              : DateTime.now()),
+      isRead: data['isRead'] ?? data['read'] ?? false,
+      chatRoomId: data['chatRoomId'] ?? data['chatroomid'],
     );
   }
 

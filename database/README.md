@@ -128,3 +128,5 @@ For issues:
 - Review RLS policies if access is denied
 - Verify triggers are enabled
 
+
+

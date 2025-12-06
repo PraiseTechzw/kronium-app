@@ -295,3 +295,9 @@ For issues or questions:
 2. Check Flutter Supabase docs: https://supabase.com/docs/reference/dart/introduction
 3. Review error logs in Supabase Dashboard
 
+
+
+
+
+
+

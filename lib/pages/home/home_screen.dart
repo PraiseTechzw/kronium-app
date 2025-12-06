@@ -187,7 +187,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   const FeaturedServicesSection(),
                   const SizedBox(height: 24),
-                  const ActiveProjectsSection(),
+                  ActiveProjectsSection(),
                   const SizedBox(height: 24),
                   const QuickActionsSection(),
                   const SizedBox(height: 40),
