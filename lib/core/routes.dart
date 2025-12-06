@@ -17,7 +17,7 @@ import 'package:kronium/pages/welcome/welcome_page.dart';
 import 'package:kronium/pages/admin/admin_add_service_page.dart';
 import 'package:kronium/pages/admin/admin_projects_page.dart';
 import 'package:kronium/pages/admin/admin_main_page.dart';
-import 'package:kronium/pages/settings/settings_page.dart';
+import 'package:kronium/pages/support/knowledge_base_page.dart';
 
 class AppRoutes {
   // Route names
@@ -44,8 +44,8 @@ class AppRoutes {
   static const String services = '/services';
   static const String addService = '/add-service';
   static const String profile = '/profile';
-  static const String settings = '/settings';
   static const String projectsOverview = '/projects-overview';
+  static const String knowledgeBase = '/knowledge-base';
 
   static List<GetPage> pages = [
     // Splash Page
@@ -194,7 +194,7 @@ class AppRoutes {
       transitionDuration: const Duration(milliseconds: 800),
     ),
 
-    // Profile & Settings
+    // Profile
     GetPage(
       name: profile,
       page: () => const ProfilePage(),
@@ -202,8 +202,8 @@ class AppRoutes {
       transitionDuration: const Duration(milliseconds: 800),
     ),
     GetPage(
-      name: settings,
-      page: () => const SettingsPage(),
+      name: knowledgeBase,
+      page: () => const KnowledgeBasePage(),
       transition: Transition.rightToLeftWithFade,
       transitionDuration: const Duration(milliseconds: 800),
     ),

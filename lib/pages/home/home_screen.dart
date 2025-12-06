@@ -7,7 +7,6 @@ import 'package:kronium/pages/home/active_projects_section.dart';
 import 'package:kronium/pages/home/featured_services_section.dart';
 import 'package:kronium/pages/home/quick_actions_sections.dart';
 import 'package:kronium/widgets/background_switcher.dart';
-import 'package:iconsax/iconsax.dart';
 
 /// Keep this widget focused and readable. Extend as needed.
 class HomeScreen extends StatefulWidget {
@@ -164,20 +163,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
-              actions: [
-                Container(
-                  margin: const EdgeInsets.only(right: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Iconsax.setting_2, color: Colors.white),
-                    onPressed: () => Get.toNamed('/settings'),
-                    tooltip: 'Settings',
-                  ),
-                ),
-              ],
+              actions: [],
             ),
             SliverPadding(
               padding: const EdgeInsets.all(16),

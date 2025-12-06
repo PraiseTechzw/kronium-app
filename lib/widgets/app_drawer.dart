@@ -72,15 +72,6 @@ class AppDrawer extends StatelessWidget {
                       letterSpacing: 1.2,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Settings & Preferences',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.85),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
                   if (isAdmin)
                     Container(
                       margin: const EdgeInsets.only(top: 8),
@@ -152,7 +143,7 @@ class AppDrawer extends StatelessWidget {
             // Remove any ListTile or item related to account/profile actions (e.g., My Profile, Sign Out, etc.)
             // Only keep navigation, dashboard, help, about, etc.
             if (extraItems != null) ...extraItems!,
-            // Settings Section
+            // Preferences Section
             ListTile(
               leading: Icon(Iconsax.moon, color: AppTheme.primaryColor),
               title: Text(

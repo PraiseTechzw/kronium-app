@@ -6,6 +6,7 @@ import 'package:kronium/models/service_model.dart';
 import 'package:kronium/models/booking_model.dart';
 import 'package:kronium/models/project_model.dart';
 import 'package:kronium/models/chat_model.dart';
+import 'package:kronium/models/knowledge_base_model.dart';
 import 'dart:async';
 
 class SupabaseService {
@@ -180,33 +181,119 @@ class SupabaseService {
   // ==================== PROJECTS ====================
   
   Stream<List<Project>> getProjects() {
-    print('🔵 [SupabaseService] getProjects() called');
     return client
         .from('projects')
         .stream(primaryKey: ['id'])
         .map((data) {
-          print('📥 [SupabaseService] Received ${data.length} projects from database');
-          if (data.isNotEmpty) {
-            print('📋 [SupabaseService] First project sample:');
-            print('   - id: ${data.first['id']}');
-            print('   - title: ${data.first['title']}');
-            print('   - clientEmail: ${data.first['clientEmail']}');
-            print('   - clientName: ${data.first['clientName']}');
-            print('   - status: ${data.first['status']}');
-            print('   - bookedDates: ${data.first['bookedDates']}');
-          }
-          final projects = data.map((json) {
+          return data.map((json) {
             try {
-              return Project.fromMap(json, id: json['id']);
+              // Normalize column names (handle both camelCase and lowercase)
+              final normalizedJson = _normalizeProjectJson(json);
+              return Project.fromMap(normalizedJson, id: normalizedJson['id']);
             } catch (e) {
-              print('❌ [SupabaseService] Error parsing project: $e');
-              print('   JSON: $json');
+              print('Error parsing project: $e');
+              print('JSON: $json');
               rethrow;
             }
           }).toList();
-          print('✅ [SupabaseService] Parsed ${projects.length} projects successfully');
-          return projects;
         });
+  }
+
+  Future<List<Project>> fetchProjects() async {
+    try {
+      final response = await client
+          .from('projects')
+          .select()
+          .order('createdat', ascending: false);
+      
+      return response.map((json) {
+        try {
+          final normalizedJson = _normalizeProjectJson(json);
+          return Project.fromMap(normalizedJson, id: normalizedJson['id']);
+        } catch (e) {
+          print('Error parsing project: $e');
+          rethrow;
+        }
+      }).toList();
+    } catch (e) {
+      print('Error fetching projects: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<Project>> fetchProjectsByStatus(String status) async {
+    try {
+      final response = await client
+          .from('projects')
+          .select()
+          .eq('status', status)
+          .order('createdat', ascending: false);
+      
+      return response.map((json) {
+        try {
+          final normalizedJson = _normalizeProjectJson(json);
+          return Project.fromMap(normalizedJson, id: normalizedJson['id']);
+        } catch (e) {
+          print('Error parsing project: $e');
+          rethrow;
+        }
+      }).toList();
+    } catch (e) {
+      print('Error fetching projects by status: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<Project>> fetchProjectsByClientEmail(String email) async {
+    try {
+      final response = await client
+          .from('projects')
+          .select()
+          .ilike('clientemail', email)
+          .order('createdat', ascending: false);
+      
+      return response.map((json) {
+        try {
+          final normalizedJson = _normalizeProjectJson(json);
+          return Project.fromMap(normalizedJson, id: normalizedJson['id']);
+        } catch (e) {
+          print('Error parsing project: $e');
+          rethrow;
+        }
+      }).toList();
+    } catch (e) {
+      print('Error fetching projects by client email: $e');
+      rethrow;
+    }
+  }
+
+  // Helper method to normalize JSON keys (handle both camelCase and lowercase)
+  Map<String, dynamic> _normalizeProjectJson(Map<String, dynamic> json) {
+    final normalized = Map<String, dynamic>.from(json);
+    
+    // Handle lowercase column names from database
+    final lowercaseMap = {
+      'clientname': 'clientName',
+      'clientemail': 'clientEmail',
+      'clientphone': 'clientPhone',
+      'clientid': 'clientId',
+      'mediaurls': 'mediaUrls',
+      'projectmedia': 'projectMedia',
+      'bookeddates': 'bookedDates',
+      'createdat': 'createdAt',
+      'updatedat': 'updatedAt',
+      'startdate': 'startDate',
+      'enddate': 'endDate',
+    };
+    
+    // Convert lowercase keys to camelCase if they exist
+    lowercaseMap.forEach((lowerKey, camelKey) {
+      if (normalized.containsKey(lowerKey) && !normalized.containsKey(camelKey)) {
+        normalized[camelKey] = normalized[lowerKey];
+      }
+    });
+    
+    return normalized;
   }
 
   Future<void> addProject(Project project) async {
@@ -453,6 +540,89 @@ class SupabaseService {
     // Convert the booking data to a Booking model and save
     final booking = Booking.fromMap(bookingData);
     await addBooking(booking);
+  }
+
+  // ==================== KNOWLEDGE BASE ====================
+  
+  Future<List<KnowledgeQuestion>> getKnowledgeQuestions() async {
+    try {
+      final response = await client
+          .from('knowledge_questions')
+          .select()
+          .order('ispinned', ascending: false)
+          .order('viewcount', ascending: false)
+          .order('createdat', ascending: false);
+      
+      final questions = <KnowledgeQuestion>[];
+      for (var item in response) {
+        final questionId = item['id'] as String;
+        final answers = await getKnowledgeAnswers(questionId);
+        questions.add(KnowledgeQuestion.fromMap(item, answers: answers));
+      }
+      
+      return questions;
+    } catch (e) {
+      print('Error getting knowledge questions: $e');
+      return [];
+    }
+  }
+
+  Future<List<KnowledgeAnswer>> getKnowledgeAnswers(String questionId) async {
+    try {
+      final response = await client
+          .from('knowledge_answers')
+          .select()
+          .eq('questionid', questionId)
+          .order('isaccepted', ascending: false)
+          .order('helpfulcount', ascending: false)
+          .order('createdat', ascending: false);
+      
+      return response.map((item) => KnowledgeAnswer.fromMap(item)).toList();
+    } catch (e) {
+      print('Error getting knowledge answers: $e');
+      return [];
+    }
+  }
+
+  Future<void> addKnowledgeAnswer({
+    required String questionId,
+    required String answer,
+    String? authorId,
+    String? authorName,
+  }) async {
+    try {
+      await client.from('knowledge_answers').insert({
+        'questionid': questionId,
+        'answer': answer,
+        'authorid': authorId,
+        'authorname': authorName,
+      });
+    } catch (e) {
+      print('Error adding knowledge answer: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> incrementQuestionViewCount(String questionId) async {
+    try {
+      // Get current view count
+      final response = await client
+          .from('knowledge_questions')
+          .select('viewcount')
+          .eq('id', questionId)
+          .maybeSingle();
+      
+      if (response != null) {
+        final currentCount = (response['viewcount'] ?? 0) as int;
+        await client
+            .from('knowledge_questions')
+            .update({'viewcount': currentCount + 1})
+            .eq('id', questionId);
+      }
+    } catch (e) {
+      print('Error incrementing view count: $e');
+      // Don't throw - this is not critical
+    }
   }
 }
 
