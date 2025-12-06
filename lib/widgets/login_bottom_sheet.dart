@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:kronium/core/user_auth_service.dart';
 
 Future<void> showLoginBottomSheet(BuildContext context) async {
   await showModalBottomSheet(
@@ -45,26 +44,15 @@ class _LoginFormState extends State<_LoginForm> {
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
-    final userAuthService = Get.find<UserAuthService>();
-    final result = await userAuthService.loginUser(
-      _emailController.text.trim(),
-      _passwordController.text,
-    );
+    // Backend removed - login functionality disabled
+    await Future.delayed(const Duration(seconds: 1));
     setState(() => _isLoading = false);
-    if (result['success']) {
-      Navigator.of(context).pop();
-      Get.snackbar(
-        'Login Successful',
-        result['message'],
-        snackPosition: SnackPosition.BOTTOM,
-      );
-    } else {
-      Get.snackbar(
-        'Login Failed',
-        result['message'],
-        snackPosition: SnackPosition.BOTTOM,
-      );
-    }
+    Navigator.of(context).pop();
+    Get.snackbar(
+      'Backend Removed',
+      'Login functionality has been removed. Backend services are not available.',
+      snackPosition: SnackPosition.BOTTOM,
+    );
   }
 
   @override

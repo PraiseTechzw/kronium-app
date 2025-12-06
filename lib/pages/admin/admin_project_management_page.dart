@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:kronium/core/app_theme.dart';
-import 'package:kronium/core/firebase_service.dart';
+import 'package:kronium/core/supabase_service.dart';
 import 'package:kronium/models/project_model.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
@@ -19,7 +19,7 @@ class AdminProjectManagementPage extends StatefulWidget {
 
 class _AdminProjectManagementPageState extends State<AdminProjectManagementPage>
     with TickerProviderStateMixin {
-  final FirebaseService _firebaseService = Get.find<FirebaseService>();
+  final SupabaseService _supabaseService = Get.find<SupabaseService>();
   late TabController _tabController;
   String _selectedStatus = 'All';
   String _searchQuery = '';
@@ -146,7 +146,7 @@ class _AdminProjectManagementPageState extends State<AdminProjectManagementPage>
 
   Widget _buildProjectsList({ProjectStatus? status}) {
     return StreamBuilder<List<Project>>(
-      stream: _firebaseService.getProjects(),
+      stream: _supabaseService.getProjects(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -773,7 +773,7 @@ class _AdminProjectManagementPageState extends State<AdminProjectManagementPage>
 
                             try {
                               if (project == null) {
-                                await _firebaseService.addProject(newProject);
+                                await _supabaseService.addProject(newProject);
                                 Get.snackbar(
                                   'Success',
                                   'Project added successfully!',
@@ -781,7 +781,7 @@ class _AdminProjectManagementPageState extends State<AdminProjectManagementPage>
                                   colorText: Colors.white,
                                 );
                               } else {
-                                await _firebaseService.updateProject(project.id, newProject.toMap());
+                                await _supabaseService.updateProject(project.id, newProject.toMap());
                                 Get.snackbar(
                                   'Success',
                                   'Project updated successfully!',
@@ -1097,11 +1097,10 @@ class _AdminProjectManagementPageState extends State<AdminProjectManagementPage>
 
                         try {
                           // Update project progress and status
-                          await _firebaseService.updateProjectProgress(
-                            project.id,
-                            progress,
-                            status,
-                          );
+                          await _supabaseService.updateProject(project.id, {
+                            'progress': progress,
+                            'status': status.name,
+                          });
 
                           // Add project update
                           final update = ProjectUpdate(
@@ -1115,9 +1114,9 @@ class _AdminProjectManagementPageState extends State<AdminProjectManagementPage>
                                 'admin', // You might want to get actual admin ID
                           );
 
-                          await _firebaseService.addProjectUpdate(
+                          await _supabaseService.addProjectUpdate(
                             project.id,
-                            update,
+                            update.toMap(),
                           );
 
                           Get.snackbar(
@@ -1153,7 +1152,7 @@ class _AdminProjectManagementPageState extends State<AdminProjectManagementPage>
 
       if (pickedFile != null) {
         final file = File(pickedFile.path);
-        final url = await _firebaseService.uploadImage(file, 'project_media');
+        final url = await _supabaseService.uploadImage(file, 'project_media');
 
         final media = ProjectMedia(
           id: const Uuid().v4(),
@@ -1186,7 +1185,7 @@ class _AdminProjectManagementPageState extends State<AdminProjectManagementPage>
 
       if (result != null && result.files.isNotEmpty) {
         final file = File(result.files.first.path!);
-        final url = await _firebaseService.uploadVideo(file, 'project_media');
+        final url = await _supabaseService.uploadVideo(file, 'project_media');
 
         final media = ProjectMedia(
           id: const Uuid().v4(),

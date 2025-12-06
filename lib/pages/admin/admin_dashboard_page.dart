@@ -4,7 +4,7 @@ import 'package:iconsax/iconsax.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:kronium/core/admin_auth_service.dart';
 import 'package:kronium/core/app_theme.dart';
-import 'package:kronium/core/firebase_service.dart';
+import 'package:kronium/core/supabase_service.dart';
 import 'package:kronium/core/routes.dart';
 import 'package:kronium/widgets/admin_scaffold.dart';
 import 'package:kronium/models/booking_model.dart';
@@ -37,13 +37,13 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   }
 
   Future<void> _loadDashboardData() async {
-    final firebaseService = Get.find<FirebaseService>();
+    final supabaseService = Get.find<SupabaseService>();
 
     try {
-      final stats = await firebaseService.getAdminStats();
-      final bookings = await firebaseService.getBookings().first;
-      final chatRooms = await firebaseService.getChatRooms().first;
-      final users = await firebaseService.getUsers().first;
+      final stats = await supabaseService.getAdminStats();
+      final bookings = await supabaseService.getBookings().first;
+      final chatRooms = await supabaseService.getChatRooms().first;
+      final users = await supabaseService.getUsers().first;
 
       setState(() {
         _stats = stats;
@@ -1175,7 +1175,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 const Text('Select a service to offer to this customer:'),
                 const SizedBox(height: 16),
                 StreamBuilder<List<Service>>(
-                  stream: Get.find<FirebaseService>().getServices(),
+                  stream: Get.find<SupabaseService>().getServices(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const CircularProgressIndicator();

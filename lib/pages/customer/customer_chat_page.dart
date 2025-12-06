@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:kronium/core/app_theme.dart';
-import 'package:kronium/core/user_auth_service.dart';
-import 'package:kronium/core/firebase_service.dart';
+import 'package:kronium/core/supabase_service.dart';
+import 'package:kronium/core/user_controller.dart';
 import 'package:kronium/models/chat_model.dart';
 import 'package:kronium/widgets/chat_message_bubble.dart';
 
@@ -29,13 +29,14 @@ class _CustomerChatPageState extends State<CustomerChatPage> {
   }
 
   Future<void> _initChatRoom() async {
-    final user = UserAuthService.instance.userProfile.value;
+    final userController = Get.find<UserController>();
+    final user = userController.userProfile.value;
     if (user == null) {
       setState(() => _isLoading = false);
       return;
     }
-    final firebaseService = Get.find<FirebaseService>();
-    final chatRoomId = await firebaseService.getOrCreateChatRoom(
+    final supabaseService = Get.find<SupabaseService>();
+    final chatRoomId = await supabaseService.getOrCreateChatRoom(
       user.id!,
       user.name,
       user.email,
@@ -54,7 +55,8 @@ class _CustomerChatPageState extends State<CustomerChatPage> {
   }
 
   Future<void> _sendMessage() async {
-    final user = UserAuthService.instance.userProfile.value;
+    final userController = Get.find<UserController>();
+    final user = userController.userProfile.value;
     if (_messageController.text.trim().isEmpty ||
         user == null ||
         _chatRoomId == null ||
@@ -67,7 +69,7 @@ class _CustomerChatPageState extends State<CustomerChatPage> {
     });
 
     try {
-      final firebaseService = Get.find<FirebaseService>();
+      final supabaseService = Get.find<SupabaseService>();
       final message = ChatMessage(
         senderId: user.id!,
         senderName: user.name,
@@ -77,7 +79,7 @@ class _CustomerChatPageState extends State<CustomerChatPage> {
         chatRoomId: _chatRoomId!,
       );
 
-      await firebaseService.sendMessage(_chatRoomId!, message);
+      await supabaseService.sendMessage(_chatRoomId!, message);
       _messageController.clear();
 
       // Auto-scroll to bottom
@@ -228,7 +230,8 @@ class _CustomerChatPageState extends State<CustomerChatPage> {
 
   @override
   Widget build(BuildContext context) {
-    final user = UserAuthService.instance.userProfile.value;
+    final userController = Get.find<UserController>();
+    final user = userController.userProfile.value;
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
@@ -325,7 +328,7 @@ class _CustomerChatPageState extends State<CustomerChatPage> {
                               child: Text('Unable to connect to chat.'),
                             )
                             : StreamBuilder<List<ChatMessage>>(
-                              stream: Get.find<FirebaseService>()
+                              stream: Get.find<SupabaseService>()
                                   .getChatMessages(_chatRoomId!),
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState ==

@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:kronium/core/admin_auth_service.dart';
 import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/constants.dart';
 import 'package:kronium/core/routes.dart';
-import 'package:kronium/core/user_auth_service.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -24,56 +21,9 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   Future<void> _checkAuthenticationAndNavigate() async {
-    // Wait for authentication services to initialize
-    final userAuthService = Get.find<UserAuthService>();
-    final adminAuthService = Get.find<AdminAuthService>();
-
-    print('Splash: Waiting for auth services to initialize...');
-
-    try {
-      // Wait for both services to be initialized with timeout
-      await Future.wait([
-        userAuthService.isInitialized.stream.firstWhere(
-          (value) => value == true,
-        ),
-        adminAuthService.isInitialized.stream.firstWhere(
-          (value) => value == true,
-        ),
-      ]).timeout(const Duration(seconds: 10));
-    } catch (e) {
-      print('Splash: Timeout waiting for auth services, proceeding anyway...');
-    }
-
-    print('Splash: Auth services initialized');
-    print('Splash: User logged in: ${userAuthService.isLoggedIn}');
-    print('Splash: Admin logged in: ${adminAuthService.isAdmin}');
-    print('Splash: Admin isAdminLoggedIn: ${adminAuthService.isAdminLoggedIn.value}');
-    print('Splash: Admin user: ${adminAuthService.adminUser.value?.email ?? "null"}');
-    
-    // Check SharedPreferences for admin session
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final adminEmail = prefs.getString('admin_email');
-      print('Splash: Saved admin email: ${adminEmail ?? "null"}');
-    } catch (e) {
-      print('Splash: Error checking SharedPreferences: $e');
-    }
-
-    // Add a small delay for better UX
+    // Backend removed - just navigate to welcome page
     await Future.delayed(const Duration(seconds: 2));
-
-    // Navigate based on authentication status
-    // Check admin status FIRST - admins should always go to admin interface
-    if (adminAuthService.isAdmin) {
-      print('Splash: Admin logged in, navigating to admin main page');
-      Get.offAllNamed(AppRoutes.adminMain);
-    } else if (userAuthService.isLoggedIn) {
-      print('Splash: User already logged in, navigating to welcome page');
-      Get.offAllNamed(AppRoutes.welcome);
-    } else {
-      print('Splash: No user logged in, navigating to customer register');
-      Get.offAllNamed(AppRoutes.customerRegister);
-    }
+    Get.offAllNamed(AppRoutes.welcome);
   }
 
   @override

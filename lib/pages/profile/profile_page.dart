@@ -647,7 +647,7 @@ class ProfilePageState extends State<ProfilePage> {
             'Permission denied. Please make sure you are logged in and try again.';
       } else if (e.toString().contains('timeout')) {
         errorMessage = 'Request timeout. Please try again.';
-      } else if (e.toString().contains('firebase')) {
+      } else if (e.toString().contains('database')) {
         errorMessage = 'Database error. Please try again.';
       }
 
@@ -1104,7 +1104,7 @@ class _ChangePasswordBottomSheetState
             'Network error. Please check your internet connection and try again';
       } else if (e.toString().contains('timeout')) {
         errorMessage = 'Request timeout. Please try again';
-      } else if (e.toString().contains('firebase')) {
+      } else if (e.toString().contains('authentication')) {
         errorMessage = 'Authentication error. Please try again';
       }
 

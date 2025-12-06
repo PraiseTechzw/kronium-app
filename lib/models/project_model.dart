@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum ProjectStatus { planning, inProgress, onHold, completed, cancelled }
 
@@ -8,7 +7,7 @@ class Project {
   final String description;
   final String location;
   final String size; // e.g. "10 acres", "500 sqm"
-  final List<String> mediaUrls; // Appwrite media URLs
+  final List<String> mediaUrls; // Supabase Storage media URLs
   final List<ProjectMedia> projectMedia; // Enhanced media with metadata
   final List<BookedDate> bookedDates;
   final List<String> features;
@@ -55,11 +54,10 @@ class Project {
     this.updatedAt,
   });
 
-  // Firestore serialization
-  factory Project.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+  // Create from Map
+  factory Project.fromMap(Map<String, dynamic> data, {String? id}) {
     return Project(
-      id: doc.id,
+      id: id ?? data['id'] ?? '',
       title: data['title'] ?? '',
       description: data['description'] ?? '',
       location: data['location'] ?? '',
@@ -83,7 +81,7 @@ class Project {
         (e) => e.name == data['status'],
         orElse: () => ProjectStatus.planning,
       ),
-      date: data['date'] != null ? (data['date'] as Timestamp).toDate() : null,
+      date: data['date'] is DateTime ? data['date'] : (data['date'] != null ? DateTime.parse(data['date'].toString()) : null),
       category: data['category'],
       transportCost:
           (data['transportCost'] is int)
@@ -97,22 +95,10 @@ class Project {
           (data['updates'] as List<dynamic>? ?? [])
               .map((e) => ProjectUpdate.fromMap(e))
               .toList(),
-      startDate:
-          data['startDate'] != null
-              ? (data['startDate'] as Timestamp).toDate()
-              : null,
-      endDate:
-          data['endDate'] != null
-              ? (data['endDate'] as Timestamp).toDate()
-              : null,
-      createdAt:
-          data['createdAt'] != null
-              ? (data['createdAt'] as Timestamp).toDate()
-              : null,
-      updatedAt:
-          data['updatedAt'] != null
-              ? (data['updatedAt'] as Timestamp).toDate()
-              : null,
+      startDate: data['startDate'] is DateTime ? data['startDate'] : (data['startDate'] != null ? DateTime.parse(data['startDate'].toString()) : null),
+      endDate: data['endDate'] is DateTime ? data['endDate'] : (data['endDate'] != null ? DateTime.parse(data['endDate'].toString()) : null),
+      createdAt: data['createdAt'] is DateTime ? data['createdAt'] : (data['createdAt'] != null ? DateTime.parse(data['createdAt'].toString()) : null),
+      updatedAt: data['updatedAt'] is DateTime ? data['updatedAt'] : (data['updatedAt'] != null ? DateTime.parse(data['updatedAt'].toString()) : null),
     );
   }
 
@@ -128,7 +114,7 @@ class Project {
     'approved': approved,
     'progress': progress,
     'status': status.name,
-    'date': date != null ? Timestamp.fromDate(date!) : null,
+    'date': date?.toIso8601String(),
     'category': category,
     'transportCost': transportCost,
     'clientId': clientId,
@@ -136,10 +122,10 @@ class Project {
     'clientEmail': clientEmail,
     'clientPhone': clientPhone,
     'updates': updates.map((e) => e.toMap()).toList(),
-    'startDate': startDate != null ? Timestamp.fromDate(startDate!) : null,
-    'endDate': endDate != null ? Timestamp.fromDate(endDate!) : null,
-    'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : null,
-    'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null,
+    'startDate': startDate?.toIso8601String(),
+    'endDate': endDate?.toIso8601String(),
+    'createdAt': createdAt?.toIso8601String(),
+    'updatedAt': updatedAt?.toIso8601String(),
   };
 }
 
@@ -165,10 +151,7 @@ class ProjectMedia {
     url: map['url'] ?? '',
     type: map['type'] ?? 'image',
     caption: map['caption'],
-    uploadedAt:
-        map['uploadedAt'] != null
-            ? (map['uploadedAt'] as Timestamp).toDate()
-            : DateTime.now(),
+    uploadedAt: map['uploadedAt'] is DateTime ? map['uploadedAt'] : (map['uploadedAt'] != null ? DateTime.parse(map['uploadedAt'].toString()) : DateTime.now()),
     uploadedBy: map['uploadedBy'] ?? '',
   );
 
@@ -177,7 +160,7 @@ class ProjectMedia {
     'url': url,
     'type': type,
     'caption': caption,
-    'uploadedAt': Timestamp.fromDate(uploadedAt),
+    'uploadedAt': uploadedAt.toIso8601String(),
     'uploadedBy': uploadedBy,
   };
 }
@@ -207,10 +190,7 @@ class ProjectUpdate {
     description: map['description'] ?? '',
     progress: (map['progress'] ?? 0.0).toDouble(),
     mediaUrls: List<String>.from(map['mediaUrls'] ?? []),
-    createdAt:
-        map['createdAt'] != null
-            ? (map['createdAt'] as Timestamp).toDate()
-            : DateTime.now(),
+    createdAt: map['createdAt'] is DateTime ? map['createdAt'] : (map['createdAt'] != null ? DateTime.parse(map['createdAt'].toString()) : DateTime.now()),
     createdBy: map['createdBy'] ?? '',
   );
 
@@ -220,7 +200,7 @@ class ProjectUpdate {
     'description': description,
     'progress': progress,
     'mediaUrls': mediaUrls,
-    'createdAt': Timestamp.fromDate(createdAt),
+    'createdAt': createdAt.toIso8601String(),
     'createdBy': createdBy,
   };
 }
@@ -237,13 +217,13 @@ class BookedDate {
   });
 
   factory BookedDate.fromMap(Map<String, dynamic> map) => BookedDate(
-    date: (map['date'] as Timestamp).toDate(),
+    date: map['date'] is DateTime ? map['date'] : (map['date'] != null ? DateTime.parse(map['date'].toString()) : DateTime.now()),
     clientId: map['clientId'] ?? '',
     status: map['status'] ?? 'booked',
   );
 
   Map<String, dynamic> toMap() => {
-    'date': Timestamp.fromDate(date),
+    'date': date.toIso8601String(),
     'clientId': clientId,
     'status': status,
   };

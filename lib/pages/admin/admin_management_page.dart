@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:kronium/core/app_theme.dart';
-import 'package:kronium/core/firebase_service.dart';
+import 'package:kronium/core/supabase_service.dart';
 import 'package:kronium/models/user_model.dart';
 import 'package:kronium/models/service_model.dart';
 import 'package:kronium/models/booking_model.dart';
@@ -20,7 +20,7 @@ class AdminManagementPage extends StatefulWidget {
 class _AdminManagementPageState extends State<AdminManagementPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final FirebaseService _firebaseService = Get.find<FirebaseService>();
+  final SupabaseService _supabaseService = Get.find<SupabaseService>();
 
   @override
   void initState() {
@@ -90,7 +90,7 @@ class _AdminManagementPageState extends State<AdminManagementPage>
 
   Widget _buildUsersTab() {
     return StreamBuilder<List<User>>(
-      stream: _firebaseService.getUsers(),
+      stream: _supabaseService.getUsers(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -123,7 +123,7 @@ class _AdminManagementPageState extends State<AdminManagementPage>
 
   Widget _buildServicesTab() {
     return StreamBuilder<List<Service>>(
-      stream: _firebaseService.getServices(),
+      stream: _supabaseService.getServices(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -156,7 +156,7 @@ class _AdminManagementPageState extends State<AdminManagementPage>
 
   Widget _buildBookingsTab() {
     return StreamBuilder<List<Booking>>(
-      stream: _firebaseService.getBookings(),
+      stream: _supabaseService.getBookings(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -189,7 +189,7 @@ class _AdminManagementPageState extends State<AdminManagementPage>
 
   Widget _buildProjectsTab() {
     return StreamBuilder<List<Project>>(
-      stream: _firebaseService.getProjects(),
+      stream: _supabaseService.getProjects(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -222,7 +222,7 @@ class _AdminManagementPageState extends State<AdminManagementPage>
 
   Widget _buildChatsTab() {
     return StreamBuilder<List<ChatRoom>>(
-      stream: _firebaseService.getChatRooms(),
+      stream: _supabaseService.getChatRooms(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -255,7 +255,7 @@ class _AdminManagementPageState extends State<AdminManagementPage>
 
   Widget _buildAnalyticsTab() {
     return FutureBuilder<Map<String, dynamic>>(
-      future: _firebaseService.getAdminStats(),
+      future: _supabaseService.getAdminStats(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -1157,7 +1157,7 @@ class _AdminManagementPageState extends State<AdminManagementPage>
         Get.snackbar('Edit User', 'Edit functionality for ${user.name}');
         break;
       case 'toggle':
-        _firebaseService.updateUser(user.id!, {'isActive': !user.isActive});
+        _supabaseService.updateUser(user.id!, {'isActive': !user.isActive});
         Get.snackbar(
           'Status Updated',
           'User ${user.isActive ? 'deactivated' : 'activated'}',
@@ -1175,7 +1175,7 @@ class _AdminManagementPageState extends State<AdminManagementPage>
         Get.snackbar('Edit Service', 'Edit functionality for ${service.title}');
         break;
       case 'toggle':
-        _firebaseService.updateService(service.id!, {
+        _supabaseService.updateService(service.id!, {
           'isActive': !service.isActive,
         });
         Get.snackbar(
@@ -1204,7 +1204,7 @@ class _AdminManagementPageState extends State<AdminManagementPage>
   }
 
   void _updateBookingStatus(Booking booking, BookingStatus newStatus) {
-    _firebaseService.updateBookingStatus(booking.id!, newStatus);
+    _supabaseService.updateBookingStatus(booking.id!, newStatus.name);
     Get.snackbar(
       'Status Updated',
       'Booking status updated to ${_getStatusText(newStatus)}',
@@ -1220,7 +1220,7 @@ class _AdminManagementPageState extends State<AdminManagementPage>
           TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
           TextButton(
             onPressed: () {
-              _firebaseService.deleteUser(user.id!);
+              _supabaseService.deleteUser(user.id!);
               Get.back();
               Get.snackbar('Deleted', 'User ${user.name} has been deleted');
             },
@@ -1241,7 +1241,7 @@ class _AdminManagementPageState extends State<AdminManagementPage>
           TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
           TextButton(
             onPressed: () {
-              _firebaseService.deleteService(service.id!);
+              _supabaseService.deleteService(service.id!);
               Get.back();
               Get.snackbar(
                 'Deleted',
@@ -1265,7 +1265,7 @@ class _AdminManagementPageState extends State<AdminManagementPage>
           TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
           TextButton(
             onPressed: () {
-              _firebaseService.deleteProject(project.id);
+              _supabaseService.deleteProject(project.id);
               Get.back();
               Get.snackbar(
                 'Deleted',

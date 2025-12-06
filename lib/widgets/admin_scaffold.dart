@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:kronium/core/app_theme.dart';
-import 'package:kronium/core/user_auth_service.dart';
-import 'package:kronium/core/admin_auth_service.dart';
 import 'package:kronium/widgets/app_drawer.dart';
 
 class AdminScaffold extends StatefulWidget {
@@ -59,8 +57,6 @@ class _AdminScaffoldState extends State<AdminScaffold> {
       drawer: widget.showDrawer
           ? AppDrawer(
               isDarkMode: _isDarkMode,
-              userAuthService: Get.find<UserAuthService>(),
-              adminAuthService: Get.find<AdminAuthService>(),
               onDarkModeChanged: (val) {
                 setState(() => _isDarkMode = val);
                 widget.onDarkModeChanged?.call(val);

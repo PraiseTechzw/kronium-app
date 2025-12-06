@@ -14,11 +14,9 @@ import 'package:kronium/pages/services/add_services_page.dart';
 import 'package:kronium/pages/services/services_page.dart';
 import 'package:kronium/pages/splash/splash_page.dart';
 import 'package:kronium/pages/welcome/welcome_page.dart';
-import 'package:kronium/core/user_auth_service.dart';
 import 'package:kronium/pages/admin/admin_add_service_page.dart';
 import 'package:kronium/pages/admin/admin_projects_page.dart';
 import 'package:kronium/pages/admin/admin_main_page.dart';
-import 'package:kronium/core/admin_auth_service.dart';
 import 'package:kronium/pages/settings/settings_page.dart';
 
 class AppRoutes {
@@ -220,27 +218,7 @@ class AppRoutes {
 
   // Helper to get the appropriate route after authentication check
   static String getAuthenticatedRoute() {
-    final userAuthService = UserAuthService.instance;
-    final adminAuthService = AdminAuthService.instance;
-
-    // Wait for services to initialize
-    if (!userAuthService.isInitialized.value ||
-        !adminAuthService.isInitialized.value) {
-      return splash;
-    }
-
-    // Check admin status FIRST - admins should always go to admin interface
-    if (adminAuthService.isAdmin) {
-      return adminMain;
-    }
-
-    // Check if regular user is authenticated
-    if (userAuthService.isUserLoggedIn.value) {
-      // For authenticated regular users, show welcome page first
-      return welcome;
-    } else {
-      // For new/unauthenticated users, show the sign-up page first
-      return customerRegister;
-    }
+    // Backend removed - always show welcome page
+    return welcome;
   }
 }

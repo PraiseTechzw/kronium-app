@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:kronium/core/app_theme.dart';
-import 'package:kronium/core/firebase_service.dart';
+import 'package:kronium/core/supabase_service.dart';
 import 'package:kronium/models/chat_model.dart';
 import 'package:kronium/core/user_controller.dart';
 import 'package:kronium/widgets/chat_message_bubble.dart';
@@ -57,7 +57,7 @@ class _AdminChatPageState extends State<AdminChatPage> {
     });
 
     try {
-      final firebaseService = Get.find<FirebaseService>();
+      final supabaseService = Get.find<SupabaseService>();
       final message = ChatMessage(
         senderId: user.id!,
         senderName: user.name,
@@ -66,7 +66,7 @@ class _AdminChatPageState extends State<AdminChatPage> {
         timestamp: DateTime.now(),
         chatRoomId: _selectedChatRoom!.id,
       );
-      await firebaseService.sendMessage(_selectedChatRoom!.id!, message);
+      await supabaseService.sendMessage(_selectedChatRoom!.id!, message);
       _messageController.clear();
 
       // Scroll to bottom
@@ -96,20 +96,20 @@ class _AdminChatPageState extends State<AdminChatPage> {
 
   @override
   Widget build(BuildContext context) {
-    final firebaseService = Get.find<FirebaseService>();
+    final supabaseService = Get.find<SupabaseService>();
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundLight,
       body:
           _selectedChatRoom == null
-              ? _buildChatRoomsList(firebaseService)
-              : _buildChatInterface(firebaseService),
+              ? _buildChatRoomsList(supabaseService)
+              : _buildChatInterface(supabaseService),
     );
   }
 
-  Widget _buildChatRoomsList(FirebaseService firebaseService) {
+  Widget _buildChatRoomsList(SupabaseService supabaseService) {
     return StreamBuilder<List<ChatRoom>>(
-      stream: firebaseService.getChatRooms(),
+      stream: supabaseService.getChatRooms(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -216,7 +216,7 @@ class _AdminChatPageState extends State<AdminChatPage> {
     );
   }
 
-  Widget _buildChatInterface(FirebaseService firebaseService) {
+  Widget _buildChatInterface(SupabaseService supabaseService) {
     return Column(
       children: [
         // Chat Header
@@ -273,7 +273,7 @@ class _AdminChatPageState extends State<AdminChatPage> {
         // Chat Messages
         Expanded(
           child: StreamBuilder<List<ChatMessage>>(
-            stream: firebaseService.getChatMessages(_selectedChatRoom!.id!),
+            stream: supabaseService.getChatMessages(_selectedChatRoom!.id!),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());

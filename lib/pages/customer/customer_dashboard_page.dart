@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:kronium/core/app_theme.dart';
-import 'package:kronium/core/user_auth_service.dart';
-import 'package:kronium/core/firebase_service.dart';
+import 'package:kronium/core/supabase_service.dart';
+import 'package:kronium/core/user_controller.dart';
 import 'package:kronium/models/project_model.dart';
 import 'package:kronium/pages/projects/mock_project_booking_data.dart';
 import 'package:kronium/widgets/login_bottom_sheet.dart';
-import 'package:kronium/core/user_controller.dart';
 import 'package:kronium/pages/customer/customer_project_details_page.dart';
 
 // Add controllers and saved fields for booking form
@@ -86,7 +85,8 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
             onPressed: _showBookProjectBottomSheet,
           ),
           Obx(() {
-            final user = UserAuthService.instance.userProfile.value;
+            final userController = Get.find<UserController>();
+            final user = userController.userProfile.value;
             return IconButton(
               icon: Icon(
                 user == null ? Iconsax.login : Iconsax.user,
@@ -105,7 +105,8 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
         ],
       ),
       body: Obx(() {
-        final isLoggedIn = UserAuthService.instance.isUserLoggedIn.value;
+        final userController = Get.find<UserController>();
+        final isLoggedIn = userController.userProfile.value != null;
         if (!isLoggedIn) {
           return Center(
             child: Column(
@@ -128,7 +129,7 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
         }
 
         return StreamBuilder<List<Project>>(
-          stream: FirebaseService.instance.getProjects(),
+          stream: Get.find<SupabaseService>().getProjects(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(
@@ -422,7 +423,8 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
     final formKey = GlobalKey<FormState>();
 
     // Prefill user info if available (prefer userProfile, fallback to saved)
-    final user = UserAuthService.instance.userProfile.value;
+    final userController = Get.find<UserController>();
+    final user = userController.userProfile.value;
     _nameController.text = user?.name ?? _savedName ?? '';
     _emailController.text = user?.email ?? _savedEmail ?? '';
     _phoneController.text = user?.phone ?? _savedPhone ?? '';

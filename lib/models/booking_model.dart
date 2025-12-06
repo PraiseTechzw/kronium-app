@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 enum BookingStatus { pending, confirmed, inProgress, completed, cancelled }
@@ -32,17 +31,15 @@ class Booking {
     this.updatedAt,
   });
 
-  // Create from Firestore document
-  factory Booking.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-    
+  // Create from Map
+  factory Booking.fromMap(Map<String, dynamic> data, {String? id}) {
     return Booking(
-      id: doc.id,
+      id: id ?? data['id'],
       serviceName: data['serviceName'] ?? '',
       clientName: data['clientName'] ?? '',
       clientEmail: data['clientEmail'] ?? '',
       clientPhone: data['clientPhone'] ?? '',
-      date: (data['date'] as Timestamp).toDate(),
+      date: data['date'] is DateTime ? data['date'] : (data['date'] != null ? DateTime.parse(data['date'].toString()) : DateTime.now()),
       status: BookingStatus.values.firstWhere(
         (e) => e.name == data['status'],
         orElse: () => BookingStatus.pending,
@@ -50,19 +47,19 @@ class Booking {
       price: (data['price'] ?? 0).toDouble(),
       location: data['location'] ?? '',
       notes: data['notes'] ?? '',
-      createdAt: data['createdAt']?.toDate(),
-      updatedAt: data['updatedAt']?.toDate(),
+      createdAt: data['createdAt'] is DateTime ? data['createdAt'] : (data['createdAt'] != null ? DateTime.parse(data['createdAt'].toString()) : null),
+      updatedAt: data['updatedAt'] is DateTime ? data['updatedAt'] : (data['updatedAt'] != null ? DateTime.parse(data['updatedAt'].toString()) : null),
     );
   }
 
-  // Convert to Map for Firestore
-  Map<String, dynamic> toFirestore() {
+  // Convert to Map
+  Map<String, dynamic> toMap() {
     return {
       'serviceName': serviceName,
       'clientName': clientName,
       'clientEmail': clientEmail,
       'clientPhone': clientPhone,
-      'date': Timestamp.fromDate(date),
+      'date': date.toIso8601String(),
       'status': status.name,
       'price': price,
       'location': location,

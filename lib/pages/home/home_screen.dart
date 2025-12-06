@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/user_controller.dart';
 import 'package:kronium/core/user_auth_service.dart';
-import 'package:kronium/core/simple_id_generator.dart';
 import 'package:kronium/pages/home/active_projects_section.dart';
 import 'package:kronium/pages/home/featured_services_section.dart';
 import 'package:kronium/pages/home/quick_actions_sections.dart';

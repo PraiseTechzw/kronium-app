@@ -1,403 +1,135 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:get/get.dart';
-import 'package:kronium/models/user_model.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:kronium/core/user_controller.dart';
-import 'package:kronium/core/simple_id_generator.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:kronium/core/admin_auth_service.dart';
+import 'package:kronium/core/supabase_service.dart';
+import 'package:kronium/models/user_model.dart' as models;
 
-class UserAuthService extends GetxController {
-  static UserAuthService get instance => Get.find();
+/// User authentication service using Supabase Auth
+class UserAuthService {
+  static final UserAuthService instance = UserAuthService._();
+  UserAuthService._();
 
-  final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
+  final Rx<models.User?> userProfile = Rx<models.User?>(null);
   final RxBool isUserLoggedIn = false.obs;
-  final Rx<firebase_auth.User?> currentUser = Rx<firebase_auth.User?>(null);
-  final Rx<User?> userProfile = Rx<User?>(null);
   final RxBool isInitialized = false.obs;
-  final RxBool isLoading = false.obs;
-  bool _isRestoringSession =
-      false; // Flag to prevent interference during restoration
 
-  UserController get userController => Get.find<UserController>();
+  SupabaseClient get _client => Supabase.instance.client;
+  SupabaseService get _supabaseService => SupabaseService.instance;
 
-  @override
-  void onInit() {
-    super.onInit();
-    print('UserAuthService: Initializing...');
-    _initializeAuth();
-  }
+  models.User? get currentUserProfile => userProfile.value;
 
-  Future<void> _initializeAuth() async {
+  Future<void> initialize() async {
     try {
-      print('UserAuthService: Starting authentication initialization...');
-
-      // Wait for Firebase to be fully ready
-      await Future.delayed(const Duration(milliseconds: 1000));
-
-      // Check if user is already signed in
-      final firebaseUser = _auth.currentUser;
-      if (firebaseUser != null) {
-        print(
-          'UserAuthService: Found existing Firebase user: ${firebaseUser.email}',
-        );
-        await _loadUserProfile(firebaseUser);
-      } else {
-        print(
-          'UserAuthService: No Firebase user found, trying to restore from preferences...',
-        );
-        // Try to restore from preferences even if no Firebase user
-        await _restoreSessionFromPreferences();
+      // Check for existing session
+      final session = _client.auth.currentSession;
+      if (session != null) {
+        await _loadUserProfile(session.user.id);
       }
-
-      // Set up auth state listener
-      _setupAuthStateListener();
-
-      isInitialized.value = true;
-      print('UserAuthService: Initialization complete');
-    } catch (e) {
-      print('UserAuthService: Error during initialization: $e');
-      isInitialized.value = true;
-    }
-  }
-
-  void _setupAuthStateListener() {
-    print('UserAuthService: Setting up auth state listener...');
-
-    _auth.authStateChanges().listen((firebase_auth.User? user) async {
-      // Skip if we're in the middle of restoring a session
-      if (_isRestoringSession) {
-        print(
-          'UserAuthService: Skipping auth state change during session restoration',
-        );
-        return;
-      }
-
-      print('UserAuthService: Auth state changed: ${user?.email ?? "null"}');
-
-      if (user != null) {
-        // User signed in
-        print('UserAuthService: User signed in, loading profile...');
-        await _loadUserProfile(user);
-      } else {
-        // User signed out - but be more careful about clearing
-        print(
-          'UserAuthService: Auth state shows no user, checking carefully...',
-        );
-
-        // Wait longer to see if this is just a temporary Firebase issue
-        await Future.delayed(const Duration(milliseconds: 3000));
-
-        // Check multiple times with longer delays
-        bool shouldClear = true;
-        for (int i = 0; i < 5; i++) {
-          final currentFirebaseUser = _auth.currentUser;
-          if (currentFirebaseUser != null) {
-            print(
-              'UserAuthService: Firebase user found on check $i, not clearing',
-            );
-            shouldClear = false;
-            break;
-          }
-          await Future.delayed(const Duration(milliseconds: 1000));
+      
+      // Listen to auth state changes
+      _client.auth.onAuthStateChange.listen((data) async {
+        final AuthChangeEvent event = data.event;
+        final Session? session = data.session;
+        
+        if (event == AuthChangeEvent.signedIn && session != null) {
+          await _loadUserProfile(session.user.id);
+        } else if (event == AuthChangeEvent.signedOut) {
+          userProfile.value = null;
+          isUserLoggedIn.value = false;
+          final userController = Get.find<UserController>();
+          userController.logout();
         }
-
-        // Only clear if we're absolutely sure and we have a session to clear
-        // AND we haven't just restored a session from preferences
-        if (shouldClear && isUserLoggedIn.value && userProfile.value != null) {
-          // Check if we have a valid session from preferences before clearing
-          final prefs = await SharedPreferences.getInstance();
-          final savedEmail = prefs.getString('user_email');
-          final savedUserId = prefs.getString('user_id');
-          final savedUserName = prefs.getString('user_name');
-
-          if (savedEmail != null &&
-              savedUserId != null &&
-              savedUserName != null) {
-            print(
-              'UserAuthService: Found saved session in preferences, not clearing current session',
-            );
-            // Try to restore the session instead of clearing it
-            await _tryRestoreSession(
-              savedEmail,
-              savedUserId,
-              savedUserName,
-              'customer',
-            );
-            return;
-          } else {
-            print(
-              'UserAuthService: No saved preferences found, clearing session',
-            );
-            await _clearUserSession();
-          }
-        } else if (shouldClear) {
-          print('UserAuthService: No active session to clear');
-        }
-      }
-    });
-  }
-
-  Future<void> _loadUserProfile(firebase_auth.User user) async {
-    try {
-      print('UserAuthService: Loading profile for: ${user.email}');
-
-      // Get user document from Firestore
-      final userDoc = await _firestore.collection('users').doc(user.uid).get();
-
-      if (userDoc.exists) {
-        final userData = userDoc.data()!;
-        var userModel = User.fromFirestore(userDoc);
-
-        // Debug: Check current simple ID
-        print(
-          'UserAuthService: Current simpleId from Firestore: "${userModel.simpleId}"',
-        );
-
-        // Always ensure user has a simple ID - generate one if missing
-        if (userModel.simpleId == null || userModel.simpleId!.isEmpty) {
-          print('UserAuthService: User missing simple ID, generating one...');
-          final simpleId = SimpleIdGenerator.generateSimpleId();
-          userModel = userModel.copyWith(simpleId: simpleId);
-
-          // Update the user document in Firestore with the new simple ID
-          await _firestore.collection('users').doc(user.uid).update({
-            'simpleId': simpleId,
-            'updatedAt': FieldValue.serverTimestamp(),
-          });
-          print('UserAuthService: Generated and saved simple ID: $simpleId');
-        } else {
-          print(
-            'UserAuthService: User already has simple ID: ${userModel.simpleId}',
-          );
-        }
-
-        print(
-          'UserAuthService: Profile loaded from Firestore: ${userModel.name} (ID: ${userModel.simpleId})',
-        );
-
-        // Update service state
-        currentUser.value = user;
-        userProfile.value = userModel;
-        isUserLoggedIn.value = true;
-
-        // Update UserController with all necessary data
-        final role = userData['role'] ?? 'customer';
-        userController.role.value = role;
-        userController.setUserProfile(userModel);
-
-        // Ensure UserController has the correct user data
-        if (userController.userName.value.isEmpty ||
-            userController.userId.value.isEmpty) {
-          print('UserAuthService: Forcing UserController synchronization...');
-          userController.setUserProfile(userModel);
-        }
-
-        // Save to preferences
-        await _saveSessionToPreferences(user, userModel);
-
-        print('UserAuthService: Session fully restored for: ${userModel.name}');
-        print(
-          'UserAuthService: UserController updated - Name: ${userController.userName.value}, ID: ${userController.userId.value}',
-        );
-        print('UserAuthService: isUserLoggedIn: ${isUserLoggedIn.value}');
-      } else {
-        print('UserAuthService: User profile not found in Firestore');
-        await _auth.signOut();
-        await _clearUserSession();
-      }
-    } catch (e) {
-      print('UserAuthService: Error loading profile: $e');
-      await _auth.signOut();
-      await _clearUserSession();
-    }
-  }
-
-  Future<void> _saveSessionToPreferences(
-    firebase_auth.User user,
-    User profile,
-  ) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('user_email', user.email ?? '');
-      await prefs.setString('user_id', user.uid);
-      await prefs.setString('user_name', profile.name);
-      // Note: role is stored separately in UserController, not in User model
-      print('UserAuthService: Session saved to preferences');
-    } catch (e) {
-      print('UserAuthService: Error saving to preferences: $e');
-    }
-  }
-
-  Future<void> _restoreSessionFromPreferences() async {
-    try {
-      print('UserAuthService: Attempting to restore from preferences...');
-
-      final prefs = await SharedPreferences.getInstance();
-      final savedEmail = prefs.getString('user_email');
-      final savedUserId = prefs.getString('user_id');
-      final savedUserName = prefs.getString('user_name');
-      final savedRole = prefs.getString('user_role') ?? 'customer';
-
-      if (savedEmail != null && savedUserId != null && savedUserName != null) {
-        print('UserAuthService: Found saved session: $savedEmail');
-
-        // Check if Firebase has this user
-        final firebaseUser = _auth.currentUser;
-
-        if (firebaseUser != null && firebaseUser.email == savedEmail) {
-          print(
-            'UserAuthService: Firebase user matches saved session, loading profile...',
-          );
-          await _loadUserProfile(firebaseUser);
-        } else if (firebaseUser != null && firebaseUser.email != savedEmail) {
-          print(
-            'UserAuthService: Firebase user exists but email mismatch, updating preferences...',
-          );
-          // Update preferences with current Firebase user
-          await prefs.setString('user_email', firebaseUser.email ?? '');
-          await prefs.setString('user_id', firebaseUser.uid);
-          await _loadUserProfile(firebaseUser);
-        } else {
-          print(
-            'UserAuthService: No Firebase user found, but we have saved preferences',
-          );
-          print(
-            'UserAuthService: This might indicate a session restoration issue',
-          );
-
-          // Try to restore the session manually from saved data
-          await _tryRestoreSession(
-            savedEmail,
-            savedUserId,
-            savedUserName,
-            savedRole,
-          );
-        }
-      } else {
-        print('UserAuthService: No saved session found in preferences');
-      }
-    } catch (e) {
-      print('UserAuthService: Error restoring from preferences: $e');
-    }
-  }
-
-  Future<void> _tryRestoreSession(
-    String email,
-    String userId,
-    String userName,
-    String role,
-  ) async {
-    try {
-      print('UserAuthService: Attempting to restore session manually...');
-      _isRestoringSession = true; // Set flag to prevent interference
-
-      // Create a temporary user profile from saved data
-      final tempUser = User(
-        id: userId,
-        name: userName,
-        email: email,
-        phone: '',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
-
-      // Set the profile in our service
-      userProfile.value = tempUser;
-      isUserLoggedIn.value = true;
-      currentUser.value = null; // No Firebase user yet
-
-      // Update UserController
-      userController.role.value = role;
-      userController.setUserProfile(tempUser);
-
-      print('UserAuthService: Session restored manually from preferences');
-      print(
-        'UserAuthService: User: ${tempUser.name}, Email: ${tempUser.email}',
-      );
-      print('UserAuthService: isUserLoggedIn: ${isUserLoggedIn.value}');
-      print(
-        'UserAuthService: UserController - Name: ${userController.userName.value}, ID: ${userController.userId.value}',
-      );
-
-      // Clear the flag after a delay to allow the session to stabilize
-      Future.delayed(const Duration(milliseconds: 2000), () {
-        _isRestoringSession = false;
-        print('UserAuthService: Session restoration flag cleared');
       });
+      
+      isInitialized.value = true;
     } catch (e) {
-      print('UserAuthService: Error in manual session restoration: $e');
-      _isRestoringSession = false;
+      print('Error initializing UserAuthService: $e');
+      isInitialized.value = true; // Still mark as initialized
     }
   }
 
-  Future<void> _clearPreferences() async {
+  Future<void> _loadUserProfile(String userId) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('user_email');
-      await prefs.remove('user_id');
-      await prefs.remove('user_name');
-      await prefs.remove('user_role');
-      print('UserAuthService: Old preferences cleared');
+      final user = await _supabaseService.getUserById(userId);
+      if (user != null) {
+        userProfile.value = user;
+        isUserLoggedIn.value = true;
+        
+        // Sync with UserController
+        final userController = Get.find<UserController>();
+        userController.setUserProfile(user);
+        userController.setRole('customer');
+      } else {
+        // User doesn't exist in users table, create profile
+        // Note: simpleId will be auto-generated by database trigger
+        final supabaseUser = _client.auth.currentUser;
+        if (supabaseUser != null) {
+          try {
+            final newUser = models.User(
+              id: supabaseUser.id,
+              simpleId: null, // Will be auto-generated by database (format: AAA00001)
+              name: supabaseUser.userMetadata?['name'] ?? supabaseUser.email?.split('@').first ?? 'User',
+              email: supabaseUser.email ?? '',
+              phone: supabaseUser.userMetadata?['phone'] ?? '',
+              createdAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+            );
+            
+            await _supabaseService.addUser(newUser);
+            
+            // Reload the user to get the auto-generated simpleId
+            final createdUser = await _supabaseService.getUserById(userId);
+            if (createdUser != null) {
+              userProfile.value = createdUser;
+              isUserLoggedIn.value = true;
+              
+              final userController = Get.find<UserController>();
+              userController.setUserProfile(createdUser);
+              userController.setRole('customer');
+            }
+          } catch (e) {
+            print('Error creating user profile: $e');
+            // Even if profile creation fails, set basic auth state
+            isUserLoggedIn.value = true;
+          }
+        }
+      }
     } catch (e) {
-      print('UserAuthService: Error clearing preferences: $e');
+      print('Error loading user profile: $e');
+      // Don't throw, just log the error
     }
   }
 
-  Future<void> _clearUserSession() async {
-    print('UserAuthService: Clearing user session...');
-
-    currentUser.value = null;
-    userProfile.value = null;
-    isUserLoggedIn.value = false;
-    userController.logout();
-
-    // Clear preferences
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('user_email');
-      await prefs.remove('user_id');
-      await prefs.remove('user_name');
-      await prefs.remove('user_role');
-    } catch (e) {
-      print('UserAuthService: Error clearing preferences: $e');
-    }
-
-    print('UserAuthService: User session cleared');
-  }
-
-  // Public methods
   Future<Map<String, dynamic>> loginUser(String email, String password) async {
     try {
-      if (isLoading.value) {
-        print('UserAuthService: Login already in progress, skipping...');
-        return {'success': false, 'message': 'Login already in progress'};
-      }
-
-      isLoading.value = true;
-      print('UserAuthService: Attempting login for: $email');
-
-      final userCredential = await _auth.signInWithEmailAndPassword(
-        email: email,
+      final response = await _client.auth.signInWithPassword(
+        email: email.trim(),
         password: password,
       );
-      final user = userCredential.user;
-
-      if (user != null) {
-        print('UserAuthService: Login successful, loading profile...');
-        await _loadUserProfile(user);
-        return {'success': true, 'message': 'Login successful'};
+      
+      if (response.user != null) {
+        await _loadUserProfile(response.user!.id);
+        return {
+          'success': true,
+          'message': 'Login successful',
+          'user': response.user,
+        };
+      } else {
+        return {
+          'success': false,
+          'message': 'Login failed: No user returned',
+        };
       }
-
-      return {'success': false, 'message': 'Login failed - no user returned'};
+    } on AuthException catch (e) {
+      return {
+        'success': false,
+        'message': e.message,
+      };
     } catch (e) {
-      print('UserAuthService: Login error: $e');
-      String errorMessage = _getFirebaseErrorMessage(e.toString());
-      return {'success': false, 'message': errorMessage};
-    } finally {
-      isLoading.value = false;
+      return {
+        'success': false,
+        'message': 'Login failed: ${e.toString()}',
+      };
     }
   }
 
@@ -408,369 +140,196 @@ class UserAuthService extends GetxController {
     String password,
   ) async {
     try {
-      isLoading.value = true;
-      print('UserAuthService: Attempting registration for: $email');
-
-      final userCredential = await _auth.createUserWithEmailAndPassword(
-        email: email,
+      final response = await _client.auth.signUp(
+        email: email.trim(),
         password: password,
+        data: {
+          'name': name,
+          'phone': phone,
+        },
       );
-      final user = userCredential.user;
 
-      if (user != null) {
-        // Create user profile with simple ID
-        final userModel = User.create(
+      if (response.user != null) {
+        // Create user profile in users table
+        // Note: simpleId will be auto-generated by database trigger
+        final newUser = models.User(
+          id: response.user!.id,
+          simpleId: null, // Will be auto-generated by database (format: AAA00001)
           name: name,
-          email: email,
+          email: email.trim(),
           phone: phone,
-        ).copyWith(id: user.uid);
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
 
-        // Save to Firestore with role
-        final userData = userModel.toFirestore();
-        userData['role'] = 'customer'; // Add role to Firestore data
-
-        await _firestore.collection('users').doc(user.uid).set(userData);
-
-        print('UserAuthService: Registration successful, setting profile...');
-        await _loadUserProfile(user);
-        return {'success': true, 'message': 'Account created successfully'};
+        try {
+          await _supabaseService.addUser(newUser);
+          await _loadUserProfile(response.user!.id);
+          
+          return {
+            'success': true,
+            'message': 'Registration successful',
+            'user': response.user,
+          };
+        } catch (e) {
+          // If profile creation fails, still return success but log error
+          print('Error creating user profile: $e');
+          return {
+            'success': true,
+            'message': 'Registration successful, but profile creation failed. Please try logging in.',
+            'user': response.user,
+          };
+        }
+      } else {
+        return {
+          'success': false,
+          'message': 'Registration failed: No user returned',
+        };
       }
-
+    } on AuthException catch (e) {
       return {
         'success': false,
-        'message': 'Registration failed - no user returned',
+        'message': e.message,
       };
     } catch (e) {
-      print('UserAuthService: Registration error: $e');
-      String errorMessage = _getFirebaseErrorMessage(e.toString());
-      return {'success': false, 'message': errorMessage};
-    } finally {
-      isLoading.value = false;
+      return {
+        'success': false,
+        'message': 'Registration failed: ${e.toString()}',
+      };
     }
   }
 
-  Future<void> logout() async {
-    print('UserAuthService: Logging out user...');
-
-    // Check if user is admin before signing out
-    try {
-      final adminAuthService = Get.find<AdminAuthService>();
-      if (adminAuthService.isAdmin) {
-        print(
-          'UserAuthService: User is admin, not signing out from Firebase Auth',
-        );
-        // Just clear user session, don't sign out from Firebase
-        await _clearUserSession();
-        return;
-      }
-    } catch (e) {
-      print('UserAuthService: Error checking admin status: $e');
-    }
-
-    await _auth.signOut();
-    await _clearUserSession();
-  }
-
-  // Force generate simple ID for current user
-  Future<void> forceGenerateSimpleId() async {
-    try {
-      final user = _auth.currentUser;
-      if (user != null) {
-        print(
-          'UserAuthService: Force generating simple ID for user: ${user.uid}',
-        );
-        final simpleId = SimpleIdGenerator.generateSimpleId();
-
-        // Update the user document in Firestore with the new simple ID
-        await _firestore.collection('users').doc(user.uid).update({
-          'simpleId': simpleId,
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
-
-        print('UserAuthService: Force generated simple ID: $simpleId');
-
-        // Reload user profile to get the updated simple ID
-        await _loadUserProfile(user);
-      }
-    } catch (e) {
-      print('UserAuthService: Error force generating simple ID: $e');
-    }
-  }
-
-  // Profile update methods
   Future<void> updateUserProfile(Map<String, dynamic> data) async {
     try {
-      // Use Firebase Auth current user directly instead of reactive variable
-      final user = _auth.currentUser;
-      print('UserAuthService: Starting profile update...');
-      print('UserAuthService: Firebase Auth current user: ${user?.uid}');
-      print('UserAuthService: Reactive currentUser: ${currentUser.value?.uid}');
-      print('UserAuthService: Update data: $data');
-
-      if (user != null) {
-        print('UserAuthService: Updating user profile...');
-        print(
-          'UserAuthService: Current profile before update: ${userProfile.value?.name}, ${userProfile.value?.phone}',
-        );
-
-        // Update in Firestore
-        print('UserAuthService: Updating Firestore document ${user.uid}...');
-        await _firestore.collection('users').doc(user.uid).update({
-          ...data,
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
-        print('UserAuthService: Firestore update completed');
-
-        // Update local profile
-        if (userProfile.value != null) {
-          print('UserAuthService: Updating local profile...');
-          final updatedProfile = userProfile.value!.copyWith(
-            name: data['name'] ?? userProfile.value!.name,
-            phone: data['phone'] ?? userProfile.value!.phone,
-            address: data['address'] ?? userProfile.value!.address,
-            updatedAt: DateTime.now(),
-          );
-          print(
-            'UserAuthService: New profile data: ${updatedProfile.name}, ${updatedProfile.phone}',
-          );
-
-          userProfile.value = updatedProfile;
-          print('UserAuthService: Local profile updated');
-
-          // Update UserController
-          print('UserAuthService: Updating UserController...');
-          userController.setUserProfile(updatedProfile);
-          print('UserAuthService: UserController updated');
-        } else {
-          print('UserAuthService: ERROR - userProfile.value is null!');
-        }
-
-        // Update preferences
-        if (data['name'] != null) {
-          print('UserAuthService: Updating SharedPreferences...');
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('user_name', data['name']);
-          print('UserAuthService: SharedPreferences updated');
-        }
-
-        print('UserAuthService: Profile updated successfully');
-        print(
-          'UserAuthService: Final profile: ${userProfile.value?.name}, ${userProfile.value?.phone}',
-        );
-      } else {
-        print('UserAuthService: ERROR - Firebase Auth currentUser is null!');
-        print(
-          'UserAuthService: This means the user is not properly authenticated',
-        );
-
-        // Check if we have a local profile with user ID
-        if (userProfile.value != null &&
-            (userProfile.value!.id?.isNotEmpty ?? false)) {
-          print(
-            'UserAuthService: Found local profile with ID: ${userProfile.value!.id}',
-          );
-          print(
-            'UserAuthService: Attempting to update using local profile ID...',
-          );
-
-          try {
-            // Update in Firestore using the local profile ID
-            await _firestore
-                .collection('users')
-                .doc(userProfile.value!.id)
-                .update({...data, 'updatedAt': FieldValue.serverTimestamp()});
-            print(
-              'UserAuthService: Firestore update completed using local profile ID',
-            );
-
-            // Update local profile
-            final updatedProfile = userProfile.value!.copyWith(
-              name: data['name'] ?? userProfile.value!.name,
-              phone: data['phone'] ?? userProfile.value!.phone,
-              address: data['address'] ?? userProfile.value!.address,
-              updatedAt: DateTime.now(),
-            );
-            print(
-              'UserAuthService: New profile data: ${updatedProfile.name}, ${updatedProfile.phone}',
-            );
-
-            userProfile.value = updatedProfile;
-            print('UserAuthService: Local profile updated');
-
-            // Update UserController
-            print('UserAuthService: Updating UserController...');
-            userController.setUserProfile(updatedProfile);
-            print('UserAuthService: UserController updated');
-
-            // Update preferences
-            if (data['name'] != null) {
-              print('UserAuthService: Updating SharedPreferences...');
-              final prefs = await SharedPreferences.getInstance();
-              await prefs.setString('user_name', data['name']);
-              print('UserAuthService: SharedPreferences updated');
-            }
-
-            print(
-              'UserAuthService: Profile updated successfully using local profile ID',
-            );
-            print(
-              'UserAuthService: Final profile: ${userProfile.value?.name}, ${userProfile.value?.phone}',
-            );
-            return;
-          } catch (e) {
-            print('UserAuthService: Error updating with local profile ID: $e');
-            throw Exception(
-              'Failed to update profile. Please try logging in again.',
-            );
-          }
-        }
-
-        // Try to refresh the session
-        print('UserAuthService: Attempting to refresh session...');
-        try {
-          await validateAndRefreshSession();
-          final refreshedUser = _auth.currentUser;
-          if (refreshedUser != null) {
-            print(
-              'UserAuthService: Session refreshed successfully, retrying update...',
-            );
-            // Retry the update with the refreshed user
-            await _firestore.collection('users').doc(refreshedUser.uid).update({
-              ...data,
-              'updatedAt': FieldValue.serverTimestamp(),
-            });
-
-            // Update local profile
-            if (userProfile.value != null) {
-              final updatedProfile = userProfile.value!.copyWith(
-                name: data['name'] ?? userProfile.value!.name,
-                phone: data['phone'] ?? userProfile.value!.phone,
-                address: data['address'] ?? userProfile.value!.address,
-                updatedAt: DateTime.now(),
-              );
-              userProfile.value = updatedProfile;
-              userController.setUserProfile(updatedProfile);
-            }
-
-            print(
-              'UserAuthService: Profile updated successfully after session refresh',
-            );
-            return;
-          }
-        } catch (e) {
-          print('UserAuthService: Session refresh failed: $e');
-        }
-
-        throw Exception('User not authenticated. Please log in again.');
+      final currentUser = _client.auth.currentUser;
+      if (currentUser == null || userProfile.value == null) {
+        throw Exception('No user logged in');
       }
+
+      // Update in users table
+      await _supabaseService.updateUser(currentUser.id, {
+        ...data,
+        'updatedAt': DateTime.now().toIso8601String(),
+      });
+
+      // Update metadata in Supabase Auth
+      if (data.containsKey('name') || data.containsKey('phone')) {
+        await _client.auth.updateUser(
+          UserAttributes(
+            data: {
+              if (data.containsKey('name')) 'name': data['name'],
+              if (data.containsKey('phone')) 'phone': data['phone'],
+            },
+          ),
+        );
+      }
+
+      // Reload user profile
+      await _loadUserProfile(currentUser.id);
     } catch (e) {
-      print('UserAuthService: Error updating profile: $e');
+      print('Error updating user profile: $e');
       rethrow;
     }
   }
 
   Future<bool> changePassword(String newPassword) async {
     try {
-      final user = _auth.currentUser;
-      if (user != null) {
-        print('UserAuthService: Changing password...');
-        await user.updatePassword(newPassword);
-        print('UserAuthService: Password changed successfully');
-        return true;
+      final currentUser = _client.auth.currentUser;
+      if (currentUser == null) {
+        return false;
       }
-      return false;
+
+      await _client.auth.updateUser(
+        UserAttributes(password: newPassword),
+      );
+
+      return true;
     } catch (e) {
-      print('UserAuthService: Error changing password: $e');
+      print('Error changing password: $e');
       return false;
     }
   }
 
-  // Getters
-  bool get isLoggedIn => isUserLoggedIn.value;
-  User? get currentUserProfile => userProfile.value;
-  firebase_auth.FirebaseAuth get auth => _auth;
-
-  // Force refresh methods
-  Future<void> forceRefreshSession() async {
-    print('UserAuthService: Force refreshing session...');
-    final firebaseUser = _auth.currentUser;
-    if (firebaseUser != null) {
-      await _loadUserProfile(firebaseUser);
-    } else {
-      print('UserAuthService: No Firebase user found, cannot refresh session');
+  Future<void> logout() async {
+    try {
+      await _client.auth.signOut();
+      userProfile.value = null;
+      isUserLoggedIn.value = false;
+      
+      final userController = Get.find<UserController>();
+      userController.logout();
+    } catch (e) {
+      print('Error during logout: $e');
+      // Still clear local state even if logout fails
+      userProfile.value = null;
+      isUserLoggedIn.value = false;
+      final userController = Get.find<UserController>();
+      userController.logout();
     }
   }
 
-  Future<void> forceRestoreFromPreferences() async {
-    print('UserAuthService: Force restoring from preferences...');
-    await _restoreSessionFromPreferences();
-  }
-
-  // Active session validation
   Future<void> validateAndRefreshSession() async {
-    print('UserAuthService: Validating current session...');
-
-    // Check if we have a valid session
-    if (isUserLoggedIn.value && userProfile.value != null) {
-      print('UserAuthService: Session appears valid, checking Firebase...');
-
-      final firebaseUser = _auth.currentUser;
-      if (firebaseUser != null) {
-        print('UserAuthService: Firebase user found, refreshing profile...');
-        await _loadUserProfile(firebaseUser);
+    try {
+      final session = _client.auth.currentSession;
+      if (session != null) {
+        // Session exists, refresh it
+        await _client.auth.refreshSession();
+        await _loadUserProfile(session.user.id);
       } else {
-        print(
-          'UserAuthService: No Firebase user but session exists, trying to restore...',
-        );
-        await _restoreSessionFromPreferences();
+        // No session, clear state
+        userProfile.value = null;
+        isUserLoggedIn.value = false;
+        final userController = Get.find<UserController>();
+        userController.logout();
       }
-    } else {
-      print('UserAuthService: No valid session found, checking Firebase...');
-      final firebaseUser = _auth.currentUser;
-      if (firebaseUser != null) {
-        print('UserAuthService: Firebase user found, loading profile...');
-        await _loadUserProfile(firebaseUser);
-      } else {
-        print('UserAuthService: No Firebase user and no session');
-      }
+    } catch (e) {
+      print('Error validating session: $e');
+      // Clear state on error
+      userProfile.value = null;
+      isUserLoggedIn.value = false;
+      final userController = Get.find<UserController>();
+      userController.logout();
     }
   }
 
-  bool get isSessionValid {
-    final hasUser = currentUser.value != null;
-    final hasProfile = userProfile.value != null;
-    final isLoggedIn = isUserLoggedIn.value;
+  Future<void> forceGenerateSimpleId() async {
+    try {
+      final currentUser = _client.auth.currentUser;
+      if (currentUser == null || userProfile.value == null) {
+        return;
+      }
 
-    print(
-      'UserAuthService: Session validation - Firebase: $hasUser, Profile: $hasProfile, LoggedIn: $isLoggedIn',
-    );
-    return hasUser && hasProfile && isLoggedIn;
+      // If user doesn't have simpleId, the database trigger will generate it
+      // on the next update or we can trigger it by updating the user record
+      if (userProfile.value!.simpleId == null || userProfile.value!.simpleId!.isEmpty) {
+        // Trigger ID generation by updating user (database trigger will handle it)
+        await _supabaseService.updateUser(currentUser.id, {
+          'updatedAt': DateTime.now().toIso8601String(),
+        });
+        await _loadUserProfile(currentUser.id);
+      }
+    } catch (e) {
+      print('Error generating simple ID: $e');
+    }
   }
 
-  // Helper method to convert Firebase error codes to user-friendly messages
-  String _getFirebaseErrorMessage(String error) {
-    if (error.contains('user-not-found')) {
-      return 'No account found with this email address';
-    } else if (error.contains('wrong-password')) {
-      return 'Incorrect password. Please try again';
-    } else if (error.contains('invalid-email')) {
-      return 'Invalid email address format';
-    } else if (error.contains('user-disabled')) {
-      return 'This account has been disabled. Please contact support';
-    } else if (error.contains('too-many-requests')) {
-      return 'Too many failed attempts. Please try again later';
-    } else if (error.contains('email-already-in-use')) {
-      return 'An account with this email already exists';
-    } else if (error.contains('weak-password')) {
-      return 'Password is too weak. Please choose a stronger password';
-    } else if (error.contains('network-request-failed')) {
-      return 'Network error. Please check your internet connection';
-    } else if (error.contains('invalid-credential')) {
-      return 'Invalid email or password';
-    } else if (error.contains('operation-not-allowed')) {
-      return 'Email/password accounts are not enabled. Please contact support';
-    } else {
-      return 'An error occurred. Please try again';
+  Future<Map<String, dynamic>> resetPassword(String email) async {
+    try {
+      await _client.auth.resetPasswordForEmail(email.trim());
+      return {
+        'success': true,
+        'message': 'Password reset email sent. Please check your inbox.',
+      };
+    } on AuthException catch (e) {
+      return {
+        'success': false,
+        'message': e.message,
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Failed to send password reset email: ${e.toString()}',
+      };
     }
   }
 }

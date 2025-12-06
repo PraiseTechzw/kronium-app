@@ -3,12 +3,11 @@ import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:kronium/core/app_theme.dart';
-import 'package:kronium/core/firebase_service.dart';
+import 'package:kronium/core/supabase_service.dart';
 import 'package:kronium/core/user_controller.dart';
 import 'package:kronium/models/service_model.dart';
 import 'package:kronium/core/routes.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:kronium/core/appwrite_client.dart';
 import 'dart:io';
 
 class AdminServicesPage extends StatelessWidget {
@@ -16,7 +15,7 @@ class AdminServicesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final firebaseService = Get.find<FirebaseService>();
+    final supabaseService = Get.find<SupabaseService>();
     final userController = Get.find<UserController>(); // Added userController
 
     return Scaffold(
@@ -53,7 +52,7 @@ class AdminServicesPage extends StatelessWidget {
         return const SizedBox.shrink();
       }),
       body: StreamBuilder<List<Service>>(
-        stream: firebaseService.getServices(),
+        stream: supabaseService.getServices(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -342,8 +341,8 @@ class AdminServicesPage extends StatelessWidget {
   }
 
   void _toggleServiceStatus(Service service) {
-    final firebaseService = Get.find<FirebaseService>();
-    firebaseService.updateService(service.id!, {'isActive': !service.isActive});
+    final supabaseService = Get.find<SupabaseService>();
+    supabaseService.updateService(service.id!, {'isActive': !service.isActive});
   }
 
   void _deleteService(Service service) {
@@ -355,8 +354,8 @@ class AdminServicesPage extends StatelessWidget {
           TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
           TextButton(
             onPressed: () {
-              final firebaseService = Get.find<FirebaseService>();
-              firebaseService.deleteService(service.id!);
+              final supabaseService = Get.find<SupabaseService>();
+              supabaseService.deleteService(service.id!);
               Get.back();
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -441,32 +440,24 @@ class _ServiceDialogState extends State<_ServiceDialog> {
     }
   }
 
-  Future<String?> _uploadImageToAppwrite(XFile image) async {
-    final bytes = await image.readAsBytes();
-    final fileName = image.name;
-    const bucketId = '687a6819003de32d8af1';
-    const projectId = '6867ce160037a5704b1d';
-    print(
-      'Uploading image to Appwrite: bucketId=$bucketId, fileName=$fileName, bytes=${bytes.length}',
-    );
-    final fileId = await AppwriteService.uploadFile(
-      bucketId: bucketId,
-      path: '',
-      bytes: bytes,
-      fileName: fileName,
-    );
-    print('Appwrite upload returned fileId: $fileId');
-    final url =
-        'https://cloud.appwrite.io/v1/storage/buckets/$bucketId/files/$fileId/view?project=$projectId';
-    print('Appwrite file URL: $url');
-    return url;
+  Future<String?> _uploadImageToSupabase(XFile image) async {
+    try {
+      final supabaseService = Get.find<SupabaseService>();
+      final file = File(image.path);
+      final url = await supabaseService.uploadImage(file, 'service_images');
+      print('Supabase upload returned URL: $url');
+      return url;
+    } catch (e) {
+      print('Supabase upload error: $e');
+      rethrow;
+    }
   }
 
   Future<void> _saveService() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
     try {
-      final firebaseService = Get.find<FirebaseService>();
+      final supabaseService = Get.find<SupabaseService>();
       // Update features from controllers
       for (int i = 0; i < _featureControllers.length; i++) {
         if (i < _features.length) {
@@ -475,7 +466,7 @@ class _ServiceDialogState extends State<_ServiceDialog> {
       }
       String? imageUrl = _imageUrl;
       if (_pickedImage != null) {
-        imageUrl = await _uploadImageToAppwrite(_pickedImage!);
+        imageUrl = await _uploadImageToSupabase(_pickedImage!);
         if (imageUrl == null) {
           throw Exception('Image upload failed');
         }
@@ -492,9 +483,9 @@ class _ServiceDialogState extends State<_ServiceDialog> {
         imageUrl: imageUrl,
       );
       if (widget.isEditing) {
-        await firebaseService.updateService(service.id!, service.toFirestore());
+        await supabaseService.updateService(service.id!, service.toMap());
       } else {
-        await firebaseService.addService(service);
+        await supabaseService.addService(service);
       }
       Get.back();
       Get.snackbar(

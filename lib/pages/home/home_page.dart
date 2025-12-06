@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:kronium/core/admin_auth_service.dart';
 import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/user_auth_service.dart';
 import 'package:kronium/core/user_controller.dart';
@@ -109,8 +108,6 @@ class _HomePageState extends State<HomePage> {
           appBar: null, // HomeScreen has SliverAppBar
           drawer: AppDrawer(
             isDarkMode: isDarkMode,
-            userAuthService: Get.find<UserAuthService>(),
-            adminAuthService: Get.find<AdminAuthService>(),
             onDarkModeChanged: (val) => _isDarkMode.value = val,
             onShowAbout: _showAboutPage,
             onShowContact: _showContactInfo,

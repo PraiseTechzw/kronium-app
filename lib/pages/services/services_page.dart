@@ -4,8 +4,8 @@ import 'package:iconsax/iconsax.dart';
 import 'package:kronium/core/app_theme.dart';
 
 import 'package:kronium/core/user_auth_service.dart' show UserAuthService;
+import 'package:kronium/core/supabase_service.dart';
 import 'package:kronium/models/service_model.dart';
-import 'package:kronium/core/firebase_service.dart' show FirebaseService;
 import 'package:kronium/models/booking_model.dart';
 import 'package:kronium/core/user_controller.dart';
 
@@ -482,7 +482,7 @@ class ServicesPageState extends State<ServicesPage>
           // Services Grid
           Expanded(
             child: StreamBuilder<List<Service>>(
-              stream: FirebaseService.instance.getServices(),
+              stream: Get.find<SupabaseService>().getServices(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -492,7 +492,7 @@ class ServicesPageState extends State<ServicesPage>
                 }
                 final services = snapshot.data ?? [];
 
-                // Add hardcoded services if Firebase is empty
+                // Add hardcoded services if backend is empty
                 final allServices =
                     services.isEmpty ? _getHardcodedServices() : services;
 
@@ -1651,7 +1651,7 @@ class _ServiceBookingFormState extends State<_ServiceBookingForm> {
                                     location: _locationController.text.trim(),
                                     notes: _notesController.text.trim(),
                                   );
-                                  await FirebaseService.instance.addBooking(
+                                  await Get.find<SupabaseService>().addBooking(
                                     booking,
                                   );
                                   Navigator.pop(context);

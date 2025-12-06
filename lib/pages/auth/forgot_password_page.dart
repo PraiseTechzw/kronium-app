@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/routes.dart';
 import 'package:kronium/core/constants.dart';
 import 'package:kronium/core/toast_utils.dart';
+import 'package:kronium/core/user_auth_service.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -34,27 +34,24 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     setState(() => _isLoading = true);
 
     try {
-      await FirebaseAuth.instance.sendPasswordResetEmail(
-        email: _emailController.text.trim(),
-      );
-
+      final userAuthService = Get.find<UserAuthService>();
+      final result = await userAuthService.resetPassword(_emailController.text.trim());
+      
       setState(() {
-        _emailSent = true;
+        _emailSent = result['success'] ?? false;
         _isLoading = false;
       });
-
-      ToastUtils.showSuccess('Password reset email sent successfully!', title: 'Email Sent');
-    } catch (e) {
-      setState(() => _isLoading = false);
-
-      String errorMessage = 'Failed to send reset email';
-      if (e.toString().contains('user-not-found')) {
-        errorMessage = 'No account found with this email address';
-      } else if (e.toString().contains('invalid-email')) {
-        errorMessage = 'Please enter a valid email address';
+      
+      if (result['success'] == true) {
+        ToastUtils.showSuccess(result['message'] ?? 'Password reset email sent successfully!', title: 'Email Sent');
+      } else {
+        ToastUtils.showError(result['message'] ?? 'Failed to send password reset email', title: 'Error');
       }
-
-      ToastUtils.showError(errorMessage, title: 'Reset Failed');
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      ToastUtils.showError('An error occurred: ${e.toString()}', title: 'Error');
     }
   }
 

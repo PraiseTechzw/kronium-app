@@ -3,8 +3,8 @@ import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/user_controller.dart';
-import 'package:kronium/core/firebase_service.dart';
 import 'package:kronium/core/user_auth_service.dart';
+import 'package:kronium/core/supabase_service.dart';
 import 'package:kronium/models/project_model.dart';
 import 'package:kronium/core/toast_utils.dart';
 
@@ -523,7 +523,7 @@ class ProjectsPageState extends State<ProjectsPage>
 
   Widget _buildProjectsList(String category) {
     return StreamBuilder<List<Project>>(
-      stream: FirebaseService().getProjects(),
+      stream: Get.find<SupabaseService>().getProjects(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return _buildLoadingState();
@@ -2001,8 +2001,8 @@ class ProjectsPageState extends State<ProjectsPage>
       // Show loading state
       ToastUtils.showInfo('Submitting your request...');
 
-      // Get Firebase service
-      final firebaseService = Get.find<FirebaseService>();
+      // Get Supabase service
+      final supabaseService = Get.find<SupabaseService>();
 
       // Get current user info
       final userAuthService = Get.find<UserAuthService>();
@@ -2028,8 +2028,8 @@ class ProjectsPageState extends State<ProjectsPage>
         'updatedAt': DateTime.now(),
       };
 
-      // Save to Firestore
-      await firebaseService.bookingsCollection.add(bookingData);
+      // Save to Supabase
+      await supabaseService.addProjectBooking(bookingData);
 
       // Clear form
       _nameController.clear();

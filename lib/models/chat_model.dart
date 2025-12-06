@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ChatMessage {
   final String? id;
@@ -21,30 +20,28 @@ class ChatMessage {
     this.chatRoomId,
   });
 
-  // Create from Firestore document
-  factory ChatMessage.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-    
+  // Create from Map
+  factory ChatMessage.fromMap(Map<String, dynamic> data, {String? id}) {
     return ChatMessage(
-      id: doc.id,
+      id: id ?? data['id'],
       senderId: data['senderId'] ?? '',
       senderName: data['senderName'] ?? '',
       senderType: data['senderType'] ?? 'customer',
       message: data['message'] ?? '',
-      timestamp: data['timestamp']?.toDate() ?? DateTime.now(),
+      timestamp: data['timestamp'] is DateTime ? data['timestamp'] : (data['timestamp'] != null ? DateTime.parse(data['timestamp'].toString()) : DateTime.now()),
       isRead: data['isRead'] ?? false,
       chatRoomId: data['chatRoomId'],
     );
   }
 
-  // Convert to Map for Firestore
-  Map<String, dynamic> toFirestore() {
+  // Convert to Map
+  Map<String, dynamic> toMap() {
     return {
       'senderId': senderId,
       'senderName': senderName,
       'senderType': senderType,
       'message': message,
-      'timestamp': Timestamp.fromDate(timestamp),
+      'timestamp': timestamp.toIso8601String(),
       'isRead': isRead,
       if (chatRoomId != null) 'chatRoomId': chatRoomId,
     };
@@ -93,29 +90,27 @@ class ChatRoom {
     this.isActive = true,
   });
 
-  // Create from Firestore document
-  factory ChatRoom.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-    
+  // Create from Map
+  factory ChatRoom.fromMap(Map<String, dynamic> data, {String? id}) {
     return ChatRoom(
-      id: doc.id,
+      id: id ?? data['id'],
       customerId: data['customerId'] ?? '',
       customerName: data['customerName'] ?? '',
       customerEmail: data['customerEmail'] ?? '',
-      createdAt: data['createdAt']?.toDate() ?? DateTime.now(),
-      lastMessageAt: data['lastMessageAt']?.toDate(),
+      createdAt: data['createdAt'] is DateTime ? data['createdAt'] : (data['createdAt'] != null ? DateTime.parse(data['createdAt'].toString()) : DateTime.now()),
+      lastMessageAt: data['lastMessageAt'] is DateTime ? data['lastMessageAt'] : (data['lastMessageAt'] != null ? DateTime.parse(data['lastMessageAt'].toString()) : null),
       isActive: data['isActive'] ?? true,
     );
   }
 
-  // Convert to Map for Firestore
-  Map<String, dynamic> toFirestore() {
+  // Convert to Map
+  Map<String, dynamic> toMap() {
     return {
       'customerId': customerId,
       'customerName': customerName,
       'customerEmail': customerEmail,
-      'createdAt': Timestamp.fromDate(createdAt),
-      'lastMessageAt': lastMessageAt != null ? Timestamp.fromDate(lastMessageAt!) : null,
+      'createdAt': createdAt.toIso8601String(),
+      'lastMessageAt': lastMessageAt?.toIso8601String(),
       'isActive': isActive,
     };
   }

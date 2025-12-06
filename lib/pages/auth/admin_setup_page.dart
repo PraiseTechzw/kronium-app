@@ -6,8 +6,6 @@ import 'package:kronium/core/admin_auth_service.dart';
 import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/routes.dart';
 import 'package:kronium/core/constants.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AdminSetupPage extends StatefulWidget {
   const AdminSetupPage({super.key});
@@ -53,45 +51,28 @@ class _AdminSetupPageState extends State<AdminSetupPage> {
     setState(() => _isLoading = true);
 
     try {
-      final auth = FirebaseAuth.instance;
-      final firestore = FirebaseFirestore.instance;
-
-      // Create user account
-      final userCredential = await auth.createUserWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-      );
-
-      // Add admin role to Firestore
-      await firestore.collection('admins').doc(userCredential.user!.uid).set({
-        'email': _emailController.text.trim(),
-        'name': _nameController.text.trim(),
-        'role': 'admin',
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-
-      // Update admin auth service
       final adminAuthService = Get.find<AdminAuthService>();
-      adminAuthService.adminUser.value = userCredential.user;
-      adminAuthService.isAdminLoggedIn.value = true;
-
-      Get.snackbar(
-        'Success',
-        'Admin account created successfully!',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppTheme.successColor,
-        colorText: Colors.white,
+      final result = await adminAuthService.createAdminAccount(
+        _emailController.text.trim(),
+        _passwordController.text,
+        _nameController.text.trim(),
       );
 
-      // Redirect to welcome page first, then user can continue to dashboard
-      Get.offAllNamed(AppRoutes.welcome);
+      if (result['success'] == true) {
+        Get.snackbar(
+          'Success',
+          result['message'] ?? 'Admin account created successfully!',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: AppTheme.successColor,
+          colorText: Colors.white,
+        );
+        // Redirect to welcome page first, then user can continue to dashboard
+        Get.offAllNamed(AppRoutes.welcome);
+      } else {
+        throw Exception(result['message'] ?? 'Failed to create admin account');
+      }
     } catch (e) {
       String errorMessage = 'Failed to create admin account';
-      if (e.toString().contains('email-already-in-use')) {
-        errorMessage = 'Email is already registered';
-      } else if (e.toString().contains('weak-password')) {
-        errorMessage = 'Password is too weak';
-      }
       
       Get.snackbar(
         'Error',

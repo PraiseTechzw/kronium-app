@@ -3,16 +3,12 @@ import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:kronium/core/app_theme.dart';
 import 'package:kronium/core/routes.dart';
-import 'package:kronium/core/user_auth_service.dart';
-import 'package:kronium/core/admin_auth_service.dart';
 import 'package:kronium/core/user_controller.dart';
 
 /// AppDrawer is a beautiful, modular drawer for Kronium.
 /// Place all drawer logic and UI here for clean code.
 class AppDrawer extends StatelessWidget {
   final bool isDarkMode;
-  final UserAuthService userAuthService;
-  final AdminAuthService adminAuthService;
   final ValueChanged<bool> onDarkModeChanged;
   final VoidCallback onShowAbout;
   final VoidCallback onShowContact;
@@ -21,8 +17,6 @@ class AppDrawer extends StatelessWidget {
   const AppDrawer({
     super.key,
     required this.isDarkMode,
-    required this.userAuthService,
-    required this.adminAuthService,
     required this.onDarkModeChanged,
     required this.onShowAbout,
     required this.onShowContact,
@@ -69,11 +63,9 @@ class AppDrawer extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Text(
-                    userAuthService.isUserLoggedIn.value
-                        ? 'Welcome, ${userAuthService.currentUserProfile?.name ?? ''}'
-                        : 'Welcome',
-                    style: const TextStyle(
+                  const Text(
+                    'Welcome',
+                    style: TextStyle(
                       color: Colors.white,
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -238,19 +230,6 @@ class AppDrawer extends StatelessWidget {
               onTap: onShowContact,
             ),
             Divider(color: AppTheme.divider),
-            // Admin Section
-            if (adminAuthService.isAdminLoggedIn.value) ...[
-              _drawerItem(
-                context,
-                'Admin Dashboard',
-                Iconsax.shield_tick,
-                AppRoutes.adminDashboard,
-              ),
-              _drawerItem(context, 'Sign Out Admin', Iconsax.logout, () async {
-                await adminAuthService.logout();
-                Get.offAllNamed(AppRoutes.welcome);
-              }),
-            ],
             const SizedBox(height: 24),
             // App branding at the bottom
             Center(

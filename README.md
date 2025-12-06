@@ -26,7 +26,7 @@ A comprehensive Flutter-based service booking application for construction, rene
 ## 🛠 Technical Stack
 
 - **Frontend**: Flutter with GetX state management
-- **Backend**: Firebase (Firestore, Auth, Storage)
+- **Backend**: Backend services
 - **UI Libraries**: 
   - Lottie animations
   - Iconsax icons
@@ -51,7 +51,7 @@ A comprehensive Flutter-based service booking application for construction, rene
 ### Prerequisites
 - Flutter SDK (3.7.2 or higher)
 - Dart SDK
-- Firebase project setup
+- Backend configuration
 - Android Studio / VS Code
 
 ### Setup Steps
@@ -67,13 +67,7 @@ A comprehensive Flutter-based service booking application for construction, rene
    flutter pub get
    ```
 
-3. **Firebase Setup**
-   - Create a Firebase project
-   - Enable Authentication, Firestore, and Storage
-   - Download `google-services.json` and place it in `android/app/`
-   - Update Firebase configuration in `lib/firebase_options.dart`
-
-4. **Run the app**
+3. **Run the app**
    ```bash
    flutter run
    ```
@@ -85,7 +79,6 @@ lib/
 ├── core/                    # Core services and utilities
 │   ├── admin_auth_service.dart
 │   ├── user_auth_service.dart
-│   ├── firebase_service.dart
 │   ├── app_theme.dart
 │   ├── constants.dart
 │   └── routes.dart
@@ -148,7 +141,7 @@ lib/
 
 ## 🔒 Security Features
 
-- Firebase Authentication
+- Secure Authentication
 - Input validation
 - Secure data storage
 - Role-based access control

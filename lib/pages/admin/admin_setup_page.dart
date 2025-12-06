@@ -4,7 +4,7 @@ import 'package:iconsax/iconsax.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:kronium/core/admin_auth_service.dart';
 import 'package:kronium/core/app_theme.dart';
-import 'package:kronium/core/firebase_service.dart';
+import 'package:kronium/core/supabase_service.dart';
 import 'package:kronium/core/routes.dart';
 import 'package:kronium/core/user_controller.dart';
 import 'package:kronium/core/toast_utils.dart';
@@ -25,7 +25,7 @@ class _AdminSetupPageState extends State<AdminSetupPage> {
   final _companyNameController = TextEditingController();
   
   final _adminAuthService = Get.find<AdminAuthService>();
-  final _firebaseService = Get.find<FirebaseService>();
+  final _supabaseService = Get.find<SupabaseService>();
   
   bool _isLoading = false;
   bool _obscurePassword = true;
@@ -47,23 +47,18 @@ class _AdminSetupPageState extends State<AdminSetupPage> {
     setState(() => _isLoading = true);
 
     try {
-      // Create user account
-      final userCredential = await _adminAuthService.createAdminAccount(
+      // Create admin account
+      final result = await _adminAuthService.createAdminAccount(
         _emailController.text.trim(),
         _passwordController.text,
+        _nameController.text.trim(),
       );
 
-      if (userCredential != null) {
-        // Add admin to Firestore
-        await _firebaseService.addAdminToFirestore(
-          userCredential.user!.uid,
-          _nameController.text.trim(),
-          _emailController.text.trim(),
-          _companyNameController.text.trim(),
-        );
-
+      if (result['success'] == true) {
         Get.offAllNamed(AppRoutes.adminDashboard);
-        ToastUtils.showSuccess('Admin account created successfully', title: 'Setup Complete!');
+        ToastUtils.showSuccess(result['message'] ?? 'Admin account created successfully', title: 'Setup Complete!');
+      } else {
+        ToastUtils.showError(result['message'] ?? 'Failed to create admin account', title: 'Setup Failed');
       }
     } catch (e) {
       ToastUtils.showError('An error occurred during setup: ${e.toString()}', title: 'Setup Failed');

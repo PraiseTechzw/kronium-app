@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:kronium/core/app_theme.dart';
-import 'package:kronium/core/firebase_service.dart';
+import 'package:kronium/core/supabase_service.dart';
 import 'package:kronium/models/service_model.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'package:kronium/core/appwrite_client.dart';
 
 class AdminAddServicePage extends StatefulWidget {
   const AdminAddServicePage({super.key});
@@ -90,25 +89,14 @@ class _AdminAddServicePageState extends State<AdminAddServicePage> {
     }
   }
 
-  Future<String?> _uploadImageToAppwrite(XFile image) async {
+  Future<String?> _uploadImageToSupabase(XFile image) async {
     try {
-      final bytes = await image.readAsBytes();
-      final fileName = image.name;
-      // Use the correct Appwrite bucket ID
-      const bucketId = '687a6819003de32d8af1';
-      final fileId = await AppwriteService.uploadFile(
-        bucketId: bucketId,
-        path: '',
-        bytes: bytes,
-        fileName: fileName,
-      );
-      if (fileId != null) {
-        // Appwrite file URL pattern (adjust if needed)
-        return 'https://cloud.appwrite.io/v1/storage/buckets/$bucketId/files/$fileId/view?project=6867ce160037a5704b1d';
-      }
-      return null;
+      final supabaseService = Get.find<SupabaseService>();
+      final file = File(image.path);
+      final url = await supabaseService.uploadImage(file, 'service_images');
+      return url;
     } catch (e) {
-      print('Appwrite upload error: $e');
+      print('Supabase upload error: $e');
       rethrow;
     }
   }
@@ -119,7 +107,7 @@ class _AdminAddServicePageState extends State<AdminAddServicePage> {
     String? imageUrl = _imageUrl;
     if (_pickedImage != null) {
       try {
-        imageUrl = await _uploadImageToAppwrite(_pickedImage!);
+        imageUrl = await _uploadImageToSupabase(_pickedImage!);
         if (imageUrl == null) {
           setState(() => _isLoading = false);
           Get.snackbar('Error', 'Image upload failed (no fileId returned)', backgroundColor: Colors.red, colorText: Colors.white);
@@ -142,7 +130,7 @@ class _AdminAddServicePageState extends State<AdminAddServicePage> {
       icon: Icons.warehouse, // Default icon
       color: AppTheme.primaryColor, // Default color
     );
-    await FirebaseService.instance.addService(service);
+    await Get.find<SupabaseService>().addService(service);
     setState(() => _isLoading = false);
     Get.back();
     Get.snackbar('Service Added', 'The new service has been added successfully!', backgroundColor: Colors.green, colorText: Colors.white);

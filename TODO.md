@@ -7,7 +7,7 @@
 - [x] Ensured proper initialization order in main.dart
 
 ### 2. **Authentication Persistence Fix**
-- [x] Fixed Firebase Auth state listener race conditions
+- [x] Fixed Auth state listener race conditions
 - [x] Added delays and checks to prevent premature session clearing
 - [x] Enhanced session restoration logic
 
@@ -49,7 +49,7 @@ The username display issue has been **FIXED** with the following improvements:
 
 1. **UserController.setUserProfile()** now auto-populates username and userId
 2. **Reactive listeners** in welcome and home pages for real-time updates
-3. **Race condition fixes** in Firebase Auth state listeners
+3. **Race condition fixes** in Auth state listeners
 4. **Fallback logic** for username display (userName → userProfile → default)
 
 ## 🚀 **Next Steps**

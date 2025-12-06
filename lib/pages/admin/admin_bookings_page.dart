@@ -5,7 +5,7 @@ import 'package:animate_do/animate_do.dart';
 
 import 'package:intl/intl.dart';
 import 'package:kronium/core/app_theme.dart';
-import 'package:kronium/core/firebase_service.dart';
+import 'package:kronium/core/supabase_service.dart';
 import 'package:kronium/models/booking_model.dart';
 
 class AdminBookingsPage extends StatelessWidget {
@@ -13,12 +13,12 @@ class AdminBookingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final firebaseService = Get.find<FirebaseService>();
+    final supabaseService = Get.find<SupabaseService>();
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundLight,
       body: StreamBuilder<List<Booking>>(
-        stream: firebaseService.getBookings(),
+        stream: supabaseService.getBookings(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -219,7 +219,8 @@ class AdminBookingsPage extends StatelessWidget {
                                 Expanded(
                                   child: OutlinedButton.icon(
                                     onPressed: () async {
-                                      await firebaseService.deleteBooking(
+                                      final supabaseService = Get.find<SupabaseService>();
+                                      await supabaseService.deleteBooking(
                                         booking.id!,
                                       );
                                       Get.snackbar(
@@ -325,8 +326,8 @@ class AdminBookingsPage extends StatelessWidget {
   }
 
   void _updateBookingStatus(Booking booking, BookingStatus newStatus) {
-    final firebaseService = Get.find<FirebaseService>();
-    firebaseService.updateBookingStatus(booking.id!, newStatus);
+    final supabaseService = Get.find<SupabaseService>();
+    supabaseService.updateBookingStatus(booking.id!, newStatus.name);
 
     Get.snackbar(
       'Status Updated',

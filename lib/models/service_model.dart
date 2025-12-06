@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Service {
   final String? id;
@@ -32,12 +31,10 @@ class Service {
     this.updatedAt,
   });
 
-  // Create from Firestore document
-  factory Service.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-
+  // Create from Map
+  factory Service.fromMap(Map<String, dynamic> data, {String? id}) {
     return Service(
-      id: doc.id,
+      id: id ?? data['id'],
       title: data['title'] ?? '',
       category: data['category'] ?? '',
       icon: _getIconFromString(data['icon'] ?? 'warehouse'),
@@ -48,13 +45,13 @@ class Service {
       videoUrl: data['videoUrl'],
       price: data['price']?.toDouble(),
       isActive: data['isActive'] ?? true,
-      createdAt: data['createdAt']?.toDate(),
-      updatedAt: data['updatedAt']?.toDate(),
+      createdAt: data['createdAt'] is DateTime ? data['createdAt'] : (data['createdAt'] != null ? DateTime.parse(data['createdAt'].toString()) : null),
+      updatedAt: data['updatedAt'] is DateTime ? data['updatedAt'] : (data['updatedAt'] != null ? DateTime.parse(data['updatedAt'].toString()) : null),
     );
   }
 
-  // Convert to Map for Firestore
-  Map<String, dynamic> toFirestore() {
+  // Convert to Map
+  Map<String, dynamic> toMap() {
     return {
       'title': title,
       'category': category,

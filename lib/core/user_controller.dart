@@ -55,7 +55,7 @@ class UserController extends GetxController {
     }
   }
 
-  // Get display ID (simple ID if available, otherwise Firebase ID)
+  // Get display ID (simple ID if available, otherwise user ID)
   String get displayId =>
       userSimpleId.value.isNotEmpty ? userSimpleId.value : userId.value;
 
