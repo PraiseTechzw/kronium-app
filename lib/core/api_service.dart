@@ -13,7 +13,8 @@ class ApiService {
   ApiService._internal();
 
   final SecurityService _securityService = SecurityService();
-  late final http.Client _httpClient;
+  http.Client? _httpClient;
+  bool _isInitialized = false;
 
   // API Configuration
   static const String baseUrl =
@@ -30,7 +31,13 @@ class ApiService {
 
   /// Initialize API service
   void initialize() {
+    if (_isInitialized) {
+      logging.logger.debug('API Service already initialized, skipping...');
+      return;
+    }
+
     _httpClient = http.Client();
+    _isInitialized = true;
     logging.logger.info('API Service initialized');
   }
 
@@ -100,6 +107,11 @@ class ApiService {
     Map<String, dynamic>? queryParams,
     Duration? timeout,
   }) async {
+    // Ensure service is initialized
+    if (!_isInitialized || _httpClient == null) {
+      throw ApiException('API Service not initialized', 0);
+    }
+
     try {
       // Build URL
       final uri = _buildUri(endpoint, queryParams);
@@ -127,7 +139,7 @@ class ApiService {
       }
 
       // Send request with timeout
-      final streamedResponse = await _httpClient
+      final streamedResponse = await _httpClient!
           .send(request)
           .timeout(timeout ?? defaultTimeout);
 
@@ -453,7 +465,7 @@ class ApiService {
       }
 
       // Send request
-      final streamedResponse = await _httpClient
+      final streamedResponse = await _httpClient!
           .send(request)
           .timeout(const Duration(minutes: 5));
       final response = await http.Response.fromStream(streamedResponse);
@@ -492,8 +504,11 @@ class ApiService {
 
   /// Dispose resources
   void dispose() {
-    logging.logger.info('Disposing API Service resources');
-    _httpClient.close();
+    if (_isInitialized && _httpClient != null) {
+      logging.logger.info('Disposing API Service resources');
+      _httpClient!.close();
+      _isInitialized = false;
+    }
   }
 }
 

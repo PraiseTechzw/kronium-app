@@ -10,7 +10,6 @@ class NotificationService {
   factory NotificationService() => _instance;
   NotificationService._internal();
 
-  final ApiService _apiService = ApiService();
   final List<NotificationHandler> _handlers = [];
   final StreamController<AppNotification> _notificationController =
       StreamController.broadcast();
@@ -26,8 +25,8 @@ class NotificationService {
       // Register default handlers
       _registerDefaultHandlers();
 
-      // Initialize API service if not already done
-      _apiService.initialize();
+      // Note: ApiService is already initialized in main.dart
+      // No need to initialize it again here
 
       logging.logger.info('NotificationService initialized successfully');
     } catch (e, stackTrace) {
@@ -418,8 +417,6 @@ abstract class NotificationHandler {
 
 /// Email notification handler
 class EmailNotificationHandler extends NotificationHandler {
-  final ApiService _apiService = ApiService();
-
   @override
   String get type => 'email';
 
@@ -433,7 +430,8 @@ class EmailNotificationHandler extends NotificationHandler {
     try {
       logging.logger.debug('Sending email notification: ${notification.id}');
 
-      final response = await _apiService.sendEmailNotification(
+      final apiService = Get.find<ApiService>();
+      final response = await apiService.sendEmailNotification(
         to: notification.recipient,
         subject: notification.title,
         body: notification.body,
