@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:kronium/core/logger_service.dart';
+import 'package:kronium/core/toast_utils.dart';
 
 /// Production-ready error handling service
 class ErrorHandler {
@@ -57,70 +58,22 @@ class ErrorHandler {
 
   /// Show error snackbar
   static void showErrorSnackbar(String message) {
-    if (Get.context == null) return;
-
-    Get.snackbar(
-      'Error',
-      message,
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: Colors.red.shade600,
-      colorText: Colors.white,
-      duration: const Duration(seconds: 4),
-      margin: const EdgeInsets.all(16),
-      borderRadius: 8,
-      icon: const Icon(Icons.error_outline, color: Colors.white),
-    );
+    ToastUtils.showError(message);
   }
 
   /// Show warning snackbar
   static void showWarningSnackbar(String message) {
-    if (Get.context == null) return;
-
-    Get.snackbar(
-      'Warning',
-      message,
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: Colors.orange.shade600,
-      colorText: Colors.white,
-      duration: const Duration(seconds: 3),
-      margin: const EdgeInsets.all(16),
-      borderRadius: 8,
-      icon: const Icon(Icons.warning_outlined, color: Colors.white),
-    );
+    ToastUtils.showWarning(message);
   }
 
   /// Show success snackbar
   static void showSuccessSnackbar(String message) {
-    if (Get.context == null) return;
-
-    Get.snackbar(
-      'Success',
-      message,
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: Colors.green.shade600,
-      colorText: Colors.white,
-      duration: const Duration(seconds: 3),
-      margin: const EdgeInsets.all(16),
-      borderRadius: 8,
-      icon: const Icon(Icons.check_circle_outline, color: Colors.white),
-    );
+    ToastUtils.showSuccess(message);
   }
 
   /// Show info snackbar
   static void showInfoSnackbar(String message) {
-    if (Get.context == null) return;
-
-    Get.snackbar(
-      'Info',
-      message,
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: Colors.blue.shade600,
-      colorText: Colors.white,
-      duration: const Duration(seconds: 3),
-      margin: const EdgeInsets.all(16),
-      borderRadius: 8,
-      icon: const Icon(Icons.info_outline, color: Colors.white),
-    );
+    ToastUtils.showInfo(message);
   }
 
   /// Get user-friendly error message

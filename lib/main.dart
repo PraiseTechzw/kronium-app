@@ -15,6 +15,7 @@ import 'package:kronium/core/cache_service.dart';
 import 'package:kronium/core/notification_service.dart';
 import 'package:kronium/core/repository_service.dart';
 import 'package:kronium/core/dashboard_controller.dart';
+import 'package:kronium/core/toast_utils.dart';
 
 void main() async {
   // Ensure Flutter binding is initialized
@@ -36,6 +37,16 @@ void main() async {
     await _initializeBusinessServices();
 
     logging.logger.info('✅ All services initialized successfully');
+
+    // Show welcome toast after successful initialization
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      ToastUtils.showSuccess(
+        'Welcome to KRONIUM! 🚀\nYour agricultural & construction solution platform is ready!',
+        title: 'App Ready',
+        duration: const Duration(seconds: 4),
+      );
+    });
+
     runApp(const KroniumProApp());
   } catch (e, stackTrace) {
     logging.logger.fatal('💥 Critical error initializing app', e, stackTrace);

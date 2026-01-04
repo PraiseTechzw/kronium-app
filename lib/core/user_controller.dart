@@ -45,14 +45,25 @@ class UserController extends GetxController {
   }
 
   /// Set user role with validation
-  void setRole(String newRole) {
+  void setRole(String newRole, {bool isAuthenticated = false}) {
     if (!_roleManager.isValidRole(newRole)) {
       logger.error('Attempted to set invalid role: $newRole');
       return;
     }
 
     final currentRole = role.value;
-    if (!_roleManager.canTransitionToRole(currentRole, newRole)) {
+
+    // Skip if role is already set to the same value
+    if (currentRole == newRole) {
+      logger.debug('Role already set to $newRole, skipping update');
+      return;
+    }
+
+    if (!_roleManager.canTransitionToRole(
+      currentRole,
+      newRole,
+      isAuthenticated: isAuthenticated,
+    )) {
       logger.warning('Invalid role transition from $currentRole to $newRole');
       return;
     }
@@ -129,7 +140,7 @@ class UserController extends GetxController {
 
     // Set role if provided in profile
     if (profile.role != null && profile.role!.isNotEmpty) {
-      setRole(profile.role!);
+      setRole(profile.role!, isAuthenticated: true);
     }
 
     logger.info('User profile updated successfully');

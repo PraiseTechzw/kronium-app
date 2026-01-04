@@ -113,7 +113,19 @@ class RoleManager {
 
   /// Validate role transition
   bool canTransitionToRole(String fromRole, String toRole) {
-    // Define allowed role transitions
+    // Allow staying in the same role (no transition needed)
+    if (fromRole == toRole) {
+      return true;
+    }
+
+    // Special case: Allow transition to admin during authentication
+    // This is needed when logging in as admin from any previous role
+    if (toRole == roleAdmin || toRole == roleSuperAdmin) {
+      logger.info('Allowing admin role transition during authentication');
+      return true;
+    }
+
+    // Define allowed role transitions for normal operations
     const allowedTransitions = {
       roleGuest: [roleCustomer],
       roleCustomer: [roleGuest],
@@ -122,7 +134,13 @@ class RoleManager {
     };
 
     final allowed = allowedTransitions[fromRole] ?? [];
-    return allowed.contains(toRole);
+    final canTransition = allowed.contains(toRole);
+
+    if (!canTransition) {
+      logger.warning('Role transition blocked: $fromRole -> $toRole');
+    }
+
+    return canTransition;
   }
 
   /// Get role display name
