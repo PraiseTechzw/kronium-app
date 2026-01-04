@@ -460,8 +460,6 @@ class EmailNotificationHandler extends NotificationHandler {
 
 /// SMS notification handler
 class SmsNotificationHandler extends NotificationHandler {
-  final ApiService _apiService = ApiService();
-
   @override
   String get type => 'sms';
 
@@ -475,7 +473,8 @@ class SmsNotificationHandler extends NotificationHandler {
     try {
       logging.logger.debug('Sending SMS notification: ${notification.id}');
 
-      final response = await _apiService.sendSmsNotification(
+      final apiService = Get.find<ApiService>();
+      final response = await apiService.sendSmsNotification(
         phoneNumber: notification.recipient,
         message: notification.body,
       );
