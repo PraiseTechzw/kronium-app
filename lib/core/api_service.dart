@@ -108,10 +108,7 @@ class ApiService {
       final requestHeaders = <String, String>{..._defaultHeaders, ...?headers};
 
       // Rate limiting check
-      if (!_securityService.checkRateLimit(
-        'api_${endpoint}',
-        maxRequests: 100,
-      )) {
+      if (!_securityService.checkRateLimit('api_$endpoint', maxRequests: 100)) {
         throw ApiException('Rate limit exceeded for endpoint: $endpoint', 429);
       }
 
