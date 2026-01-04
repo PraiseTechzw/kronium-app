@@ -500,8 +500,6 @@ class SmsNotificationHandler extends NotificationHandler {
 
 /// Push notification handler
 class PushNotificationHandler extends NotificationHandler {
-  final ApiService _apiService = ApiService();
-
   @override
   String get type => 'push';
 
@@ -515,7 +513,8 @@ class PushNotificationHandler extends NotificationHandler {
     try {
       logging.logger.debug('Sending push notification: ${notification.id}');
 
-      final response = await _apiService.sendPushNotification(
+      final apiService = Get.find<ApiService>();
+      final response = await apiService.sendPushNotification(
         userId: notification.recipient,
         title: notification.title,
         body: notification.body,
