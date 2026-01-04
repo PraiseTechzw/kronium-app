@@ -23,7 +23,6 @@ class _WelcomePageState extends State<WelcomePage>
 
   String _greeting = '';
   String _userName = '';
-  String _userRole = '';
 
   @override
   void initState() {
@@ -41,15 +40,17 @@ class _WelcomePageState extends State<WelcomePage>
     // Check authentication status and redirect if not logged in
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await Future.delayed(const Duration(milliseconds: 500));
-      
+
       try {
         final userAuthService = Get.find<UserAuthService>();
         final userController = Get.find<UserController>();
-        
-        if (!userAuthService.isUserLoggedIn.value || 
+
+        if (!userAuthService.isUserLoggedIn.value ||
             userController.role.value == 'guest' ||
             userAuthService.userProfile.value == null) {
-          print('Welcome: User not authenticated, redirecting to customer register');
+          print(
+            'Welcome: User not authenticated, redirecting to customer register',
+          );
           Get.offAllNamed(AppRoutes.customerRegister);
           return;
         }
@@ -91,7 +92,6 @@ class _WelcomePageState extends State<WelcomePage>
       if (mounted && userName.isNotEmpty) {
         setState(() {
           _userName = userName;
-          _userRole = userController.role.value;
         });
         print('Welcome page: Username updated to: $userName');
       }
@@ -102,7 +102,6 @@ class _WelcomePageState extends State<WelcomePage>
       if (mounted && profile != null && userController.userName.value.isEmpty) {
         setState(() {
           _userName = profile.name;
-          _userRole = userController.role.value;
         });
         print('Welcome page: Username updated from profile: ${profile.name}');
       }
@@ -113,22 +112,18 @@ class _WelcomePageState extends State<WelcomePage>
     // Get user data from userController and UserAuthService
     final userController = Get.find<UserController>();
     final userAuthService = Get.find<UserAuthService>();
-    
+
     // Try UserAuthService first (most reliable)
     if (userAuthService.userProfile.value != null) {
       _userName = userAuthService.userProfile.value!.name;
-      _userRole = userController.role.value;
     } else if (userController.userName.value.isNotEmpty) {
       _userName = userController.userName.value;
-      _userRole = userController.role.value;
     } else if (userController.userProfile.value != null) {
       _userName = userController.userProfile.value!.name;
-      _userRole = userController.role.value;
     } else {
       // If no user data, redirect to auth (should not happen due to _checkAuthentication)
       print('Welcome page: No user data found, this should not happen');
       _userName = '';
-      _userRole = 'guest';
     }
 
     print('Welcome page: Initial username: $_userName');
@@ -162,24 +157,20 @@ class _WelcomePageState extends State<WelcomePage>
     // Check authentication before navigating
     final userAuthService = Get.find<UserAuthService>();
     final userController = Get.find<UserController>();
-    
-    if (!userAuthService.isUserLoggedIn.value || 
+
+    if (!userAuthService.isUserLoggedIn.value ||
         userController.role.value == 'guest' ||
         userAuthService.userProfile.value == null) {
-      print('Welcome: User not authenticated, redirecting to customer register');
+      print(
+        'Welcome: User not authenticated, redirecting to customer register',
+      );
       Get.offAllNamed(AppRoutes.customerRegister);
       return;
     }
-    
-    // Navigate based on user role after welcome
-    final userRole = userController.role.value;
 
-    if (userRole == 'admin') {
-      Get.offAllNamed(AppRoutes.adminDashboard);
-    } else {
-      // For customers, go to home page
-      Get.offAllNamed(AppRoutes.home);
-    }
+    // Navigate based on user role after welcome
+    // For customers, go to home page
+    Get.offAllNamed(AppRoutes.home);
   }
 
   @override
@@ -293,9 +284,7 @@ class _WelcomePageState extends State<WelcomePage>
                     child: FadeTransition(
                       opacity: _fadeAnimation,
                       child: Text(
-                        _userRole == 'admin'
-                            ? 'Manage your agricultural services platform'
-                            : 'Discover innovative agricultural and construction solutions',
+                        'Discover innovative agricultural and construction solutions',
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.grey[500],

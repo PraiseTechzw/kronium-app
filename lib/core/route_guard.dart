@@ -132,9 +132,6 @@ class RouteGuard {
     if (currentRole == RoleManager.roleGuest) {
       ErrorHandler.showWarningSnackbar('Please log in to access this page');
       navigateAndReplace(AppRoutes.customerLogin);
-    } else if (_isAdminOnlyRoute(routeName) && !userController.isAdmin) {
-      ErrorHandler.showWarningSnackbar('Admin access required');
-      _navigateToAppropriateHome();
     } else if (_isCustomerOnlyRoute(routeName) && !userController.isCustomer) {
       ErrorHandler.showWarningSnackbar('Customer access required');
       _navigateToAppropriateHome();
@@ -148,9 +145,7 @@ class RouteGuard {
   static void _navigateToAppropriateHome() {
     final userController = Get.find<UserController>();
 
-    if (userController.isAdmin) {
-      navigateAndReplace(AppRoutes.adminDashboard);
-    } else if (userController.isCustomer) {
+    if (userController.isCustomer) {
       navigateAndReplace(AppRoutes.customerDashboard);
     } else {
       navigateAndReplace(AppRoutes.welcome);
@@ -169,7 +164,6 @@ class RouteGuard {
       AppRoutes.customerLogin,
       AppRoutes.customerRegister,
       AppRoutes.forgotPassword,
-      AppRoutes.adminSetup,
     ];
     return guestOnlyRoutes.contains(routeName);
   }
@@ -180,19 +174,9 @@ class RouteGuard {
     return authRequiredRoutes.contains(routeName);
   }
 
-  /// Check if route is admin-only
+  /// Check if route is admin-only - Always false since admin is removed
   static bool _isAdminOnlyRoute(String routeName) {
-    const adminOnlyRoutes = [
-      AppRoutes.adminDashboard,
-      AppRoutes.adminMain,
-      AppRoutes.adminServices,
-      AppRoutes.adminBookings,
-      AppRoutes.adminChat,
-      AppRoutes.adminAddService,
-      AppRoutes.adminProjects,
-      AppRoutes.adminManagement,
-    ];
-    return adminOnlyRoutes.contains(routeName);
+    return false; // No admin routes in customer app
   }
 
   /// Check if route is customer-only
@@ -209,12 +193,8 @@ class RouteGuard {
     try {
       final userController = Get.find<UserController>();
 
-      if (userController.isAuthenticated) {
-        if (userController.isAdmin) {
-          return AppRoutes.adminDashboard;
-        } else if (userController.isCustomer) {
-          return AppRoutes.customerDashboard;
-        }
+      if (userController.isAuthenticated && userController.isCustomer) {
+        return AppRoutes.customerDashboard;
       }
 
       return AppRoutes.splash;
@@ -255,7 +235,6 @@ class RouteGuard {
           AppRoutes.customerLogin,
           AppRoutes.customerRegister,
           AppRoutes.forgotPassword,
-          AppRoutes.adminSetup,
         ]);
       } else {
         // Authenticated users can access common routes
@@ -266,20 +245,6 @@ class RouteGuard {
           AppRoutes.knowledgeBase,
         ]);
 
-        if (userController.isAdmin) {
-          // Admin routes
-          allowedRoutes.addAll([
-            AppRoutes.adminDashboard,
-            AppRoutes.adminMain,
-            AppRoutes.adminServices,
-            AppRoutes.adminBookings,
-            AppRoutes.adminChat,
-            AppRoutes.adminAddService,
-            AppRoutes.adminProjects,
-            AppRoutes.adminManagement,
-          ]);
-        }
-
         if (userController.isCustomer) {
           // Customer routes
           allowedRoutes.addAll([
@@ -288,6 +253,7 @@ class RouteGuard {
             AppRoutes.customerChat,
             AppRoutes.projects,
             AppRoutes.projectHistory,
+            AppRoutes.addService,
           ]);
         }
       }

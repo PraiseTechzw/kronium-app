@@ -140,7 +140,7 @@ class UserController extends GetxController {
 
     // Set role if provided in profile
     if (profile.role != null && profile.role!.isNotEmpty) {
-      setRole(profile.role!, isAuthenticated: true);
+      setRole(profile.role!);
     }
 
     logger.info('User profile updated successfully');
@@ -157,8 +157,8 @@ class UserController extends GetxController {
   bool get isAuthenticated =>
       role.value != RoleManager.roleGuest && isUserLoaded;
 
-  /// Check if user is admin
-  bool get isAdmin => _roleManager.canAccessAdmin();
+  /// Check if user is admin - Always false now
+  bool get isAdmin => false;
 
   /// Check if user is customer
   bool get isCustomer => _roleManager.canAccessCustomer();

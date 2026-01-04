@@ -5,7 +5,6 @@ import 'package:kronium/core/constants.dart';
 import 'package:kronium/core/routes.dart';
 import 'package:kronium/core/user_controller.dart';
 import 'package:kronium/core/user_auth_service.dart';
-import 'package:kronium/core/admin_auth_service.dart';
 import 'package:kronium/core/settings_service.dart';
 import 'package:kronium/core/supabase_service.dart';
 import 'package:kronium/core/logger_service.dart' as logging;
@@ -76,9 +75,6 @@ Future<void> _initializeCoreServices() async {
   logging.logger.info('Initializing UserAuthService...');
   Get.put(UserAuthService.instance, permanent: true);
   await UserAuthService.instance.initialize();
-
-  logging.logger.info('Initializing AdminAuthService...');
-  Get.put(AdminAuthService.instance, permanent: true);
 
   logging.logger.info('Initializing SettingsService...');
   Get.put(SettingsService());

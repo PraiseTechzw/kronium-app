@@ -8,24 +8,18 @@ class RoleManager {
   factory RoleManager() => _instance;
   RoleManager._internal();
 
-  // Role definitions
+  // Role definitions - Only customer and guest now
   static const String roleGuest = 'guest';
   static const String roleCustomer = 'customer';
-  static const String roleAdmin = 'admin';
-  static const String roleSuperAdmin = 'super_admin';
 
-  // Permission definitions
+  // Permission definitions - Customer focused
   static const String permissionViewServices = 'view_services';
   static const String permissionBookServices = 'book_services';
   static const String permissionManageProjects = 'manage_projects';
   static const String permissionViewDashboard = 'view_dashboard';
-  static const String permissionManageServices = 'manage_services';
-  static const String permissionManageUsers = 'manage_users';
-  static const String permissionManageBookings = 'manage_bookings';
   static const String permissionViewAnalytics = 'view_analytics';
-  static const String permissionManageSystem = 'manage_system';
 
-  // Role permissions mapping
+  // Role permissions mapping - Customer focused
   static const Map<String, List<String>> rolePermissions = {
     roleGuest: [permissionViewServices],
     roleCustomer: [
@@ -33,27 +27,7 @@ class RoleManager {
       permissionBookServices,
       permissionManageProjects,
       permissionViewDashboard,
-    ],
-    roleAdmin: [
-      permissionViewServices,
-      permissionBookServices,
-      permissionManageProjects,
-      permissionViewDashboard,
-      permissionManageServices,
-      permissionManageUsers,
-      permissionManageBookings,
       permissionViewAnalytics,
-    ],
-    roleSuperAdmin: [
-      permissionViewServices,
-      permissionBookServices,
-      permissionManageProjects,
-      permissionViewDashboard,
-      permissionManageServices,
-      permissionManageUsers,
-      permissionManageBookings,
-      permissionViewAnalytics,
-      permissionManageSystem,
     ],
   };
 
@@ -98,11 +72,9 @@ class RoleManager {
     }
   }
 
-  /// Check if user can access admin features
+  /// Check if user can access admin features - Always false now
   bool canAccessAdmin() {
-    return hasPermission(permissionManageServices) ||
-        hasPermission(permissionManageUsers) ||
-        hasPermission(permissionManageBookings);
+    return false; // No admin access in customer app
   }
 
   /// Check if user can access customer features
@@ -111,33 +83,30 @@ class RoleManager {
         hasPermission(permissionManageProjects);
   }
 
-  /// Validate role transition
-  bool canTransitionToRole(String fromRole, String toRole) {
+  /// Validate role transition - Simplified for customer app
+  bool canTransitionToRole(
+    String fromRole,
+    String toRole, {
+    bool isAuthenticated = false,
+  }) {
     // Allow staying in the same role (no transition needed)
     if (fromRole == toRole) {
       return true;
     }
 
-    // Special case: Allow transition to admin during authentication
-    // This is needed when logging in as admin from any previous role
-    if (toRole == roleAdmin || toRole == roleSuperAdmin) {
-      logger.info('Allowing admin role transition during authentication');
-      return true;
-    }
-
-    // Define allowed role transitions for normal operations
+    // Define allowed role transitions for customer app only
     const allowedTransitions = {
       roleGuest: [roleCustomer],
       roleCustomer: [roleGuest],
-      roleAdmin: [roleGuest, roleCustomer],
-      roleSuperAdmin: [roleGuest, roleCustomer, roleAdmin],
     };
 
     final allowed = allowedTransitions[fromRole] ?? [];
     final canTransition = allowed.contains(toRole);
 
     if (!canTransition) {
-      logger.warning('Role transition blocked: $fromRole -> $toRole');
+      logger.warning(
+        'Role transition blocked: $fromRole -> $toRole (authenticated: $isAuthenticated)',
+      );
     }
 
     return canTransition;
@@ -150,10 +119,6 @@ class RoleManager {
         return 'Guest';
       case roleCustomer:
         return 'Customer';
-      case roleAdmin:
-        return 'Administrator';
-      case roleSuperAdmin:
-        return 'Super Administrator';
       default:
         return 'Unknown';
     }

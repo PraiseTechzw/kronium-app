@@ -108,7 +108,9 @@ class SupabaseService {
         return null;
       }
 
-      logging.logger.debug('User found: ${response['name']}');
+      logging.logger.debug(
+        'User found: ${response['name']} with role: ${response['role']}',
+      );
       return models.User.fromMap(response, id: response['id']);
     } catch (e, stackTrace) {
       logging.logger.error('Error getting user by ID: $userId', e, stackTrace);
@@ -200,6 +202,29 @@ class SupabaseService {
     } catch (e, stackTrace) {
       logging.logger.error('Error updating user: $userId', e, stackTrace);
       ErrorHandler.handleError(e, context: 'Update user');
+      rethrow;
+    }
+  }
+
+  /// Update user role specifically
+  Future<void> updateUserRole(String userId, String role) async {
+    try {
+      logging.logger.info('Updating user role: $userId to $role');
+
+      if (userId.isEmpty) {
+        throw ArgumentError('User ID is required');
+      }
+
+      if (!['customer', 'admin', 'super_admin'].contains(role)) {
+        throw ArgumentError('Invalid role: $role');
+      }
+
+      await client.from('users').update({'role': role}).eq('id', userId);
+
+      logging.logger.info('User role updated successfully: $userId -> $role');
+    } catch (e, stackTrace) {
+      logging.logger.error('Error updating user role: $userId', e, stackTrace);
+      ErrorHandler.handleError(e, context: 'Update user role');
       rethrow;
     }
   }
