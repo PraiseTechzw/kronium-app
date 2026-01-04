@@ -8,50 +8,121 @@ import 'package:kronium/core/user_auth_service.dart';
 import 'package:kronium/core/admin_auth_service.dart';
 import 'package:kronium/core/settings_service.dart';
 import 'package:kronium/core/supabase_service.dart';
+import 'package:kronium/core/logger_service.dart' as logging;
+import 'package:kronium/core/role_manager.dart';
+import 'package:kronium/core/api_service.dart';
+import 'package:kronium/core/cache_service.dart';
+import 'package:kronium/core/notification_service.dart';
+import 'package:kronium/core/repository_service.dart';
+import 'package:kronium/core/dashboard_controller.dart';
 
 void main() async {
   // Ensure Flutter binding is initialized
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Initialize logger first
+  logging.logger.initialize(isProduction: false); // Set to true for production
+
   try {
-    // Initialize Supabase
-    print('Initializing Supabase...');
-    await SupabaseService.instance.initialize();
-    print('Supabase initialized successfully');
-    
-    // Register SupabaseService as a GetX dependency
-    Get.put(SupabaseService.instance, permanent: true);
+    logging.logger.info('🚀 Starting Kronium Pro application...');
 
-    // Initialize services
-    print('Initializing UserController...');
-    Get.put(UserController(), permanent: true);
+    // Initialize core services in order
+    await _initializeCoreServices();
 
-    // Initialize authentication services
-    print('Initializing UserAuthService...');
-    Get.put(UserAuthService.instance, permanent: true);
-    await UserAuthService.instance.initialize();
+    // Initialize backend services
+    await _initializeBackendServices();
 
-    print('Initializing AdminAuthService...');
-    Get.put(AdminAuthService.instance, permanent: true);
+    // Initialize business logic services
+    await _initializeBusinessServices();
 
-    print('Initializing SettingsService...');
-    Get.put(SettingsService());
-
-    // Verify SettingsService is properly initialized
-    try {
-      Get.find<SettingsService>();
-      print('SettingsService initialized successfully');
-    } catch (e) {
-      print('Error verifying SettingsService: $e');
-    }
-
-    print('All services initialized successfully');
+    logging.logger.info('✅ All services initialized successfully');
     runApp(const KroniumProApp());
-  } catch (e) {
-    print('Error initializing app: $e');
+  } catch (e, stackTrace) {
+    logging.logger.fatal('💥 Critical error initializing app', e, stackTrace);
     // Still run the app even if some services fail to initialize
     runApp(const KroniumProApp());
   }
+}
+
+/// Initialize core services (database, auth, etc.)
+Future<void> _initializeCoreServices() async {
+  logging.logger.info('🔧 Initializing core services...');
+
+  // Initialize Supabase (database)
+  logging.logger.info('Initializing Supabase...');
+  await SupabaseService.instance.initialize();
+  Get.put(SupabaseService.instance, permanent: true);
+
+  // Initialize role manager
+  logging.logger.info('Initializing RoleManager...');
+  Get.put(RoleManager(), permanent: true);
+
+  // Initialize user controller
+  logging.logger.info('Initializing UserController...');
+  Get.put(UserController(), permanent: true);
+
+  // Initialize authentication services
+  logging.logger.info('Initializing UserAuthService...');
+  Get.put(UserAuthService.instance, permanent: true);
+  await UserAuthService.instance.initialize();
+
+  logging.logger.info('Initializing AdminAuthService...');
+  Get.put(AdminAuthService.instance, permanent: true);
+
+  logging.logger.info('Initializing SettingsService...');
+  Get.put(SettingsService());
+
+  // Verify SettingsService is properly initialized
+  try {
+    Get.find<SettingsService>();
+    logging.logger.info('SettingsService initialized successfully');
+  } catch (e) {
+    logging.logger.error('Error verifying SettingsService', e);
+  }
+
+  logging.logger.info('✅ Core services initialized');
+}
+
+/// Initialize backend services (API, cache, notifications)
+Future<void> _initializeBackendServices() async {
+  logging.logger.info('🌐 Initializing backend services...');
+
+  // Initialize API service
+  logging.logger.info('Initializing ApiService...');
+  final apiService = ApiService();
+  apiService.initialize();
+  Get.put(apiService, permanent: true);
+
+  // Initialize cache service
+  logging.logger.info('Initializing CacheService...');
+  final cacheService = CacheService();
+  await cacheService.initialize();
+  Get.put(cacheService, permanent: true);
+
+  // Initialize notification service
+  logging.logger.info('Initializing NotificationService...');
+  final notificationService = NotificationService();
+  await notificationService.initialize();
+  Get.put(notificationService, permanent: true);
+
+  // Initialize repository manager
+  logging.logger.info('Initializing RepositoryManager...');
+  final repositoryManager = RepositoryManager();
+  repositoryManager.initialize();
+  Get.put(repositoryManager, permanent: true);
+
+  logging.logger.info('✅ Backend services initialized');
+}
+
+/// Initialize business logic services (dashboard, etc.)
+Future<void> _initializeBusinessServices() async {
+  logging.logger.info('📊 Initializing business services...');
+
+  // Initialize dashboard controller
+  logging.logger.info('Initializing DashboardController...');
+  Get.put(DashboardController(), permanent: true);
+
+  logging.logger.info('✅ Business services initialized');
 }
 
 class KroniumProApp extends StatelessWidget {
@@ -66,6 +137,20 @@ class KroniumProApp extends StatelessWidget {
       initialRoute: AppRoutes.getInitialRoute(),
       getPages: AppRoutes.pages,
       defaultTransition: Transition.fadeIn,
+      // Add global error handling and responsive design
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: const TextScaler.linear(1.0), // Fixed text scaling
+          ),
+          child: child!,
+        );
+      },
+      // Global error handling
+      unknownRoute: GetPage(
+        name: '/404',
+        page: () => const Scaffold(body: Center(child: Text('Page not found'))),
+      ),
     );
   }
 }

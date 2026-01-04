@@ -129,10 +129,29 @@ class ToastUtils {
   /// Dismisses all currently visible toasts
   static void dismissAll() {
     try {
-      Get.closeAllSnackbars();
+      if (_isOverlayAvailable()) {
+        Get.closeAllSnackbars();
+      } else {
+        debugPrint('ToastUtils: Cannot dismiss toasts - overlay not available');
+      }
     } catch (e) {
       // Silently handle any errors when dismissing toasts
       debugPrint('Error dismissing toasts: $e');
+    }
+  }
+
+  /// Checks if the overlay context is available for showing snackbars
+  static bool _isOverlayAvailable() {
+    try {
+      // Check if Get context is available and has overlay
+      final context = Get.context;
+      if (context == null) return false;
+
+      // Try to find overlay - this will throw if not available
+      Overlay.of(context, rootOverlay: false);
+      return true;
+    } catch (e) {
+      return false;
     }
   }
 
@@ -152,6 +171,34 @@ class ToastUtils {
       // Validate inputs
       if (message.trim().isEmpty) {
         debugPrint('ToastUtils: Message cannot be empty');
+        return;
+      }
+
+      // Check if overlay is available before showing toast
+      if (!_isOverlayAvailable()) {
+        // Fallback to console logging with clear formatting
+        final logMessage = title.isNotEmpty ? '$title: $message' : message;
+        debugPrint('🔔 TOAST (Overlay not ready): $logMessage');
+
+        // Schedule toast to show after a short delay when overlay might be ready
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (_isOverlayAvailable()) {
+            _showToast(
+              title: title,
+              message: message,
+              backgroundColor: backgroundColor,
+              icon: icon,
+              duration: duration,
+              textColor: textColor,
+              position: position,
+              isDismissible: isDismissible,
+              showProgressIndicator: showProgressIndicator,
+            );
+          } else {
+            // Still not ready, just log it
+            debugPrint('🔔 TOAST (Deferred): $logMessage');
+          }
+        });
         return;
       }
 
@@ -191,8 +238,9 @@ class ToastUtils {
       );
     } catch (e) {
       // Fallback to console logging if toast fails
+      final logMessage = title.isNotEmpty ? '$title: $message' : message;
+      debugPrint('🔔 TOAST (Error): $logMessage');
       debugPrint('ToastUtils Error: $e');
-      debugPrint('Failed to show toast: $title - $message');
     }
   }
 }
