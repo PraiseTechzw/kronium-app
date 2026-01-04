@@ -168,13 +168,13 @@ class DashboardController extends GetxController {
       final bookings = await bookingsStream.first;
       totalBookings.value = bookings.length;
       pendingBookings.value =
-          bookings.where((b) => b.status == 'pending').length;
+          bookings.where((b) => b.status == BookingStatus.pending).length;
       completedBookings.value =
-          bookings.where((b) => b.status == 'completed').length;
+          bookings.where((b) => b.status == BookingStatus.completed).length;
 
       // Calculate total revenue
       totalRevenue.value = bookings
-          .where((b) => b.status == 'completed')
+          .where((b) => b.status == BookingStatus.completed)
           .fold(0.0, (sum, booking) => sum + booking.price);
 
       // Calculate completion rate
@@ -187,7 +187,7 @@ class DashboardController extends GetxController {
       final projectsStream = _supabaseService.getProjects();
       final projects = await projectsStream.first;
       activeProjects.value =
-          projects.where((p) => p.status != 'completed').length;
+          projects.where((p) => p.status != ProjectStatus.completed).length;
 
       // Load customers count
       final usersStream = _supabaseService.getUsers();
@@ -329,9 +329,9 @@ class DashboardController extends GetxController {
   /// Calculate user statistics
   void _calculateUserStatistics() {
     userActiveProjects.value =
-        userProjects.where((p) => p.status != 'completed').length;
+        userProjects.where((p) => p.status != ProjectStatus.completed).length;
     userCompletedProjects.value =
-        userProjects.where((p) => p.status == 'completed').length;
+        userProjects.where((p) => p.status == ProjectStatus.completed).length;
   }
 
   /// Filter projects by status
@@ -351,9 +351,34 @@ class DashboardController extends GetxController {
     if (projectStatusFilter.value == 'All') {
       return userProjects;
     }
-    return userProjects
-        .where((p) => p.status == projectStatusFilter.value.toLowerCase())
-        .toList();
+
+    // Convert string filter to enum
+    ProjectStatus? filterStatus;
+    switch (projectStatusFilter.value.toLowerCase()) {
+      case 'planning':
+        filterStatus = ProjectStatus.planning;
+        break;
+      case 'inprogress':
+      case 'in progress':
+        filterStatus = ProjectStatus.inProgress;
+        break;
+      case 'onhold':
+      case 'on hold':
+        filterStatus = ProjectStatus.onHold;
+        break;
+      case 'completed':
+        filterStatus = ProjectStatus.completed;
+        break;
+      case 'cancelled':
+        filterStatus = ProjectStatus.cancelled;
+        break;
+    }
+
+    if (filterStatus == null) {
+      return userProjects;
+    }
+
+    return userProjects.where((p) => p.status == filterStatus).toList();
   }
 
   /// Get filtered bookings
@@ -361,9 +386,33 @@ class DashboardController extends GetxController {
     if (bookingStatusFilter.value == 'All') {
       return userBookings;
     }
-    return userBookings
-        .where((b) => b.status == bookingStatusFilter.value.toLowerCase())
-        .toList();
+
+    // Convert string filter to enum
+    BookingStatus? filterStatus;
+    switch (bookingStatusFilter.value.toLowerCase()) {
+      case 'pending':
+        filterStatus = BookingStatus.pending;
+        break;
+      case 'confirmed':
+        filterStatus = BookingStatus.confirmed;
+        break;
+      case 'inprogress':
+      case 'in progress':
+        filterStatus = BookingStatus.inProgress;
+        break;
+      case 'completed':
+        filterStatus = BookingStatus.completed;
+        break;
+      case 'cancelled':
+        filterStatus = BookingStatus.cancelled;
+        break;
+    }
+
+    if (filterStatus == null) {
+      return userBookings;
+    }
+
+    return userBookings.where((b) => b.status == filterStatus).toList();
   }
 
   /// Get dashboard summary for admin
