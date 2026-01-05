@@ -1,27 +1,111 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
-.DS_Store
-.atom/
-.build/
-.buildlog/
-.history
-.svn/
-.swiftpm/
-migrate_working_dir/
+# ===================================
+# COMPREHENSIVE .GITIGNORE
+# For Flutter + Next.js + General Development
+# ===================================
 
-# IntelliJ related
+# ===================================
+# OPERATING SYSTEM FILES
+# ===================================
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.AppleDouble
+.LSOverride
+Icon?
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ===================================
+# EDITOR & IDE FILES
+# ===================================
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# IntelliJ IDEA / Android Studio
+.idea/
 *.iml
 *.ipr
 *.iws
-.idea/
+.idea_modules/
+out/
+gen/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+.netrwhist
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# Atom
+.atom/
+
+# Eclipse
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
+.recommenders
+.project
+.classpath
+.factorypath
+.buildpath
+.target
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# ===================================
+# FLUTTER & DART
+# ===================================
 
 # Flutter/Dart/Pub related
 **/doc/api/
@@ -31,7 +115,9 @@ migrate_working_dir/
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
+.packages
 /build/
+build/
 
 # Symbolication related
 app.*.symbols
@@ -39,57 +125,137 @@ app.*.symbols
 # Obfuscation related
 app.*.map.json
 
+# Generated files
+*.g.dart
+*.freezed.dart
+*.gr.dart
+*.config.dart
+*.part.dart
+
+# Coverage
+coverage/
+lcov.info
+
+# Flutter web
+web/icons/Icon-192.png
+web/icons/Icon-512.png
+web/icons/Icon-maskable-192.png
+web/icons/Icon-maskable-512.png
+web/manifest.json
+
+# ===================================
+# ANDROID
+# ===================================
+
 # Android Studio will place build artifacts here
 /android/app/debug
 /android/app/profile
 /android/app/release
 
-# Next.js Admin Dashboard
-admin/.next/
-admin/out/
-admin/node_modules/
-admin/.env
-admin/.env.local
-admin/.env.development.local
-admin/.env.test.local
-admin/.env.production.local
-admin/npm-debug.log*
-admin/yarn-debug.log*
-admin/yarn-error.log*
-admin/.pnpm-debug.log*
+# Android specific
+android/.gradle/
+android/captures/
+android/gradlew
+android/gradlew.bat
+android/local.properties
+android/app/google-services.json
+android/key.properties
+android/app/upload-keystore.jks
+android/app/release-keystore.jks
+android/.cxx/
+android/app/.cxx/
 
-# Vercel
-admin/.vercel
+# Gradle files
+.gradle/
+gradle-wrapper.jar
+gradle-wrapper.properties
 
-# TypeScript
-admin/*.tsbuildinfo
-admin/next-env.d.ts
+# ===================================
+# iOS
+# ===================================
+
+# iOS specific
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/flutter_export_environment.sh
+ios/Runner.xcworkspace/xcshareddata/
+ios/Runner/GoogleService-Info.plist
+ios/firebase_app_id_file.json
+
+# Xcode
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+*.xccheckout
+*.moved-aside
+DerivedData
+*.hmap
+*.ipa
+*.xcuserstate
+project.xcworkspace
+
+# CocoaPods
+Pods/
+Podfile.lock
+
+# Carthage
+Carthage/Build
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# ===================================
+# WEB & JAVASCRIPT/TYPESCRIPT
+# ===================================
+
+# Dependencies
+node_modules/
+jspm_packages/
+bower_components/
+
+# Production builds
+dist/
+build/
+out/
+.next/
+.nuxt/
+.output/
+.vercel/
+.netlify/
 
 # Environment files
 .env
 .env.local
+.env.development
 .env.development.local
+.env.test
 .env.test.local
+.env.production
 .env.production.local
-
-# Database and API keys
-*.db
-*.sqlite
-*.sqlite3
-database.json
-supabase/.env
+.env.staging
+.env.staging.local
 
 # Logs
-logs
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
+pnpm-debug.log*
 
 # Runtime data
-pids
+pids/
 *.pid
 *.seed
 *.pid.lock
@@ -97,13 +263,29 @@ pids
 # Coverage directory used by tools like istanbul
 coverage/
 *.lcov
+.nyc_output/
 
-# nyc test coverage
-.nyc_output
+# Instrumentation
+lib-cov/
+
+# Grunt intermediate storage
+.grunt/
+
+# Bower dependency directory
+bower_components/
+
+# node-waf configuration
+.lock-wscript
+
+# Compiled binary addons
+build/Release
 
 # Dependency directories
 node_modules/
 jspm_packages/
+
+# TypeScript cache
+*.tsbuildinfo
 
 # Optional npm cache directory
 .npm
@@ -129,87 +311,316 @@ jspm_packages/
 # Yarn Integrity file
 .yarn-integrity
 
-# parcel-bundler cache (https://parceljs.org/)
-.cache
-.parcel-cache
+# parcel-bundler cache
+.cache/
+.parcel-cache/
+
+# Webpack
+.webpack/
+
+# Rollup
+.rollup.cache/
+
+# Vite
+.vite/
+
+# SvelteKit
+.svelte-kit/
+
+# ===================================
+# NEXT.JS SPECIFIC
+# ===================================
 
 # Next.js build output
-.next
-out
+.next/
+out/
 
-# Nuxt.js build / generate output
-.nuxt
-dist
+# Next.js cache
+.next/cache/
 
-# Gatsby files
-.cache/
-public
+# Next.js static files
+.next/static/
 
-# Storybook build outputs
-.out
-.storybook-out
+# Next.js server files
+.next/server/
 
-# Temporary folders
-tmp/
-temp/
+# Next.js trace files
+.next/trace
 
-# Editor directories and files
-.vscode/
-.idea/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# TypeScript
+next-env.d.ts
+*.tsbuildinfo
 
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
+# ===================================
+# DATABASES
+# ===================================
 
-# Flutter/Dart specific additions
-.packages
-.pub/
-build/
-.flutter-plugins
-.flutter-plugins-dependencies
-.dart_tool/package_config.json
+# SQLite
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-shm
+*.db-wal
 
-# iOS specific
-ios/Pods/
-ios/.symlinks/
-ios/Flutter/flutter_export_environment.sh
-ios/Runner.xcworkspace/xcshareddata/
+# PostgreSQL
+*.pgsql
+*.sql
 
-# Android specific
-android/.gradle/
-android/captures/
-android/gradlew
-android/gradlew.bat
-android/local.properties
-android/app/google-services.json
+# MySQL
+*.mysql
 
-# Web specific
-web/icons/Icon-192.png
-web/icons/Icon-512.png
-web/icons/Icon-maskable-192.png
-web/icons/Icon-maskable-512.png
-web/manifest.json
+# MongoDB
+*.bson
 
-# Generated files
-*.g.dart
-*.freezed.dart
-*.gr.dart
+# Database dumps
+*.dump
+*.sql.gz
+
+# ===================================
+# CLOUD & DEPLOYMENT
+# ===================================
+
+# Vercel
+.vercel/
+.vercel
+
+# Netlify
+.netlify/
 
 # Firebase
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+.firebaserc
+firebase.json
 firebase_options.dart
 google-services.json
 GoogleService-Info.plist
+firebase_app_id_file.json
 
 # Supabase
 supabase/.env
 supabase/.env.local
+supabase/config.toml
+
+# AWS
+.aws/
+
+# Heroku
+.heroku/
+
+# Docker
+.dockerignore
+Dockerfile
+docker-compose.yml
+docker-compose.override.yml
+
+# Kubernetes
+*.yaml
+*.yml
+!pubspec.yaml
+!analysis_options.yaml
+
+# ===================================
+# TESTING & COVERAGE
+# ===================================
+
+# Test results
+test-results/
+test-report.xml
+coverage.xml
+*.cover
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.pytest_cache/
+.cache/
+
+# Jest
+jest.config.js
+jest.setup.js
+
+# Cypress
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
+
+# ===================================
+# SECURITY & SECRETS
+# ===================================
+
+# API Keys and secrets
+*.key
+*.pem
+*.p12
+*.p8
+*.mobileprovision
+keystore.jks
+key.properties
+secrets.json
+credentials.json
+service-account.json
+
+# Certificate files
+*.crt
+*.cer
+*.der
+*.pfx
+
+# SSH keys
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+
+# ===================================
+# TEMPORARY & CACHE FILES
+# ===================================
+
+# Temporary folders
+tmp/
+temp/
+.tmp/
+.temp/
+
+# Cache directories
+.cache/
+.sass-cache/
+.eslintcache
+.stylelintcache
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+
+# Archive files
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z
+
+# ===================================
+# DOCUMENTATION & ASSETS
+# ===================================
+
+# Generated documentation
+docs/build/
+site/
+
+# Asset optimization
+.imageoptim/
+
+# ===================================
+# MISCELLANEOUS
+# ===================================
+
+# Miscellaneous
+*.class
+*.pyc
+.svn/
+.swiftpm/
+migrate_working_dir/
+.history/
+.buildlog/
+
+# Package files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# JVM crash logs
+hs_err_pid*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Ruby
+*.gem
+*.rbc
+/.config
+/coverage/
+/InstalledFiles
+/pkg/
+/spec/reports/
+/spec/examples.txt
+/test/tmp/
+/test/version_tmp/
+/tmp/
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Rust
+target/
+Cargo.lock
+
+# PHP
+/vendor/
+composer.phar
+composer.lock
+
+# ===================================
+# PROJECT SPECIFIC
+# ===================================
+
+# Kronium specific
+database.json
+*.local
+.local/
+
+# Admin dashboard specific
+admin/.next/
+admin/out/
+admin/node_modules/
+admin/.env*
+admin/npm-debug.log*
+admin/yarn-debug.log*
+admin/yarn-error.log*
+admin/.pnpm-debug.log*
+admin/*.tsbuildinfo
+admin/next-env.d.ts
+
+# Build artifacts
+*.app
+*.ipa
+*.apk
+*.aab
+
+# ===================================
+# KEEP THESE FILES (NEGATION RULES)
+# ===================================
+
+# Keep important config files
+!.gitignore
+!.gitkeep
+!README.md
+!LICENSE
+!pubspec.yaml
+!analysis_options.yaml
+!.github/
+!.vscode/settings.json
+!.vscode/launch.json

@@ -3,6 +3,9 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useSupabase } from '../../providers'
+import { useToast } from '../../../components/ToastContainer'
+import { ConfirmDialog } from '../../../components/ConfirmDialog'
+import { LoadingSpinner } from '../../../components/LoadingSpinner'
 import {
   PlusIcon,
   PencilIcon,
@@ -19,7 +22,7 @@ interface Service {
   category: string
   image_url: string | null
   is_active: boolean
-  created_at: string
+  createdat: string
   features: string[]
   duration: string | null
   location: string | null
@@ -27,10 +30,32 @@ interface Service {
 
 export default function ServicesPage() {
   const { supabase } = useSupabase()
+  const { showSuccess, showError, showInfo } = useToast()
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
+  const [deleteDialog, setDeleteDialog] = useState<{
+    isOpen: boolean
+    serviceId: string
+    serviceName: string
+  }>({
+    isOpen: false,
+    serviceId: '',
+    serviceName: '',
+  })
+
+  // Define proper service categories
+  const serviceCategories = [
+    'Agriculture',
+    'Building', 
+    'Energy',
+    'Technology',
+    'Transport',
+    'Water Solutions',
+    'Drilling',
+    'Pumps'
+  ]
 
   useEffect(() => {
     fetchServices()
@@ -38,23 +63,34 @@ export default function ServicesPage() {
 
   const fetchServices = async () => {
     try {
+      showInfo('Loading services...', 'Fetching latest service data')
+      
       const { data, error } = await supabase
         .from('services')
         .select('*')
-        .order('created_at', { ascending: false })
+        .order('createdat', { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        console.error('Supabase error:', error)
+        throw error
+      }
+      
       setServices(data || [])
+      
+      if (data && data.length > 0) {
+        showSuccess('Services loaded successfully', `Found ${data.length} services`)
+      } else {
+        showInfo('No services found', 'Consider adding some services to get started')
+      }
     } catch (error) {
       console.error('Error fetching services:', error)
+      showError('Failed to load services', 'Please check your connection and try again')
     } finally {
       setLoading(false)
     }
   }
 
   const handleDeleteService = async (serviceId: string) => {
-    if (!confirm('Are you sure you want to delete this service?')) return
-
     try {
       const { error } = await supabase
         .from('services')
@@ -64,10 +100,32 @@ export default function ServicesPage() {
       if (error) throw error
       
       setServices(services.filter(service => service.id !== serviceId))
-      alert('Service deleted successfully')
+      showSuccess('Service deleted', 'The service has been permanently removed')
     } catch (error) {
       console.error('Error deleting service:', error)
-      alert('Error deleting service')
+      showError('Failed to delete service', 'Please try again or contact support')
+    }
+  }
+
+  const openDeleteDialog = (serviceId: string, serviceName: string) => {
+    setDeleteDialog({
+      isOpen: true,
+      serviceId,
+      serviceName,
+    })
+  }
+
+  const closeDeleteDialog = () => {
+    setDeleteDialog({
+      isOpen: false,
+      serviceId: '',
+      serviceName: '',
+    })
+  }
+
+  const confirmDelete = () => {
+    if (deleteDialog.serviceId) {
+      handleDeleteService(deleteDialog.serviceId)
     }
   }
 
@@ -83,13 +141,18 @@ export default function ServicesPage() {
       setServices(services.map(service => 
         service.id === serviceId ? { ...service, is_active: !currentStatus } : service
       ))
+      
+      const newStatus = !currentStatus ? 'activated' : 'deactivated'
+      showSuccess(`Service ${newStatus}`, `The service has been ${newStatus} successfully`)
     } catch (error) {
       console.error('Error updating service status:', error)
-      alert('Error updating service status')
+      showError('Failed to update service', 'Please try again or contact support')
     }
   }
 
-  const categories = [...new Set(services.map(service => service.category))]
+  const categories = [...new Set(services.map(service => service.category))].sort()
+  // Merge with predefined categories to ensure all are available
+  const allCategories = [...new Set([...serviceCategories, ...categories])].sort()
 
   const filteredServices = services.filter(service => {
     const matchesSearch = service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -123,6 +186,61 @@ export default function ServicesPage() {
         </Link>
       </div>
 
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-white p-4 rounded-lg shadow border">
+          <div className="flex items-center">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <BuildingStorefrontIcon className="h-6 w-6 text-blue-600" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium text-gray-600">Total Services</p>
+              <p className="text-2xl font-bold text-gray-900">{services.length}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg shadow border">
+          <div className="flex items-center">
+            <div className="p-2 bg-green-100 rounded-lg">
+              <BuildingStorefrontIcon className="h-6 w-6 text-green-600" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium text-gray-600">Active</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {services.filter(s => s.is_active).length}
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg shadow border">
+          <div className="flex items-center">
+            <div className="p-2 bg-yellow-100 rounded-lg">
+              <BuildingStorefrontIcon className="h-6 w-6 text-yellow-600" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium text-gray-600">Categories</p>
+              <p className="text-2xl font-bold text-gray-900">{allCategories.length}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg shadow border">
+          <div className="flex items-center">
+            <div className="p-2 bg-purple-100 rounded-lg">
+              <BuildingStorefrontIcon className="h-6 w-6 text-purple-600" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium text-gray-600">Avg Price</p>
+              <p className="text-2xl font-bold text-gray-900">
+                ${services.length > 0 ? Math.round(services.reduce((sum, s) => sum + s.price, 0) / services.length) : 0}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Filters */}
       <div className="bg-white p-4 rounded-lg shadow">
         <div className="flex flex-col sm:flex-row gap-4">
@@ -144,10 +262,15 @@ export default function ServicesPage() {
               onChange={(e) => setCategoryFilter(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
             >
-              <option value="all">All Categories</option>
-              {categories.map(category => (
-                <option key={category} value={category}>{category}</option>
-              ))}
+              <option value="all">All Categories ({services.length})</option>
+              {allCategories.map(category => {
+                const count = services.filter(s => s.category === category).length
+                return (
+                  <option key={category} value={category}>
+                    {category} ({count})
+                  </option>
+                )
+              })}
             </select>
           </div>
         </div>
@@ -239,7 +362,7 @@ export default function ServicesPage() {
               {/* Actions */}
               <div className="flex justify-between items-center pt-4 border-t border-gray-200">
                 <span className="text-xs text-gray-500">
-                  Created {new Date(service.created_at).toLocaleDateString()}
+                  Created {new Date(service.createdat).toLocaleDateString()}
                 </span>
                 <div className="flex space-x-2">
                   <Link
@@ -249,8 +372,9 @@ export default function ServicesPage() {
                     <PencilIcon className="h-4 w-4" />
                   </Link>
                   <button
-                    onClick={() => handleDeleteService(service.id)}
+                    onClick={() => openDeleteDialog(service.id, service.title)}
                     className="text-red-600 hover:text-red-900 p-1"
+                    title="Delete Service"
                   >
                     <TrashIcon className="h-4 w-4" />
                   </button>
@@ -284,6 +408,19 @@ export default function ServicesPage() {
           )}
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={deleteDialog.isOpen}
+        onClose={closeDeleteDialog}
+        onConfirm={confirmDelete}
+        title="Delete Service"
+        message={`Are you sure you want to delete "${deleteDialog.serviceName}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+        icon="delete"
+      />
     </div>
   )
 }

@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { useSupabase } from '../../providers'
+import { useToast } from '../../../components/ToastContainer'
+import { ConfirmDialog } from '../../../components/ConfirmDialog'
 import {
   MagnifyingGlassIcon,
   CalendarIcon,
@@ -13,27 +15,22 @@ import {
 
 interface Booking {
   id: string
-  user_id: string
-  service_id: string
+  serviceName: string
+  clientName: string
+  clientEmail: string
+  clientPhone: string
+  date: string
   status: string
-  booking_date: string
+  price: number
+  location: string
   notes: string | null
-  created_at: string
-  total_amount: number | null
-  users: {
-    name: string
-    email: string
-    phone: string
-  } | null
-  services: {
-    title: string
-    price: number
-    category: string
-  } | null
+  createdat: string
+  updatedat: string
 }
 
 export default function BookingsPage() {
   const { supabase } = useSupabase()
+  const { showSuccess, showError, showInfo } = useToast()
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -48,12 +45,8 @@ export default function BookingsPage() {
     try {
       const { data, error } = await supabase
         .from('bookings')
-        .select(`
-          *,
-          users(name, email, phone),
-          services(title, price, category)
-        `)
-        .order('created_at', { ascending: false })
+        .select('*')
+        .order('createdat', { ascending: false })
 
       if (error) throw error
       setBookings(data || [])
@@ -77,10 +70,10 @@ export default function BookingsPage() {
         booking.id === bookingId ? { ...booking, status: newStatus } : booking
       ))
       
-      alert(`Booking status updated to ${newStatus}`)
+      showSuccess('Booking updated', `Status changed to ${newStatus}`)
     } catch (error) {
       console.error('Error updating booking status:', error)
-      alert('Error updating booking status')
+      showError('Failed to update booking', 'Please try again or contact support')
     }
   }
 
@@ -94,6 +87,8 @@ export default function BookingsPage() {
         return <XCircleIcon className="h-5 w-5 text-red-500" />
       case 'completed':
         return <CheckCircleIcon className="h-5 w-5 text-blue-500" />
+      case 'inProgress':
+        return <ClockIcon className="h-5 w-5 text-purple-500" />
       default:
         return <ClockIcon className="h-5 w-5 text-gray-500" />
     }
@@ -109,6 +104,8 @@ export default function BookingsPage() {
         return 'bg-red-100 text-red-800'
       case 'completed':
         return 'bg-blue-100 text-blue-800'
+      case 'inProgress':
+        return 'bg-purple-100 text-purple-800'
       default:
         return 'bg-gray-100 text-gray-800'
     }
@@ -116,9 +113,10 @@ export default function BookingsPage() {
 
   const filteredBookings = bookings.filter(booking => {
     const matchesSearch = 
-      booking.users?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.users?.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.services?.title.toLowerCase().includes(searchTerm.toLowerCase())
+      booking.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      booking.clientEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      booking.serviceName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      booking.location.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = statusFilter === 'all' || booking.status === statusFilter
     return matchesSearch && matchesStatus
   })
@@ -137,6 +135,65 @@ export default function BookingsPage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Bookings Management</h1>
         <p className="text-gray-600">Manage all service bookings and appointments</p>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-white p-4 rounded-lg shadow border">
+          <div className="flex items-center">
+            <div className="p-2 bg-yellow-100 rounded-lg">
+              <ClockIcon className="h-6 w-6 text-yellow-600" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium text-gray-600">Pending</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {bookings.filter(b => b.status === 'pending').length}
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg shadow border">
+          <div className="flex items-center">
+            <div className="p-2 bg-green-100 rounded-lg">
+              <CheckCircleIcon className="h-6 w-6 text-green-600" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium text-gray-600">Confirmed</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {bookings.filter(b => b.status === 'confirmed').length}
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg shadow border">
+          <div className="flex items-center">
+            <div className="p-2 bg-purple-100 rounded-lg">
+              <ClockIcon className="h-6 w-6 text-purple-600" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium text-gray-600">In Progress</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {bookings.filter(b => b.status === 'inProgress').length}
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg shadow border">
+          <div className="flex items-center">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <CheckCircleIcon className="h-6 w-6 text-blue-600" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium text-gray-600">Completed</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {bookings.filter(b => b.status === 'completed').length}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Filters */}
@@ -163,6 +220,7 @@ export default function BookingsPage() {
               <option value="all">All Status</option>
               <option value="pending">Pending</option>
               <option value="confirmed">Confirmed</option>
+              <option value="inProgress">In Progress</option>
               <option value="completed">Completed</option>
               <option value="cancelled">Cancelled</option>
             </select>
@@ -186,6 +244,9 @@ export default function BookingsPage() {
                   Date & Time
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Location
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -202,18 +263,15 @@ export default function BookingsPage() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
                       <div className="text-sm font-medium text-gray-900">
-                        {booking.users?.name || 'Unknown User'}
+                        {booking.clientName}
                       </div>
-                      <div className="text-sm text-gray-500">{booking.users?.email}</div>
-                      <div className="text-sm text-gray-500">{booking.users?.phone}</div>
+                      <div className="text-sm text-gray-500">{booking.clientEmail}</div>
+                      <div className="text-sm text-gray-500">{booking.clientPhone}</div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">
-                        {booking.services?.title || 'Unknown Service'}
-                      </div>
-                      <div className="text-sm text-gray-500">{booking.services?.category}</div>
+                    <div className="text-sm font-medium text-gray-900">
+                      {booking.serviceName}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -221,12 +279,17 @@ export default function BookingsPage() {
                       <CalendarIcon className="h-4 w-4 text-gray-400 mr-2" />
                       <div>
                         <div className="text-sm text-gray-900">
-                          {new Date(booking.booking_date).toLocaleDateString()}
+                          {new Date(booking.date).toLocaleDateString()}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {new Date(booking.booking_date).toLocaleTimeString()}
+                          {new Date(booking.date).toLocaleTimeString()}
                         </div>
                       </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-sm text-gray-900 max-w-xs truncate">
+                      {booking.location}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -238,7 +301,7 @@ export default function BookingsPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${booking.total_amount || booking.services?.price || 0}
+                    ${booking.price}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex justify-end space-x-2">
@@ -270,6 +333,16 @@ export default function BookingsPage() {
                       )}
                       
                       {booking.status === 'confirmed' && (
+                        <button
+                          onClick={() => updateBookingStatus(booking.id, 'inProgress')}
+                          className="text-purple-600 hover:text-purple-900 p-1"
+                          title="Start Work"
+                        >
+                          <ClockIcon className="h-4 w-4" />
+                        </button>
+                      )}
+                      
+                      {booking.status === 'inProgress' && (
                         <button
                           onClick={() => updateBookingStatus(booking.id, 'completed')}
                           className="text-blue-600 hover:text-blue-900 p-1"
@@ -318,22 +391,26 @@ export default function BookingsPage() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Customer</label>
-                  <p className="text-sm text-gray-900">{selectedBooking.users?.name}</p>
-                  <p className="text-sm text-gray-500">{selectedBooking.users?.email}</p>
-                  <p className="text-sm text-gray-500">{selectedBooking.users?.phone}</p>
+                  <p className="text-sm text-gray-900">{selectedBooking.clientName}</p>
+                  <p className="text-sm text-gray-500">{selectedBooking.clientEmail}</p>
+                  <p className="text-sm text-gray-500">{selectedBooking.clientPhone}</p>
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Service</label>
-                  <p className="text-sm text-gray-900">{selectedBooking.services?.title}</p>
-                  <p className="text-sm text-gray-500">{selectedBooking.services?.category}</p>
+                  <p className="text-sm text-gray-900">{selectedBooking.serviceName}</p>
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Booking Date</label>
                   <p className="text-sm text-gray-900">
-                    {new Date(selectedBooking.booking_date).toLocaleString()}
+                    {new Date(selectedBooking.date).toLocaleString()}
                   </p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Location</label>
+                  <p className="text-sm text-gray-900">{selectedBooking.location}</p>
                 </div>
                 
                 <div>
@@ -345,9 +422,7 @@ export default function BookingsPage() {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Amount</label>
-                  <p className="text-sm text-gray-900">
-                    ${selectedBooking.total_amount || selectedBooking.services?.price || 0}
-                  </p>
+                  <p className="text-sm text-gray-900">${selectedBooking.price}</p>
                 </div>
                 
                 {selectedBooking.notes && (
@@ -360,7 +435,7 @@ export default function BookingsPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Created</label>
                   <p className="text-sm text-gray-500">
-                    {new Date(selectedBooking.created_at).toLocaleString()}
+                    {new Date(selectedBooking.createdat).toLocaleString()}
                   </p>
                 </div>
               </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useSupabase } from '../providers'
+import { useToast } from '../../components/ToastContainer'
 import {
   UsersIcon,
   BuildingStorefrontIcon,
@@ -23,6 +24,7 @@ interface DashboardStats {
 
 export default function DashboardPage() {
   const { supabase } = useSupabase()
+  const { showError } = useToast()
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
     totalServices: 0,
@@ -51,17 +53,13 @@ export default function DashboardPage() {
       const [recentBookingsResult, recentUsersResult] = await Promise.all([
         supabase
           .from('bookings')
-          .select(`
-            *,
-            users(name, email),
-            services(title)
-          `)
-          .order('created_at', { ascending: false })
+          .select('*')
+          .order('createdat', { ascending: false })
           .limit(5),
         supabase
           .from('users')
           .select('*')
-          .order('created_at', { ascending: false })
+          .order('createdat', { ascending: false })
           .limit(5),
       ])
 
@@ -75,6 +73,7 @@ export default function DashboardPage() {
       })
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
+      showError('Failed to load dashboard data', 'Please refresh the page or contact support')
     } finally {
       setLoading(false)
     }
@@ -180,9 +179,9 @@ export default function DashboardPage() {
                   <div key={booking.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                     <div className="mb-2 sm:mb-0">
                       <p className="text-sm font-medium text-gray-900">
-                        {booking.users?.name || 'Unknown User'}
+                        {booking.clientName || 'Unknown User'}
                       </p>
-                      <p className="text-sm text-gray-500">{booking.services?.title || 'Unknown Service'}</p>
+                      <p className="text-sm text-gray-500">{booking.serviceName || 'Unknown Service'}</p>
                     </div>
                     <div className="flex justify-between sm:block sm:text-right">
                       <p className={`text-sm font-medium ${
@@ -193,7 +192,7 @@ export default function DashboardPage() {
                         {booking.status}
                       </p>
                       <p className="text-xs text-gray-500">
-                        {new Date(booking.created_at).toLocaleDateString()}
+                        {new Date(booking.createdat).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
@@ -234,7 +233,7 @@ export default function DashboardPage() {
                         {user.is_active ? 'Active' : 'Inactive'}
                       </p>
                       <p className="text-xs text-gray-500">
-                        {new Date(user.created_at).toLocaleDateString()}
+                        {new Date(user.createdat).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
