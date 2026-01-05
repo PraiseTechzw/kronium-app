@@ -8,8 +8,8 @@ import {
   BuildingStorefrontIcon,
   CalendarIcon,
   CurrencyDollarIcon,
-  TrendingUpIcon,
-  TrendingDownIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
 } from '@heroicons/react/24/outline'
 
 interface AnalyticsData {
@@ -236,9 +236,9 @@ export default function AnalyticsPage() {
               <p className="text-2xl font-bold text-gray-900">{analytics.totalUsers}</p>
               <div className="flex items-center mt-1">
                 {analytics.recentGrowth.users >= 0 ? (
-                  <TrendingUpIcon className="h-4 w-4 text-green-500" />
+                  <ArrowUpIcon className="h-4 w-4 text-green-500" />
                 ) : (
-                  <TrendingDownIcon className="h-4 w-4 text-red-500" />
+                  <ArrowDownIcon className="h-4 w-4 text-red-500" />
                 )}
                 <span className={`text-sm ml-1 ${
                   analytics.recentGrowth.users >= 0 ? 'text-green-600' : 'text-red-600'
@@ -272,9 +272,9 @@ export default function AnalyticsPage() {
               <p className="text-2xl font-bold text-gray-900">{analytics.totalBookings}</p>
               <div className="flex items-center mt-1">
                 {analytics.recentGrowth.bookings >= 0 ? (
-                  <TrendingUpIcon className="h-4 w-4 text-green-500" />
+                  <ArrowUpIcon className="h-4 w-4 text-green-500" />
                 ) : (
-                  <TrendingDownIcon className="h-4 w-4 text-red-500" />
+                  <ArrowDownIcon className="h-4 w-4 text-red-500" />
                 )}
                 <span className={`text-sm ml-1 ${
                   analytics.recentGrowth.bookings >= 0 ? 'text-green-600' : 'text-red-600'
