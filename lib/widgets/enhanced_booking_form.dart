@@ -1073,7 +1073,10 @@ class _EnhancedBookingFormState extends State<EnhancedBookingForm> {
     final bool canSubmit =
         user != null &&
         _selectedDate != null &&
-        _locationController.text.trim().isNotEmpty &&
+        _streetAddressController.text.trim().isNotEmpty &&
+        _suburbController.text.trim().isNotEmpty &&
+        _cityController.text.trim().isNotEmpty &&
+        _selectedProvince != null &&
         _emergencyContactController.text.trim().isNotEmpty;
 
     return Container(
@@ -1139,7 +1142,7 @@ class _EnhancedBookingFormState extends State<EnhancedBookingForm> {
                                 ? BookingStatus.confirmed
                                 : BookingStatus.pending,
                         price: 0.0,
-                        location: _locationController.text.trim(),
+                        location: _getFullAddress(),
                         notes: _buildNotesWithMetadata(),
                       );
 
