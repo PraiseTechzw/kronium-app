@@ -53,3 +53,25 @@ class _EnhancedBookingFormState extends State<EnhancedBookingForm> {
 
   @override
   void dispose() {
+    _streetAddressController.dispose();
+    _suburbController.dispose();
+    _cityController.dispose();
+    _landmarksController.dispose();
+    _notesController.dispose();
+    _contactPersonController.dispose();
+    _emergencyContactController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final user = UserAuthService.instance.userProfile.value;
+    
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
+      ),
