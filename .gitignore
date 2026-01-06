@@ -365,7 +365,6 @@ next-env.d.ts
 
 # PostgreSQL
 *.pgsql
-*.sql
 
 # MySQL
 *.mysql
@@ -376,6 +375,27 @@ next-env.d.ts
 # Database dumps
 *.dump
 *.sql.gz
+
+# Database files (but keep setup/migration scripts)
+database.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-shm
+*.db-wal
+
+# Keep important SQL files
+!*setup*.sql
+!*migration*.sql
+!*schema*.sql
+!database-setup.sql
+!setup-storage.sql
+!update_services_for_image_upload.sql
+!fix_*.sql
+!add_*.sql
+!migrate_*.sql
+!check_*.sql
+!test_*.sql
 
 # ===================================
 # CLOUD & DEPLOYMENT
@@ -417,10 +437,24 @@ docker-compose.yml
 docker-compose.override.yml
 
 # Kubernetes
-*.yaml
-*.yml
+k8s/
+kubernetes/
+*.k8s.yaml
+*.k8s.yml
+deployment.yaml
+deployment.yml
+service.yaml
+service.yml
+ingress.yaml
+ingress.yml
+
+# Keep important YAML files
 !pubspec.yaml
 !analysis_options.yaml
+!.github/**/*.yml
+!.github/**/*.yaml
+!docker-compose.yml
+!docker-compose.yaml
 
 # ===================================
 # TESTING & COVERAGE
@@ -462,6 +496,13 @@ key.properties
 secrets.json
 credentials.json
 service-account.json
+.secrets
+secrets/
+
+# Environment files with secrets
+.env.secret
+.env.keys
+.env.production.secret
 
 # Certificate files
 *.crt
@@ -474,6 +515,17 @@ id_rsa
 id_rsa.pub
 id_ed25519
 id_ed25519.pub
+*.ppk
+
+# GPG keys
+*.gpg
+*.asc
+
+# OAuth and API tokens
+.token
+*.token
+access_token
+refresh_token
 
 # ===================================
 # TEMPORARY & CACHE FILES
@@ -604,11 +656,41 @@ admin/.pnpm-debug.log*
 admin/*.tsbuildinfo
 admin/next-env.d.ts
 
+# Image uploads and storage
+uploads/
+storage/
+service-images/
+user-uploads/
+temp-images/
+
 # Build artifacts
 *.app
 *.ipa
 *.apk
 *.aab
+
+# Generated documentation files
+*_COMPLETION.md
+*_FIXES.md
+*_SUMMARY.md
+*_SETUP_COMPLETE.md
+*_DEPLOYMENT.md
+*_GUIDE.md
+BACKEND_*.md
+MOBILE_*.md
+FLUTTER_*.md
+ADMIN_*.md
+PRODUCTION_*.md
+CONNECTION_*.md
+SERVICES_*.md
+
+# Keep important documentation
+!README.md
+!SETUP.md
+!INSTALLATION.md
+!CONTRIBUTING.md
+!CHANGELOG.md
+!LICENSE.md
 
 # ===================================
 # KEEP THESE FILES (NEGATION RULES)
@@ -624,3 +706,25 @@ admin/next-env.d.ts
 !.github/
 !.vscode/settings.json
 !.vscode/launch.json
+
+# Keep important project files
+!devtools_options.yaml
+!.metadata
+!.flutter-plugins-dependencies
+
+# Keep SQL setup and migration files
+!*setup*.sql
+!*migration*.sql
+!*schema*.sql
+!database-setup.sql
+!setup-storage.sql
+!update_services_for_image_upload.sql
+!fix_*.sql
+!add_*.sql
+!migrate_*.sql
+!check_*.sql
+!test_*.sql
+
+# Keep important documentation
+!SERVICE_IMAGE_UPLOAD_SETUP.md
+!SERVICE_UPLOAD_IMPLEMENTATION_SUMMARY.md

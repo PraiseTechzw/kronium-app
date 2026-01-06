@@ -21,6 +21,7 @@ interface Service {
   price: number
   category: string
   image_url: string | null
+  image_path: string | null
   is_active: boolean
   createdat: string
   features: string[]
@@ -282,9 +283,9 @@ export default function ServicesPage() {
           <div key={service.id} className="bg-white rounded-lg shadow hover:shadow-md transition-shadow">
             {/* Service Image */}
             <div className="h-48 bg-gray-200 rounded-t-lg flex items-center justify-center">
-              {service.image_url ? (
+              {(service.image_url || service.image_path) ? (
                 <img
-                  src={service.image_url}
+                  src={service.image_url || service.image_path || ''}
                   alt={service.title}
                   className="w-full h-full object-cover rounded-t-lg"
                 />

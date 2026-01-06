@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSupabase } from '../../../providers'
 import { useToast } from '../../../../components/ToastContainer'
+import { ImageUpload } from '../../../../components/ImageUpload'
 import {
   ArrowLeftIcon,
   BuildingStorefrontIcon,
@@ -22,6 +23,7 @@ export default function CreateServicePage() {
     duration: '',
     location: '',
     features: '',
+    image_path: '',
     image_url: '',
     is_active: true,
   })
@@ -36,6 +38,14 @@ export default function CreateServicePage() {
     'Drilling',
     'Pumps'
   ]
+
+  const handleImageUploaded = (imagePath: string, imageUrl: string) => {
+    setFormData(prev => ({
+      ...prev,
+      image_path: imagePath,
+      image_url: imageUrl
+    }))
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target
@@ -72,7 +82,8 @@ export default function CreateServicePage() {
         duration: formData.duration.trim() || null,
         location: formData.location.trim() || null,
         features: featuresArray,
-        image_url: formData.image_url.trim() || null,
+        image_path: formData.image_path || null,
+        image_url: formData.image_url || null,
         is_active: formData.is_active,
       }
 
@@ -238,21 +249,13 @@ export default function CreateServicePage() {
             </p>
           </div>
 
-          {/* Image URL */}
-          <div>
-            <label htmlFor="image_url" className="block text-sm font-medium text-gray-700 mb-2">
-              Image URL
-            </label>
-            <input
-              type="url"
-              id="image_url"
-              name="image_url"
-              value={formData.image_url}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
-              placeholder="https://example.com/image.jpg"
-            />
-          </div>
+          {/* Image Upload */}
+          <ImageUpload
+            onImageUploaded={handleImageUploaded}
+            currentImageUrl={formData.image_url}
+            maxSizeInMB={5}
+            className="w-full"
+          />
 
           {/* Status */}
           <div className="flex items-center">
