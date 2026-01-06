@@ -43,10 +43,10 @@ class Booking {
   factory Booking.fromMap(Map<String, dynamic> data, {String? id}) {
     return Booking(
       id: id ?? data['id'],
-      serviceName: data['serviceName'] ?? '',
-      clientName: data['clientName'] ?? '',
-      clientEmail: data['clientEmail'] ?? '',
-      clientPhone: data['clientPhone'] ?? '',
+      serviceName: data['serviceName'] ?? data['servicename'] ?? '',
+      clientName: data['clientName'] ?? data['clientname'] ?? '',
+      clientEmail: data['clientEmail'] ?? data['clientemail'] ?? '',
+      clientPhone: data['clientPhone'] ?? data['clientphone'] ?? '',
       date:
           data['date'] is DateTime
               ? data['date']
@@ -65,27 +65,31 @@ class Booking {
       emergencyContact: data['emergency_contact'],
       contactPerson: data['contact_person'],
       createdAt:
-          data['createdAt'] is DateTime
-              ? data['createdAt']
-              : (data['createdAt'] != null
-                  ? DateTime.parse(data['createdAt'].toString())
-                  : null),
+          data['createdAt'] ?? data['createdat'] != null
+              ? (data['createdAt'] ?? data['createdat']) is DateTime
+                  ? (data['createdAt'] ?? data['createdat'])
+                  : DateTime.parse(
+                    (data['createdAt'] ?? data['createdat']).toString(),
+                  )
+              : null,
       updatedAt:
-          data['updatedAt'] is DateTime
-              ? data['updatedAt']
-              : (data['updatedAt'] != null
-                  ? DateTime.parse(data['updatedAt'].toString())
-                  : null),
+          data['updatedAt'] ?? data['updatedat'] != null
+              ? (data['updatedAt'] ?? data['updatedat']) is DateTime
+                  ? (data['updatedAt'] ?? data['updatedat'])
+                  : DateTime.parse(
+                    (data['updatedAt'] ?? data['updatedat']).toString(),
+                  )
+              : null,
     );
   }
 
   // Convert to Map
   Map<String, dynamic> toMap() {
     return {
-      'serviceName': serviceName,
-      'clientName': clientName,
-      'clientEmail': clientEmail,
-      'clientPhone': clientPhone,
+      'servicename': serviceName, // lowercase to match database
+      'clientname': clientName, // lowercase to match database
+      'clientemail': clientEmail, // lowercase to match database
+      'clientphone': clientPhone, // lowercase to match database
       'date': date.toIso8601String(),
       'status': status.name,
       'price': price,
@@ -95,8 +99,8 @@ class Booking {
       'is_urgent': isUrgent,
       'emergency_contact': emergencyContact,
       'contact_person': contactPerson,
-      'createdAt': createdAt?.toIso8601String(),
-      'updatedAt': updatedAt?.toIso8601String(),
+      'createdat': createdAt?.toIso8601String(), // lowercase to match database
+      'updatedat': updatedAt?.toIso8601String(), // lowercase to match database
     };
   }
 
