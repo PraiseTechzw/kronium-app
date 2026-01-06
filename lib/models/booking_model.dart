@@ -13,6 +13,10 @@ class Booking {
   final double price;
   final String location;
   final String notes;
+  final String? priority;
+  final bool isUrgent;
+  final String? emergencyContact;
+  final String? contactPerson;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -27,6 +31,10 @@ class Booking {
     required this.price,
     required this.location,
     required this.notes,
+    this.priority,
+    this.isUrgent = false,
+    this.emergencyContact,
+    this.contactPerson,
     this.createdAt,
     this.updatedAt,
   });
@@ -39,7 +47,12 @@ class Booking {
       clientName: data['clientName'] ?? '',
       clientEmail: data['clientEmail'] ?? '',
       clientPhone: data['clientPhone'] ?? '',
-      date: data['date'] is DateTime ? data['date'] : (data['date'] != null ? DateTime.parse(data['date'].toString()) : DateTime.now()),
+      date:
+          data['date'] is DateTime
+              ? data['date']
+              : (data['date'] != null
+                  ? DateTime.parse(data['date'].toString())
+                  : DateTime.now()),
       status: BookingStatus.values.firstWhere(
         (e) => e.name == data['status'],
         orElse: () => BookingStatus.pending,
@@ -47,8 +60,22 @@ class Booking {
       price: (data['price'] ?? 0).toDouble(),
       location: data['location'] ?? '',
       notes: data['notes'] ?? '',
-      createdAt: data['createdAt'] is DateTime ? data['createdAt'] : (data['createdAt'] != null ? DateTime.parse(data['createdAt'].toString()) : null),
-      updatedAt: data['updatedAt'] is DateTime ? data['updatedAt'] : (data['updatedAt'] != null ? DateTime.parse(data['updatedAt'].toString()) : null),
+      priority: data['priority'],
+      isUrgent: data['is_urgent'] ?? false,
+      emergencyContact: data['emergency_contact'],
+      contactPerson: data['contact_person'],
+      createdAt:
+          data['createdAt'] is DateTime
+              ? data['createdAt']
+              : (data['createdAt'] != null
+                  ? DateTime.parse(data['createdAt'].toString())
+                  : null),
+      updatedAt:
+          data['updatedAt'] is DateTime
+              ? data['updatedAt']
+              : (data['updatedAt'] != null
+                  ? DateTime.parse(data['updatedAt'].toString())
+                  : null),
     );
   }
 
@@ -64,8 +91,12 @@ class Booking {
       'price': price,
       'location': location,
       'notes': notes,
-      'createdAt': createdAt,
-      'updatedAt': updatedAt,
+      'priority': priority,
+      'is_urgent': isUrgent,
+      'emergency_contact': emergencyContact,
+      'contact_person': contactPerson,
+      'createdAt': createdAt?.toIso8601String(),
+      'updatedAt': updatedAt?.toIso8601String(),
     };
   }
 
@@ -80,6 +111,10 @@ class Booking {
     double? price,
     String? location,
     String? notes,
+    String? priority,
+    bool? isUrgent,
+    String? emergencyContact,
+    String? contactPerson,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -94,6 +129,10 @@ class Booking {
       price: price ?? this.price,
       location: location ?? this.location,
       notes: notes ?? this.notes,
+      priority: priority ?? this.priority,
+      isUrgent: isUrgent ?? this.isUrgent,
+      emergencyContact: emergencyContact ?? this.emergencyContact,
+      contactPerson: contactPerson ?? this.contactPerson,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

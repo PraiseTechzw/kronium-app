@@ -3,10 +3,10 @@ import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:kronium/core/app_theme.dart';
 
-import 'package:kronium/core/user_auth_service.dart' show UserAuthService;
+import 'package:kronium/core/user_auth_service.dart';
 import 'package:kronium/core/supabase_service.dart';
 import 'package:kronium/models/service_model.dart';
-import 'package:kronium/models/booking_model.dart';
+import 'package:kronium/widgets/enhanced_booking_form.dart';
 import 'package:kronium/core/user_controller.dart';
 
 class ServicesPage extends StatefulWidget {
@@ -506,47 +506,61 @@ class ServicesPageState extends State<ServicesPage>
                 // Build final list: home screen services first, then others
                 final List<Service> allServices = [];
                 final Set<String> addedTitles = {};
-                
+
                 // Add home screen services in order (use database version if exists, otherwise hardcoded)
                 for (var homeScreenTitle in _homeScreenServices) {
                   // Try to find in database first
-                  final dbMatches = services.where(
-                    (s) => s.title.toLowerCase() == homeScreenTitle.toLowerCase(),
-                  ).toList();
-                  
+                  final dbMatches =
+                      services
+                          .where(
+                            (s) =>
+                                s.title.toLowerCase() ==
+                                homeScreenTitle.toLowerCase(),
+                          )
+                          .toList();
+
                   if (dbMatches.isNotEmpty) {
                     allServices.add(dbMatches.first);
                     addedTitles.add(dbMatches.first.title.toLowerCase());
                   } else {
                     // Use hardcoded version
-                    final hardcodedMatches = hardcodedServices.where(
-                      (s) => s.title.toLowerCase() == homeScreenTitle.toLowerCase(),
-                    ).toList();
+                    final hardcodedMatches =
+                        hardcodedServices
+                            .where(
+                              (s) =>
+                                  s.title.toLowerCase() ==
+                                  homeScreenTitle.toLowerCase(),
+                            )
+                            .toList();
                     if (hardcodedMatches.isNotEmpty) {
                       allServices.add(hardcodedMatches.first);
-                      addedTitles.add(hardcodedMatches.first.title.toLowerCase());
+                      addedTitles.add(
+                        hardcodedMatches.first.title.toLowerCase(),
+                      );
                     }
                   }
                 }
-                
+
                 // Add other services from database that aren't home screen services
                 for (var service in services) {
                   final isHomeScreen = _homeScreenServices.any(
                     (hs) => hs.toLowerCase() == service.title.toLowerCase(),
                   );
-                  if (!isHomeScreen && !addedTitles.contains(service.title.toLowerCase())) {
+                  if (!isHomeScreen &&
+                      !addedTitles.contains(service.title.toLowerCase())) {
                     allServices.add(service);
                     addedTitles.add(service.title.toLowerCase());
                   }
                 }
 
                 // Filter based on search query
-                final filtered = allServices.where((s) {
-                  final query = _searchQuery.value.toLowerCase();
-                  return query.isEmpty ||
-                      s.title.toLowerCase().contains(query) ||
-                      s.category.toLowerCase().contains(query);
-                }).toList();
+                final filtered =
+                    allServices.where((s) {
+                      final query = _searchQuery.value.toLowerCase();
+                      return query.isEmpty ||
+                          s.title.toLowerCase().contains(query) ||
+                          s.category.toLowerCase().contains(query);
+                    }).toList();
 
                 if (filtered.isEmpty) {
                   return const Center(child: Text('No services found'));
@@ -1276,7 +1290,7 @@ class _ServiceDetailSheet extends StatelessWidget {
                             ),
                             builder:
                                 (context) =>
-                                    _ServiceBookingForm(service: service),
+                                    EnhancedBookingForm(service: service),
                           );
                         },
                         style: ElevatedButton.styleFrom(
@@ -1313,450 +1327,4 @@ class _ServiceDetailSheet extends StatelessWidget {
   }
 }
 
-class _ServiceBookingForm extends StatefulWidget {
-  final Service service;
-  const _ServiceBookingForm({required this.service});
-  @override
-  State<_ServiceBookingForm> createState() => _ServiceBookingFormState();
-}
-
-class _ServiceBookingFormState extends State<_ServiceBookingForm> {
-  DateTime? _selectedDate;
-  final TextEditingController _locationController = TextEditingController();
-  final TextEditingController _notesController = TextEditingController();
-  bool _isLoading = false;
-
-  @override
-  void dispose() {
-    _locationController.dispose();
-    _notesController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final user = UserAuthService.instance.userProfile.value;
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Handle bar
-          Container(
-            margin: const EdgeInsets.only(top: 12, bottom: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Handle bar
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                // Close button
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Icon(Icons.close, size: 20, color: Colors.grey[600]),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Content
-          Flexible(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-                left: 24,
-                right: 24,
-                top: 16,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              AppTheme.primaryColor.withOpacity(0.1),
-                              AppTheme.secondaryColor.withOpacity(0.1),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Icon(
-                          Iconsax.calendar,
-                          color: AppTheme.primaryColor,
-                          size: 28,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Book This Service',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              widget.service.title,
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey[600],
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Service Location Field
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey[50],
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.grey[200]!, width: 1),
-                    ),
-                    child: TextField(
-                      controller: _locationController,
-                      decoration: InputDecoration(
-                        labelText: 'Service Location',
-                        labelStyle: TextStyle(
-                          color: Colors.grey[700],
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                        ),
-                        prefixIcon: Container(
-                          margin: const EdgeInsets.all(12),
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(
-                            Iconsax.location,
-                            color: AppTheme.primaryColor,
-                            size: 20,
-                          ),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide.none,
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide(
-                            color: AppTheme.primaryColor,
-                            width: 2,
-                          ),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 20,
-                        ),
-                        hintText:
-                            'Enter the location where you need the service',
-                        hintStyle: TextStyle(
-                          color: Colors.grey[500],
-                          fontSize: 14,
-                        ),
-                      ),
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Date Selection Field
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey[50],
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.grey[200]!, width: 1),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          margin: const EdgeInsets.all(12),
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(
-                            Iconsax.calendar,
-                            color: AppTheme.primaryColor,
-                            size: 20,
-                          ),
-                        ),
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () async {
-                              DateTime now = DateTime.now();
-                              DateTime? picked = await showDatePicker(
-                                context: context,
-                                initialDate: _selectedDate ?? now,
-                                firstDate: now,
-                                lastDate: DateTime(now.year + 2),
-                                builder: (context, child) {
-                                  return Theme(
-                                    data: Theme.of(context).copyWith(
-                                      colorScheme: ColorScheme.light(
-                                        primary: AppTheme.primaryColor,
-                                        onPrimary: Colors.white,
-                                        surface: Colors.white,
-                                        onSurface: Colors.black,
-                                      ),
-                                    ),
-                                    child: child!,
-                                  );
-                                },
-                              );
-                              if (picked != null) {
-                                setState(() {
-                                  _selectedDate = picked;
-                                });
-                              }
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 20,
-                                horizontal: 16,
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Service Date',
-                                    style: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    _selectedDate != null
-                                        ? '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}'
-                                        : 'Select a date',
-                                    style: TextStyle(
-                                      color:
-                                          _selectedDate != null
-                                              ? AppTheme.primaryColor
-                                              : Colors.grey[500],
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Additional Notes Field
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey[50],
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.grey[200]!, width: 1),
-                    ),
-                    child: TextField(
-                      controller: _notesController,
-                      decoration: InputDecoration(
-                        labelText: 'Additional Notes (Optional)',
-                        labelStyle: TextStyle(
-                          color: Colors.grey[700],
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                        ),
-                        prefixIcon: Container(
-                          margin: const EdgeInsets.all(12),
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(
-                            Iconsax.note,
-                            color: AppTheme.primaryColor,
-                            size: 20,
-                          ),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide.none,
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide(
-                            color: AppTheme.primaryColor,
-                            width: 2,
-                          ),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 20,
-                        ),
-                        hintText: 'Any special requirements or notes...',
-                        hintStyle: TextStyle(
-                          color: Colors.grey[500],
-                          fontSize: 14,
-                        ),
-                      ),
-                      maxLines: 3,
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Submit Button
-                  Container(
-                    width: double.infinity,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          AppTheme.primaryColor,
-                          AppTheme.secondaryColor,
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppTheme.primaryColor.withOpacity(0.3),
-                          blurRadius: 15,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: ElevatedButton(
-                      onPressed:
-                          _isLoading ||
-                                  user == null ||
-                                  _selectedDate == null ||
-                                  _locationController.text.trim().isEmpty
-                              ? null
-                              : () async {
-                                setState(() => _isLoading = true);
-                                try {
-                                  final booking = Booking(
-                                    serviceName: widget.service.title,
-                                    clientName: user.name,
-                                    clientEmail: user.email,
-                                    clientPhone: user.phone,
-                                    date: _selectedDate!,
-                                    status: BookingStatus.pending,
-                                    price: 0.0, // Price removed from services
-                                    location: _locationController.text.trim(),
-                                    notes: _notesController.text.trim(),
-                                  );
-                                  await Get.find<SupabaseService>().addBooking(
-                                    booking,
-                                  );
-                                  Navigator.pop(context);
-                                  Get.snackbar(
-                                    'Success! 🎉',
-                                    'Service booking submitted successfully!',
-                                    backgroundColor: Colors.green,
-                                    colorText: Colors.white,
-                                    duration: const Duration(seconds: 3),
-                                    snackPosition: SnackPosition.TOP,
-                                  );
-                                } catch (e) {
-                                  Get.snackbar(
-                                    'Error ❌',
-                                    'Failed to book service: $e',
-                                    backgroundColor: Colors.red,
-                                    colorText: Colors.white,
-                                    duration: const Duration(seconds: 4),
-                                    snackPosition: SnackPosition.TOP,
-                                  );
-                                } finally {
-                                  setState(() => _isLoading = false);
-                                }
-                              },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shadowColor: Colors.transparent,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      child:
-                          _isLoading
-                              ? const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white,
-                                  ),
-                                ),
-                              )
-                              : const Text(
-                                'Submit Booking',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+// Old booking form class removed - now using EnhancedBookingForm widget
