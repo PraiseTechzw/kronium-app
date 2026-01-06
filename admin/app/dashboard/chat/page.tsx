@@ -50,31 +50,47 @@ export default function ChatPage() {
 
   const fetchChatSessions = async () => {
     try {
-      // This is a simplified version - in a real app, you'd have a proper chat system
-      // For now, we'll simulate chat sessions based on users who have bookings
+      // Get users who have sent messages or have bookings
       const { data: users, error } = await supabase
         .from('users')
         .select(`
           id,
           name,
           email,
-          bookings(created_at)
+          created_at,
+          bookings!inner(id)
         `)
         .eq('role', 'customer')
-        .not('bookings', 'is', null)
 
       if (error) throw error
 
-      const sessions: ChatSession[] = users?.map(user => ({
-        user_id: user.id,
-        user_name: user.name,
-        user_email: user.email,
-        last_message: 'No messages yet',
-        last_message_time: new Date().toISOString(),
-        unread_count: 0,
-      })) || []
+      // For each user, get their latest message if any
+      const sessions: ChatSession[] = []
+      
+      for (const user of users || []) {
+        // Check if chat_messages table exists and get latest message
+        const { data: messages } = await supabase
+          .from('chat_messages')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
 
-      setChatSessions(sessions)
+        const lastMessage = messages?.[0]
+        
+        sessions.push({
+          user_id: user.id,
+          user_name: user.name,
+          user_email: user.email,
+          last_message: lastMessage?.message || 'No messages yet',
+          last_message_time: lastMessage?.created_at || user.created_at,
+          unread_count: 0, // TODO: Implement unread count
+        })
+      }
+
+      setChatSessions(sessions.sort((a, b) => 
+        new Date(b.last_message_time).getTime() - new Date(a.last_message_time).getTime()
+      ))
     } catch (error) {
       console.error('Error fetching chat sessions:', error)
     } finally {
@@ -84,44 +100,71 @@ export default function ChatPage() {
 
   const fetchMessages = async (userId: string) => {
     try {
-      // Simulate fetching messages - in a real app, you'd have a messages table
-      const mockMessages: ChatMessage[] = [
-        {
-          id: '1',
-          user_id: userId,
-          message: 'Hello, I have a question about my booking.',
-          is_admin: false,
-          created_at: new Date(Date.now() - 3600000).toISOString(),
-        },
-        {
-          id: '2',
-          user_id: 'admin',
-          message: 'Hi! I\'d be happy to help you with your booking. What can I assist you with?',
-          is_admin: true,
-          created_at: new Date(Date.now() - 3000000).toISOString(),
-        },
-        {
-          id: '3',
-          user_id: userId,
-          message: 'I need to reschedule my appointment for next week.',
-          is_admin: false,
-          created_at: new Date(Date.now() - 1800000).toISOString(),
-        },
-      ]
+      const { data: messages, error } = await supabase
+        .from('chat_messages')
+        .select(`
+          *,
+          users(name, email)
+        `)
+        .eq('user_id', userId)
+        .order('created_at', { ascending: true })
 
-      setMessages(mockMessages)
+      if (error) {
+        console.error('Error fetching messages:', error)
+        // If table doesn't exist, show mock messages
+        const mockMessages: ChatMessage[] = [
+          {
+            id: '1',
+            user_id: userId,
+            message: 'Hello, I have a question about my booking.',
+            is_admin: false,
+            created_at: new Date(Date.now() - 3600000).toISOString(),
+          },
+          {
+            id: '2',
+            user_id: 'admin',
+            message: 'Hi! I\'d be happy to help you with your booking. What can I assist you with?',
+            is_admin: true,
+            created_at: new Date(Date.now() - 3000000).toISOString(),
+          },
+        ]
+        setMessages(mockMessages)
+        return
+      }
+
+      setMessages(messages || [])
     } catch (error) {
       console.error('Error fetching messages:', error)
     }
   }
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || !selectedSession) return
+    if (!newMessage.trim() || !selectedSession || !user) return
 
     try {
+      const messageData = {
+        user_id: selectedSession,
+        admin_id: user.id,
+        message: newMessage,
+        is_admin: true,
+        created_at: new Date().toISOString(),
+      }
+
+      // Try to insert into chat_messages table
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .insert([messageData])
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Error saving message:', error)
+        // Still show the message locally even if save fails
+      }
+
       const message: ChatMessage = {
-        id: Date.now().toString(),
-        user_id: 'admin',
+        id: data?.id || Date.now().toString(),
+        user_id: selectedSession,
         message: newMessage,
         is_admin: true,
         created_at: new Date().toISOString(),
@@ -130,8 +173,12 @@ export default function ChatPage() {
       setMessages(prev => [...prev, message])
       setNewMessage('')
 
-      // In a real app, you'd save this to the database
-      // await supabase.from('messages').insert([message])
+      // Update the session's last message
+      setChatSessions(prev => prev.map(session => 
+        session.user_id === selectedSession 
+          ? { ...session, last_message: newMessage, last_message_time: new Date().toISOString() }
+          : session
+      ))
     } catch (error) {
       console.error('Error sending message:', error)
     }

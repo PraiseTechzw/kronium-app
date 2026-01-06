@@ -411,6 +411,99 @@ class _EnhancedBookingFormState extends State<EnhancedBookingForm> {
 
                     const SizedBox(height: 16),
 
+                    // Booking Summary Preview
+                    if (_canSubmit()) ...[
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Colors.blue[50]!, Colors.indigo[50]!],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.blue[200]!,
+                            width: 1,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Iconsax.document_text,
+                                  color: Colors.blue[700],
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Booking Summary',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue[700],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            _buildSummaryPreviewRow(
+                              'Service',
+                              widget.service.title,
+                            ),
+                            _buildSummaryPreviewRow(
+                              'Date',
+                              _selectedDate != null
+                                  ? '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}'
+                                  : 'Not selected',
+                            ),
+                            _buildSummaryPreviewRow(
+                              'Location',
+                              _getFullAddress(),
+                            ),
+                            _buildSummaryPreviewRow(
+                              'Priority',
+                              _selectedPriority,
+                            ),
+                            if (_isUrgent)
+                              Container(
+                                margin: const EdgeInsets.only(top: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.red[100],
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Iconsax.warning_2,
+                                      size: 16,
+                                      color: Colors.red[700],
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'EMERGENCY SERVICE',
+                                      style: TextStyle(
+                                        color: Colors.red[700],
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
                     // Notes
                     TextFormField(
                       controller: _notesController,
@@ -438,8 +531,29 @@ class _EnhancedBookingFormState extends State<EnhancedBookingForm> {
                         ),
                         child:
                             _isLoading
-                                ? const CircularProgressIndicator(
-                                  color: Colors.white,
+                                ? Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      _isUrgent
+                                          ? 'Submitting Emergency...'
+                                          : 'Submitting Booking...',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
                                 )
                                 : Text(
                                   _isUrgent
@@ -479,6 +593,10 @@ class _EnhancedBookingFormState extends State<EnhancedBookingForm> {
     final user = UserAuthService.instance.userProfile.value;
     if (user == null) return;
 
+    // Show confirmation dialog first
+    bool? confirmed = await _showConfirmationDialog();
+    if (confirmed != true) return;
+
     setState(() => _isLoading = true);
 
     try {
@@ -516,27 +634,14 @@ class _EnhancedBookingFormState extends State<EnhancedBookingForm> {
       );
 
       await Get.find<SupabaseService>().addBooking(booking);
+
+      // Close the form first
       Navigator.pop(context);
 
-      Get.snackbar(
-        _isUrgent ? 'Emergency Booking Submitted! 🚨' : 'Success! 🎉',
-        _isUrgent
-            ? 'Emergency service request submitted. You will be contacted within 2 hours.'
-            : 'Service booking submitted successfully!',
-        backgroundColor: _isUrgent ? Colors.red : Colors.green,
-        colorText: Colors.white,
-        duration: Duration(seconds: _isUrgent ? 5 : 3),
-        snackPosition: SnackPosition.TOP,
-      );
+      // Show enhanced success toast
+      _showSuccessToast();
     } catch (e) {
-      Get.snackbar(
-        'Error ❌',
-        'Failed to book service: $e',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        duration: const Duration(seconds: 4),
-        snackPosition: SnackPosition.TOP,
-      );
+      _showErrorToast(e.toString());
     } finally {
       setState(() => _isLoading = false);
     }
@@ -575,5 +680,263 @@ class _EnhancedBookingFormState extends State<EnhancedBookingForm> {
     }
 
     return notes + metadata;
+  }
+
+  Future<bool?> _showConfirmationDialog() async {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: _isUrgent ? Colors.red[100] : Colors.blue[100],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  _isUrgent ? Iconsax.warning_2 : Iconsax.tick_circle,
+                  color: _isUrgent ? Colors.red[700] : Colors.blue[700],
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  _isUrgent ? 'Confirm Emergency Booking' : 'Confirm Booking',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: _isUrgent ? Colors.red[700] : Colors.blue[700],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (_isUrgent) ...[
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red[50],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red[200]!),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Iconsax.warning_2, color: Colors.red[700], size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'This is an EMERGENCY request. You will be contacted within 2 hours.',
+                          style: TextStyle(
+                            color: Colors.red[700],
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+              Text(
+                'Please confirm your booking details:',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[800],
+                ),
+              ),
+              const SizedBox(height: 12),
+              _buildConfirmationRow('Service', widget.service.title),
+              _buildConfirmationRow(
+                'Date',
+                _selectedDate != null
+                    ? '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}'
+                    : 'Not selected',
+              ),
+              _buildConfirmationRow('Location', _getFullAddress()),
+              _buildConfirmationRow('Priority', _selectedPriority),
+              _buildConfirmationRow(
+                'Emergency Contact',
+                _emergencyContactController.text.trim(),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _isUrgent ? Colors.red : AppTheme.primaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                _isUrgent ? 'Submit Emergency' : 'Confirm Booking',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildSummaryPreviewRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 70,
+            child: Text(
+              '$label:',
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                color: Colors.black87,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildConfirmationRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              '$label:',
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                color: Colors.black87,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSuccessToast() {
+    Get.snackbar(
+      _isUrgent ? '🚨 Emergency Booking Submitted!' : '🎉 Booking Confirmed!',
+      _isUrgent
+          ? 'Your emergency service request has been submitted successfully. Our team will contact you within 2 hours to confirm details and arrange immediate service.'
+          : 'Your service booking has been submitted successfully! We will contact you shortly to confirm the appointment and provide further details.',
+      backgroundColor: _isUrgent ? Colors.red[600] : Colors.green[600],
+      colorText: Colors.white,
+      duration: Duration(seconds: _isUrgent ? 8 : 6),
+      snackPosition: SnackPosition.TOP,
+      margin: const EdgeInsets.all(16),
+      borderRadius: 12,
+      icon: Icon(
+        _isUrgent ? Iconsax.warning_2 : Iconsax.tick_circle,
+        color: Colors.white,
+        size: 28,
+      ),
+      shouldIconPulse: _isUrgent,
+      boxShadows: [
+        BoxShadow(
+          color: (_isUrgent ? Colors.red : Colors.green).withOpacity(0.3),
+          blurRadius: 15,
+          offset: const Offset(0, 8),
+        ),
+      ],
+      mainButton: TextButton(
+        onPressed: () {
+          Get.back();
+          // Navigate to bookings page or show booking details
+        },
+        child: const Text(
+          'View Details',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
+  }
+
+  void _showErrorToast(String error) {
+    Get.snackbar(
+      '❌ Booking Failed',
+      'We encountered an error while submitting your booking. Please check your internet connection and try again.',
+      backgroundColor: Colors.red[600],
+      colorText: Colors.white,
+      duration: const Duration(seconds: 6),
+      snackPosition: SnackPosition.TOP,
+      margin: const EdgeInsets.all(16),
+      borderRadius: 12,
+      icon: const Icon(Iconsax.close_circle, color: Colors.white, size: 28),
+      boxShadows: [
+        BoxShadow(
+          color: Colors.red.withOpacity(0.3),
+          blurRadius: 15,
+          offset: const Offset(0, 8),
+        ),
+      ],
+      mainButton: TextButton(
+        onPressed: () {
+          Get.back();
+          // Retry the booking
+          _submitBooking();
+        },
+        child: const Text(
+          'Retry',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
   }
 }

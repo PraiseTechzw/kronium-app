@@ -24,6 +24,10 @@ interface Booking {
   price: number
   location: string
   notes: string | null
+  priority: string | null
+  is_urgent: boolean | null
+  emergency_contact: string | null
+  contact_person: string | null
   createdat: string
   updatedat: string
 }
@@ -49,9 +53,12 @@ export default function BookingsPage() {
         .order('createdat', { ascending: false })
 
       if (error) throw error
+      
+      console.log('Fetched bookings:', data) // Debug log
       setBookings(data || [])
     } catch (error) {
       console.error('Error fetching bookings:', error)
+      showError('Failed to fetch bookings', 'Please refresh the page or contact support')
     } finally {
       setLoading(false)
     }
@@ -183,13 +190,13 @@ export default function BookingsPage() {
         
         <div className="bg-white p-4 rounded-lg shadow border">
           <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <CheckCircleIcon className="h-6 w-6 text-blue-600" />
+            <div className="p-2 bg-red-100 rounded-lg">
+              <ClockIcon className="h-6 w-6 text-red-600" />
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-600">Completed</p>
+              <p className="text-sm font-medium text-gray-600">Urgent</p>
               <p className="text-2xl font-bold text-gray-900">
-                {bookings.filter(b => b.status === 'completed').length}
+                {bookings.filter(b => b.is_urgent).length}
               </p>
             </div>
           </div>
@@ -247,6 +254,9 @@ export default function BookingsPage() {
                   Location
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Priority
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -290,6 +300,23 @@ export default function BookingsPage() {
                   <td className="px-6 py-4">
                     <div className="text-sm text-gray-900 max-w-xs truncate">
                       {booking.location}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      {booking.is_urgent && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 mr-2">
+                          🚨 URGENT
+                        </span>
+                      )}
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        booking.priority === 'High' ? 'bg-orange-100 text-orange-800' :
+                        booking.priority === 'Low' ? 'bg-green-100 text-green-800' :
+                        booking.priority === 'Urgent' ? 'bg-red-100 text-red-800' :
+                        'bg-blue-100 text-blue-800'
+                      }`}>
+                        {booking.priority || 'Normal'}
+                      </span>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -412,6 +439,39 @@ export default function BookingsPage() {
                   <label className="block text-sm font-medium text-gray-700">Location</label>
                   <p className="text-sm text-gray-900">{selectedBooking.location}</p>
                 </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Priority</label>
+                  <div className="flex items-center">
+                    {selectedBooking.is_urgent && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 mr-2">
+                        🚨 URGENT
+                      </span>
+                    )}
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                      selectedBooking.priority === 'High' ? 'bg-orange-100 text-orange-800' :
+                      selectedBooking.priority === 'Low' ? 'bg-green-100 text-green-800' :
+                      selectedBooking.priority === 'Urgent' ? 'bg-red-100 text-red-800' :
+                      'bg-blue-100 text-blue-800'
+                    }`}>
+                      {selectedBooking.priority || 'Normal'}
+                    </span>
+                  </div>
+                </div>
+                
+                {selectedBooking.emergency_contact && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Emergency Contact</label>
+                    <p className="text-sm text-gray-900">{selectedBooking.emergency_contact}</p>
+                  </div>
+                )}
+                
+                {selectedBooking.contact_person && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Contact Person</label>
+                    <p className="text-sm text-gray-900">{selectedBooking.contact_person}</p>
+                  </div>
+                )}
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Status</label>
