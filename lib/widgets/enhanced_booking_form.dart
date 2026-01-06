@@ -1228,8 +1228,25 @@ class _EnhancedBookingFormState extends State<EnhancedBookingForm> {
     if (_contactPersonController.text.trim().isNotEmpty) {
       metadata += 'Contact Person: ${_contactPersonController.text.trim()}\n';
     }
-    metadata +=
-        'Emergency Contact: ${_emergencyContactController.text.trim()}\n';
+    metadata += 'Emergency Contact: ${_emergencyContactController.text.trim()}\n';
+    
+    // Add detailed location information
+    metadata += '\n--- Location Details ---\n';
+    if (_streetAddressController.text.trim().isNotEmpty) {
+      metadata += 'Street Address: ${_streetAddressController.text.trim()}\n';
+    }
+    if (_suburbController.text.trim().isNotEmpty) {
+      metadata += 'Suburb/Township: ${_suburbController.text.trim()}\n';
+    }
+    if (_cityController.text.trim().isNotEmpty) {
+      metadata += 'City: ${_cityController.text.trim()}\n';
+    }
+    if (_selectedProvince != null) {
+      metadata += 'Province: $_selectedProvince\n';
+    }
+    if (_landmarksController.text.trim().isNotEmpty) {
+      metadata += 'Landmarks: ${_landmarksController.text.trim()}\n';
+    }
 
     return notes + metadata;
   }
